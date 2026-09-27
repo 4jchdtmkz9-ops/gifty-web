@@ -41,24 +41,27 @@ export default function ProfilePage() {
   const [offers, setOffers] = useState<any[]>([]);
 
   useEffect(() => {
-    authenticateTelegram()
-      .then((user) => {
-        if (!user) {
-          console.log("Telegram user is not available");
-          return;
-        }
+  authenticateTelegram()
+    .then((user) => {
+      console.log("GIFTY Telegram user:", user);
 
-        return getOffers(user.id);
-      })
-      .then((data) => {
-        if (data) {
-          setOffers(data);
-        }
-      })
-      .catch((error) => {
-        console.error("Failed to load offers:", error);
-      });
-  }, []);
+      if (!user) {
+        console.log("Telegram user is not available");
+        return;
+      }
+
+      return getOffers(user.id);
+    })
+    .then((data) => {
+      if (data) {
+        console.log("GIFTY offers:", data);
+        setOffers(data);
+      }
+    })
+    .catch((error) => {
+      console.error("GIFTY Telegram auth/offers error:", error);
+    });
+}, []);
 
   return (
     <main className="min-h-screen bg-[#0b0b0f] text-white">
