@@ -192,3 +192,20 @@ export async function acceptOffer(offerId: string) {
 
   return response.json();
 }
+export async function getIncomingOffers() {
+  const initData = getTelegramInitData();
+
+  if (!initData) {
+    throw new Error('Telegram initData is missing');
+  }
+
+  const response = await fetch(
+    `${API_URL}/offers/incoming?initData=${encodeURIComponent(initData)}`,
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch incoming offers');
+  }
+
+  return response.json();
+}

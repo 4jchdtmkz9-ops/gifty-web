@@ -3,7 +3,9 @@
 
 import { useEffect, useState } from "react";
 import {
+  acceptOffer,
   cancelOffer,
+  getIncomingOffers,
   getOffers,
 } from "../../lib/api";
 
@@ -36,14 +38,21 @@ const listedNFTs = [
 ];
 
 export default function ProfilePage() {
-  const [tab, setTab] = useState("owned");
+   const [tab, setTab] = useState("owned");
   const [offers, setOffers] = useState<any[]>([]);
+  const [incomingOffers, setIncomingOffers] = useState<any[]>([]);
 
   useEffect(() => {
-  getOffers()
-    .then((data) => {
-      console.log("GIFTY offers:", data);
-      setOffers(data);
+  Promise.all([
+    getOffers(),
+    getIncomingOffers(),
+  ])
+    .then(([myOffers, incoming]) => {
+      console.log("GIFTY offers:", myOffers);
+      console.log("GIFTY incoming offers:", incoming);
+
+      setOffers(myOffers);
+      setIncomingOffers(incoming);
     })
     .catch((error) => {
       console.error("GIFTY offers error:", error);
@@ -341,6 +350,99 @@ export default function ProfilePage() {
           </section>
         )}
 
+        {/* Incoming offers */}
+{tab === "offers" && (
+  <section className="mt-8">
+    <div className="mb-3 flex items-center justify-between">
+      <h2 className="font-semibold">Incoming offers</h2>
+
+      <span className="text-xs text-white/30">
+        {incomingOffers.length} offers
+      </span>
+    </div>
+
+    {incomingOffers.length === 0 ? (
+      <div className="rounded-2xl border border-white/10 bg-[#15151c] p-6 text-center">
+        <div className="text-4xl">
+          📥
+        </div>
+
+        <p className="mt-3 text-sm font-medium">
+          No incoming offers
+        </p>
+
+        <p className="mt-1 text-xs text-white/30">
+          Offers for your NFTs will appear here
+        </p>
+      </div>
+    ) : (
+      incomingOffers.map((offer) => (
+        <div
+          key={offer.id}
+          className="mb-3 rounded-2xl border border-white/10 bg-[#15151c] p-4"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 text-3xl">
+              {offer.gift?.emoji ?? "🎁"}
+            </div>
+
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold">
+                {offer.gift?.name ?? "Gift"}
+              </h3>
+
+              <p className="mt-1 text-xs text-white/30">
+                Incoming offer
+              </p>
+
+              <p className="mt-1 font-semibold">
+                {offer.amountTon} TON
+              </p>
+
+              {offer.buyer?.username && (
+                <p className="mt-1 text-xs text-white/30">
+                  From @{offer.buyer.username}
+                </p>
+              )}
+            </div>
+
+            <span className="rounded-xl bg-white/5 px-3 py-2 text-[10px] text-white/50">
+              {offer.status}
+            </span>
+          </div>
+
+          {offer.status === "PENDING" && (
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await acceptOffer(offer.id);
+
+                  setIncomingOffers((currentOffers) =>
+                    currentOffers.map((currentOffer) =>
+                      currentOffer.id === offer.id
+                        ? {
+                            ...currentOffer,
+                            status: "ACCEPTED",
+                          }
+                        : currentOffer,
+                    ),
+                  );
+                } catch (error) {
+                  console.error("Accept offer error:", error);
+                  alert("Failed to accept offer");
+                }
+              }}
+              className="mt-3 w-full rounded-xl bg-white py-2 text-xs font-semibold text-black"
+            >
+              Accept offer
+            </button>
+          )}
+        </div>
+      ))
+    )}
+  </section>
+)}
         {/* Transaction history */}
         <section className="mt-8">
 
