@@ -1,69 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getGifts, createTransaction, createOffer } from '../../lib/api';
 
-const gifts = [
-  {
-    id: 1,
-    name: "Diamond Ring",
-    collection: "Telegram Gifts",
-    price: 24.5,
-    emoji: "💎",
-    rarity: "Rare",
-  },
-  {
-    id: 2,
-    name: "Astral Shard",
-    collection: "Limited Gifts",
-    price: 18.2,
-    emoji: "🔮",
-    rarity: "Epic",
-  },
-  {
-    id: 3,
-    name: "Golden Bear",
-    collection: "Rare Gifts",
-    price: 42,
-    emoji: "🐻",
-    rarity: "Legendary",
-  },
-  {
-    id: 4,
-    name: "Crystal Heart",
-    collection: "Premium Gifts",
-    price: 31.8,
-    emoji: "💜",
-    rarity: "Epic",
-  },
-  {
-    id: 5,
-    name: "Magic Mushroom",
-    collection: "Fantasy Gifts",
-    price: 12.4,
-    emoji: "🍄",
-    rarity: "Rare",
-  },
-  {
-    id: 6,
-    name: "Star",
-    collection: "Cosmic Gifts",
-    price: 8.9,
-    emoji: "⭐",
-    rarity: "Common",
-  },
-];
+
 
 export default function MarketPage() {
   const [search, setSearch] = useState("");
-  const [selectedGift, setSelectedGift] = useState<
-    (typeof gifts)[number] | null
-  >(null);
+  const [marketGifts, setMarketGifts] = useState<any[]>([]);
+  useEffect(() => {
+  getGifts()
+    .then((data) => {
+      setMarketGifts(
+        data.map((gift: any) => ({
+          id: gift.id,
+          name: gift.name,
+          collection: gift.collection,
+          price: Number(gift.priceTon),
+          emoji: gift.emoji ?? "🎁",
+          rarity: "Rare",
+        })),
+      );
+    })
+    .catch((error) => {
+      console.error("Failed to load gifts:", error);
+    });
+}, []);
+  const [selectedGift, setSelectedGift] = useState<any | null>(null);
 
-  const filteredGifts = gifts.filter((gift) => {
-    const text = `${gift.name} ${gift.collection}`.toLowerCase();
+  const filteredGifts = marketGifts.filter((gift) => {
+  const text = `${gift.name} ${gift.collection}`.toLowerCase();
 
-    return text.includes(search.toLowerCase());
-  });
+  return text.includes(search.toLowerCase());
+});
 
   return (
     <main className="min-h-screen bg-[#0b0b0f] text-white">
@@ -138,7 +107,7 @@ export default function MarketPage() {
                 {gift.emoji}
 
                 <span className="absolute right-2 top-2 rounded-lg bg-black/40 px-2 py-1 text-[10px] text-white/60 backdrop-blur">
-                  {gift.rarity}
+                  {gift.rarity ?? "Common"}
                 </span>
               </div>
 
@@ -240,7 +209,7 @@ export default function MarketPage() {
                   </div>
 
                   <span className="rounded-xl bg-white/5 px-3 py-2 text-xs text-white/60">
-                    {selectedGift.rarity}
+                    {selectedGift.rarity ?? "Common"}
                   </span>
                 </div>
 
@@ -252,13 +221,57 @@ export default function MarketPage() {
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  <button className="rounded-2xl bg-white py-4 font-semibold text-black">
-                    Buy
-                  </button>
+<button
+  onClick={async () => {
+    if (!selectedGift) return;
 
-                  <button className="rounded-2xl bg-white/10 py-4 font-semibold">
-                    Make offer
-                  </button>
+    try {
+      const transaction = await createTransaction({
+        type: 'BUY',
+        amountTon: String(selectedGift.price),
+        giftId: selectedGift.id,
+      });
+
+      console.log('GIFTY transaction created:', transaction);
+      alert('Purchase created successfully');
+    } catch (error) {
+      console.error('Purchase error:', error);
+      alert('Failed to create purchase');
+    }
+  }}
+  className="rounded-2xl bg-white py-4 font-semibold text-black"
+>
+  Buy
+</button>
+
+                  <button
+  onClick={async () => {
+    if (!selectedGift) return;
+
+    const amount = prompt(
+      `Enter your offer for ${selectedGift.name} in TON:`,
+    );
+
+    if (!amount) return;
+
+    try {
+      const offer = await createOffer({
+        amountTon: amount,
+        giftId: selectedGift.id,
+        buyerId: 'cmuirp33o0000xq06adzp8oe8',
+      });
+
+      console.log('GIFTY offer created:', offer);
+      alert('Offer created successfully');
+    } catch (error) {
+      console.error('Offer error:', error);
+      alert('Failed to create offer');
+    }
+  }}
+  className="rounded-2xl bg-white/10 py-4 font-semibold"
+>
+  Make offer
+</button>
                 </div>
               </div>
             </div>

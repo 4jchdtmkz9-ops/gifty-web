@@ -1,8 +1,16 @@
 'use client';
 
-import { useEffect } from 'react';
-import { authenticateTelegram } from '../lib/api';
-import { TonConnectButton } from '@tonconnect/ui-react';
+import { useEffect, useState } from 'react';
+import {
+  authenticateTelegram,
+  connectWallet,
+  getTonBalance,
+} from '../lib/api';
+import {
+  TonConnectButton,
+  useTonAddress,
+  useTonConnectUI,
+} from '@tonconnect/ui-react';
 
 const gifts = [
   {
@@ -32,6 +40,9 @@ const gifts = [
 ];
 
 export default function Home() {
+    const walletAddress = useTonAddress();
+    const [balance, setBalance] = useState('0');
+    
   useEffect(() => {
     authenticateTelegram()
       .then((user) => {
@@ -43,6 +54,29 @@ export default function Home() {
         console.error('Telegram authentication error:', error);
       });
   }, []);
+    useEffect(() => {
+  if (!walletAddress) {
+    setBalance('0');
+    return;
+  }
+
+  connectWallet(walletAddress)
+    .then((wallet) => {
+      console.log('GIFTY wallet connected:', wallet);
+    })
+    .catch((error) => {
+      console.error('Wallet connection error:', error);
+    });
+
+  getTonBalance(walletAddress)
+    .then((data) => {
+      setBalance(data.balanceTon);
+    })
+    .catch((error) => {
+      console.error('TON balance error:', error);
+      setBalance('0');
+    });
+}, [walletAddress]);
 
   return (
     <main className="min-h-screen bg-[#0b0b0f] text-white">
@@ -64,7 +98,7 @@ export default function Home() {
 
           <div className="mt-2 flex items-end justify-between">
             <div>
-              <div className="text-3xl font-bold">0 TON</div>
+              <div className="text-3xl font-bold">{balance} TON</div>
               <p className="mt-1 text-xs text-white/40">
                 Connect wallet to start trading
               </p>
