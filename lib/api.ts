@@ -168,3 +168,27 @@ export async function cancelOffer(offerId: string) {
 
   return response.json();
 }
+export async function acceptOffer(offerId: string) {
+  const initData = getTelegramInitData();
+
+  if (!initData) {
+    throw new Error('Telegram initData is missing');
+  }
+
+  const response = await fetch(`${API_URL}/offers/accept`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      offerId,
+      initData,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to accept offer');
+  }
+
+  return response.json();
+}
