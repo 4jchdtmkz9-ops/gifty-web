@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from "react";
 import {
-  authenticateTelegram,
   cancelOffer,
   getOffers,
 } from "../../lib/api";
@@ -41,25 +40,13 @@ export default function ProfilePage() {
   const [offers, setOffers] = useState<any[]>([]);
 
   useEffect(() => {
-  authenticateTelegram()
-    .then((user) => {
-      console.log("GIFTY Telegram user:", user);
-
-      if (!user) {
-        console.log("Telegram user is not available");
-        return;
-      }
-
-      return getOffers(user.id);
-    })
+  getOffers()
     .then((data) => {
-      if (data) {
-        console.log("GIFTY offers:", data);
-        setOffers(data);
-      }
+      console.log("GIFTY offers:", data);
+      setOffers(data);
     })
     .catch((error) => {
-      console.error("GIFTY Telegram auth/offers error:", error);
+      console.error("GIFTY offers error:", error);
     });
 }, []);
 

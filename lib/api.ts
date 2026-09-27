@@ -126,9 +126,15 @@ export async function createOffer(data: {
   return response.json();
 }
 
-export async function getOffers(buyerId: string) {
+export async function getOffers() {
+  const initData = getTelegramInitData();
+
+  if (!initData) {
+    throw new Error('Telegram initData is missing');
+  }
+
   const response = await fetch(
-    `${API_URL}/offers?buyerId=${encodeURIComponent(buyerId)}`,
+    `${API_URL}/offers?initData=${encodeURIComponent(initData)}`,
   );
 
   if (!response.ok) {
@@ -139,6 +145,12 @@ export async function getOffers(buyerId: string) {
 }
 
 export async function cancelOffer(offerId: string) {
+  const initData = getTelegramInitData();
+
+  if (!initData) {
+    throw new Error('Telegram initData is missing');
+  }
+
   const response = await fetch(`${API_URL}/offers/cancel`, {
     method: 'POST',
     headers: {
@@ -146,6 +158,7 @@ export async function cancelOffer(offerId: string) {
     },
     body: JSON.stringify({
       offerId,
+      initData,
     }),
   });
 
