@@ -52,6 +52,7 @@ export async function connectWallet(
 
   return response.json();
 }
+
 export async function getTonBalance(address: string) {
   const response = await fetch(
     `${API_URL}/ton/balance?address=${encodeURIComponent(address)}`,
@@ -63,6 +64,7 @@ export async function getTonBalance(address: string) {
 
   return response.json();
 }
+
 export async function getGifts() {
   const response = await fetch(`${API_URL}/gifts`);
 
@@ -72,6 +74,7 @@ export async function getGifts() {
 
   return response.json();
 }
+
 export async function createTransaction(data: {
   type: string;
   amountTon: string;
@@ -92,19 +95,28 @@ export async function createTransaction(data: {
 
   return response.json();
 }
+
 export async function createOffer(data: {
   amountTon: string;
   giftId: string;
-  buyerId: string;
   sellerId?: string;
   expiresAt?: string;
 }) {
+  const initData = getTelegramInitData();
+
+  if (!initData) {
+    throw new Error('Telegram initData is missing');
+  }
+
   const response = await fetch(`${API_URL}/offers`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      ...data,
+      initData,
+    }),
   });
 
   if (!response.ok) {
@@ -113,6 +125,7 @@ export async function createOffer(data: {
 
   return response.json();
 }
+
 export async function getOffers(buyerId: string) {
   const response = await fetch(
     `${API_URL}/offers?buyerId=${encodeURIComponent(buyerId)}`,
@@ -124,6 +137,7 @@ export async function getOffers(buyerId: string) {
 
   return response.json();
 }
+
 export async function cancelOffer(offerId: string) {
   const response = await fetch(`${API_URL}/offers/cancel`, {
     method: 'POST',

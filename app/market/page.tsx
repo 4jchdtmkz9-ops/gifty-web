@@ -254,13 +254,11 @@ export default function MarketPage() {
 
     if (!amount) return;
 
-    try {
-      const offer = await createOffer({
-        amountTon: amount,
-        giftId: selectedGift.id,
-        buyerId: 'cmuirp33o0000xq06adzp8oe8',
-      });
-
+   try {
+  const offer = await createOffer({
+    amountTon: amount,
+    giftId: selectedGift.id,
+  });
       console.log('GIFTY offer created:', offer);
       alert('Offer created successfully');
     } catch (error) {
