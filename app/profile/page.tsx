@@ -8,6 +8,7 @@ import {
   getListedGifts,
   getOffers,
   getOwnedGifts,
+  getProfileHistory,
   rejectOffer,
   sellGift,
   unlistGift,
@@ -30,6 +31,16 @@ type Offer = {
   buyer?: { username?: string | null };
 };
 
+type HistoryItem = {
+  id: string;
+  kind: "TRANSACTION" | "OFFER";
+  event: string;
+  status: string;
+  amountTon?: string | number | null;
+  createdAt: string;
+  gift?: Gift | null;
+};
+
 type Tab = "owned" | "listed" | "offers";
 
 function formatTon(amount: string | number) {
@@ -43,6 +54,7 @@ export default function ProfilePage() {
   const [listed, setListed] = useState<Gift[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [incomingOffers, setIncomingOffers] = useState<Offer[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
@@ -53,16 +65,18 @@ export default function ProfilePage() {
     setLoading(true);
     setError("");
     try {
-      const [ownedGifts, listedGifts, myOffers, receivedOffers] = await Promise.all([
+      const [ownedGifts, listedGifts, myOffers, receivedOffers, activity] = await Promise.all([
         getOwnedGifts(),
         getListedGifts(),
         getOffers(),
         getIncomingOffers(),
+        getProfileHistory(),
       ]);
       setOwned(ownedGifts);
       setListed(listedGifts);
       setOffers(myOffers);
       setIncomingOffers(receivedOffers);
+      setHistory(activity);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Не вдалося завантажити профіль");
     } finally {
@@ -144,10 +158,13 @@ export default function ProfilePage() {
     });
   }
 
+  const activeOffers = offers.filter((offer) => !["CANCELLED", "REJECTED"].includes(offer.status));
+  const activeIncomingOffers = incomingOffers.filter((offer) => !["CANCELLED", "REJECTED"].includes(offer.status));
+
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: "owned", label: "Owned", count: owned.length },
     { id: "listed", label: "Listed", count: listed.length },
-    { id: "offers", label: "Offers", count: offers.length + incomingOffers.filter((offer) => offer.status === "PENDING").length },
+    { id: "offers", label: "Offers", count: activeOffers.length + activeIncomingOffers.length },
   ];
 
   return (
@@ -216,12 +233,34 @@ export default function ProfilePage() {
 
             {tab === "offers" && (
               <section className="mt-5 space-y-8">
-                <OfferList title="My offers" emptyTitle="No offers sent" emptyDetail="Offers you make on gifts will appear here." offers={offers} busy={busy} actionLabel="Cancel offer" actionKey="cancel" onAction={withdrawOffer} />
-                <OfferList title="Incoming offers" emptyTitle="No incoming offers" emptyDetail="Offers for your gifts will appear here." offers={incomingOffers} busy={busy} actionLabel="Accept" actionKey="accept" onAction={acceptIncomingOffer} onReject={rejectIncomingOffer} incoming />
+                <OfferList title="My offers" emptyTitle="No active offers" emptyDetail="Offers you make on gifts will appear here." offers={activeOffers} busy={busy} actionLabel="Cancel offer" actionKey="cancel" onAction={withdrawOffer} />
+                <OfferList title="Incoming offers" emptyTitle="No active incoming offers" emptyDetail="Offers for your gifts will appear here." offers={activeIncomingOffers} busy={busy} actionLabel="Accept" actionKey="accept" onAction={acceptIncomingOffer} onReject={rejectIncomingOffer} incoming />
               </section>
             )}
           </>
         )}
+
+        {!loading && <section className="mt-9">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-semibold">History</h2>
+            <span className="text-xs text-white/40">{history.length} activities</span>
+          </div>
+          {history.length === 0 ? <EmptyState icon="🕘" title="No activity yet" detail="Completed actions and past offers will appear here." /> : (
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#15151c]">
+              {history.map((item, index) => <div key={item.id} className={`flex items-center gap-3 p-4 ${index < history.length - 1 ? "border-b border-white/5" : ""}`}>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 text-xl">{item.gift?.emoji || (item.kind === "OFFER" ? "💬" : "💎")}</div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{historyTitle(item)}</p>
+                  <p className="mt-1 truncate text-xs text-white/40">{item.gift?.name || "Gift"} · {new Date(item.createdAt).toLocaleString()}</p>
+                </div>
+                <div className="text-right">
+                  {item.amountTon != null && <p className="text-sm font-semibold">{formatTon(item.amountTon)} TON</p>}
+                  <p className="mt-1 text-[10px] uppercase text-white/40">{item.status}</p>
+                </div>
+              </div>)}
+            </div>
+          )}
+        </section>}
 
         {priceEditor && (
           <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 sm:items-center" onClick={() => !busy && setPriceEditor(null)}>
@@ -240,6 +279,16 @@ export default function ProfilePage() {
       </div>
     </main>
   );
+}
+
+function historyTitle(item: HistoryItem) {
+  if (item.kind === "OFFER") {
+    if (item.status === "ACCEPTED") return "Offer accepted · awaiting payment";
+    if (item.status === "CANCELLED") return "Offer cancelled";
+    if (item.status === "REJECTED") return "Offer declined";
+  }
+  if (item.event === "BUY") return "Gift purchased";
+  return item.event.replaceAll("_", " ").toLowerCase();
 }
 
 function EmptyState({ icon, title, detail }: { icon: string; title: string; detail: string }) {

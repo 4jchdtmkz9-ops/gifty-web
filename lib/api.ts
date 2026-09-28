@@ -315,3 +315,16 @@ export async function getIncomingOffers() {
 
   return response.json();
 }
+
+export async function getProfileHistory() {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Telegram initData is missing');
+
+  const response = await fetch(
+    `${API_URL}/profile/history?initData=${encodeURIComponent(initData)}`,
+  );
+  if (!response.ok) {
+    throw new Error(await responseError(response, 'Failed to fetch profile history'));
+  }
+  return response.json();
+}
