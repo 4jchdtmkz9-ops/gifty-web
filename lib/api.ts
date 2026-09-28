@@ -93,6 +93,36 @@ export async function getOwnedGifts() {
 
   return response.json();
 }
+export async function sellGift(
+  giftId: string,
+  priceTon: string,
+) {
+  const initData = getTelegramInitData();
+
+  if (!initData) {
+    throw new Error('Telegram initData is missing');
+  }
+
+  const response = await fetch(`${API_URL}/gifts/sell`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      giftId,
+      priceTon,
+      initData,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Sell gift API error:', errorText);
+    throw new Error('Failed to sell gift');
+  }
+
+  return response.json();
+}
 
 export async function createTransaction(data: {
   type: string;
