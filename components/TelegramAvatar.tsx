@@ -2,14 +2,20 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { getTelegramProfilePhoto } from '../lib/telegram';
+import { getTelegramProfilePhoto, waitForTelegramInitData } from '../lib/telegram';
 
 export default function TelegramAvatar({ size = 28 }: { size?: number }) {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoFailed, setPhotoFailed] = useState(false);
 
   useEffect(() => {
-    setPhotoUrl(getTelegramProfilePhoto());
+    let cancelled = false;
+    void waitForTelegramInitData().then(() => {
+      if (!cancelled) setPhotoUrl(getTelegramProfilePhoto());
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const dimension = `${size}px`;

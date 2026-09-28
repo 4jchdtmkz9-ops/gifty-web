@@ -1,6 +1,6 @@
 import { getTelegramInitData } from './telegram';
 
-const API_URL = 'https://gifty-api-75hj.onrender.com';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://gifty-api-75hj.onrender.com').replace(/\/+$/, '');
 
 async function responseError(response: Response, fallback: string) {
   const text = await response.text();

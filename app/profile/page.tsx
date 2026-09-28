@@ -19,7 +19,7 @@ import {
 import TelegramAvatar from "../../components/TelegramAvatar";
 import HomeIcon from "../../components/HomeIcon";
 import BottomNav from "../../components/BottomNav";
-import { getTelegramInitData } from "../../lib/telegram";
+import { waitForTelegramInitData } from "../../lib/telegram";
 import { useIsConnectionRestored, useTonAddress } from "@tonconnect/ui-react";
 
 type Gift = {
@@ -76,7 +76,7 @@ export default function ProfilePage() {
   const refresh = useCallback(async (options?: { silent?: boolean }) => {
     if (!connectionRestored) return;
 
-    if (!getTelegramInitData()) {
+    if (!await waitForTelegramInitData()) {
       setError("Open your profile inside the GIFTY Telegram bot to load your account.");
       setLoading(false);
       return;

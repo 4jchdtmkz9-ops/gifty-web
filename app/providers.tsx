@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { TonConnectUIProvider, useIsConnectionRestored, useTonAddress } from '@tonconnect/ui-react';
 import { THEME } from '@tonconnect/ui';
 import { syncTelegramProfile } from '../lib/api';
-import { getTelegramInitData } from '../lib/telegram';
+import { waitForTelegramInitData } from '../lib/telegram';
 import MiniAppWelcomeGate from '../components/MiniAppWelcomeGate';
 import { OrbitThemeContext, type OrbitTheme } from '../components/OrbitThemeContext';
 
@@ -17,10 +17,8 @@ function WalletDatabaseSync() {
 
     let cancelled = false;
     const syncAfterTelegramLoads = async () => {
-      for (let attempt = 0; attempt < 20 && !getTelegramInitData(); attempt++) {
-        await new Promise((resolve) => setTimeout(resolve, 150));
-      }
-      if (cancelled || !getTelegramInitData()) return;
+      const initData = await waitForTelegramInitData();
+      if (cancelled || !initData) return;
 
       try {
         await syncTelegramProfile(walletAddress || undefined);

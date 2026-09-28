@@ -12,6 +12,18 @@ export function getTelegramInitData(): string | null {
   return webApp.initData || null;
 }
 
+export async function waitForTelegramInitData(timeoutMs = 5000): Promise<string | null> {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const initData = getTelegramInitData();
+    if (initData) return initData;
+    await new Promise((resolve) => window.setTimeout(resolve, 100));
+  }
+
+  return getTelegramInitData();
+}
+
 export function getTelegramProfilePhoto(): string | null {
   if (typeof window === 'undefined') return null;
 
