@@ -55,6 +55,7 @@ export default function ProfilePage() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [incomingOffers, setIncomingOffers] = useState<Offer[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [showAllHistory, setShowAllHistory] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
@@ -160,6 +161,7 @@ export default function ProfilePage() {
 
   const activeOffers = offers.filter((offer) => !["CANCELLED", "REJECTED"].includes(offer.status));
   const activeIncomingOffers = incomingOffers.filter((offer) => !["CANCELLED", "REJECTED"].includes(offer.status));
+  const visibleHistory = showAllHistory ? history : history.slice(0, 4);
 
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: "owned", label: "Owned", count: owned.length },
@@ -242,12 +244,12 @@ export default function ProfilePage() {
 
         {!loading && <section className="mt-9">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-semibold">History</h2>
+            <button type="button" aria-expanded={showAllHistory} disabled={history.length <= 4} onClick={() => setShowAllHistory((showing) => !showing)} className="font-semibold disabled:cursor-default">History</button>
             <span className="text-xs text-white/40">{history.length} activities</span>
           </div>
           {history.length === 0 ? <EmptyState icon="🕘" title="No activity yet" detail="Completed actions and past offers will appear here." /> : (
             <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#15151c]">
-              {history.map((item, index) => <div key={item.id} className={`flex items-center gap-3 p-4 ${index < history.length - 1 ? "border-b border-white/5" : ""}`}>
+              {visibleHistory.map((item, index) => <div key={item.id} className={`flex items-center gap-3 p-4 ${index < visibleHistory.length - 1 ? "border-b border-white/5" : ""}`}>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 text-xl">{item.gift?.emoji || (item.kind === "OFFER" ? "💬" : "💎")}</div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{historyTitle(item)}</p>
