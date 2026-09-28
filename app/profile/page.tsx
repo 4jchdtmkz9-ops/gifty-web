@@ -161,39 +161,7 @@ const [ownedNFTs, setOwnedNFTs] = useState<any[]>([]);
                   key={nft.id}
                   className="overflow-hidden rounded-3xl border border-white/10 bg-[#15151c]"
                 >
-                  <div className="mt-3 flex items-center justify-between gap-2">
-  <span className="text-sm font-semibold">
-    {nft.priceTon} TON
-  </span>
-
-  <button
-    type="button"
-    onClick={async () => {
-      const price = window.prompt(
-        "Enter selling price in TON",
-        String(nft.priceTon ?? ""),
-      );
-
-      if (!price) return;
-
-      try {
-        await sellGift(nft.id, price);
-
-        setOwnedNFTs((currentNFTs) =>
-          currentNFTs.filter((currentNft) => currentNft.id !== nft.id),
-        );
-
-        alert("Gift listed for sale");
-      } catch (error) {
-        console.error("Sell gift error:", error);
-        alert("Failed to list gift");
-      }
-    }}
-    className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-black"
-  >
-    Sell
-  </button>
-</div>
+                 
 
                   <div className="flex h-36 items-center justify-center bg-gradient-to-br from-[#292943] to-[#101016] text-6xl">
                     {nft.emoji}
@@ -210,11 +178,34 @@ const [ownedNFTs, setOwnedNFTs] = useState<any[]>([]);
                     </p>
 
                     <button
-                      type="button"
-                      className="mt-3 w-full rounded-xl bg-white/10 py-2 text-xs"
-                    >
-                      Sell
-                    </button>
+  type="button"
+  onClick={async () => {
+    const price = window.prompt(
+      "Enter selling price in TON",
+      String(nft.priceTon ?? ""),
+    );
+
+    if (!price) return;
+
+    try {
+      await sellGift(nft.id, price);
+
+      setOwnedNFTs((currentNFTs) =>
+        currentNFTs.filter(
+          (currentNft) => currentNft.id !== nft.id,
+        ),
+      );
+
+      alert("Gift listed for sale");
+    } catch (error) {
+      console.error("Sell gift error:", error);
+      alert("Failed to list gift");
+    }
+  }}
+  className="mt-3 w-full rounded-xl bg-white py-2 text-xs font-semibold text-black"
+>
+  Sell
+</button>
 
                   </div>
                 </div>
