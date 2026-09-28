@@ -7,25 +7,9 @@ import {
   cancelOffer,
   getIncomingOffers,
   getOffers,
+  getOwnedGifts,
 } from "../../lib/api";
 
-
-const ownedNFTs = [
-  {
-    id: 1,
-    name: "Diamond Ring",
-    collection: "Telegram Gifts",
-    price: "24.5 TON",
-    emoji: "💎",
-  },
-  {
-    id: 2,
-    name: "Crystal Heart",
-    collection: "Premium Gifts",
-    price: "31.8 TON",
-    emoji: "💜",
-  },
-];
 
 const listedNFTs = [
   {
@@ -38,24 +22,29 @@ const listedNFTs = [
 ];
 
 export default function ProfilePage() {
-   const [tab, setTab] = useState("owned");
-  const [offers, setOffers] = useState<any[]>([]);
-  const [incomingOffers, setIncomingOffers] = useState<any[]>([]);
 
+const [tab, setTab] = useState("owned");
+const [offers, setOffers] = useState<any[]>([]);
+const [incomingOffers, setIncomingOffers] = useState<any[]>([]);
+const [ownedNFTs, setOwnedNFTs] = useState<any[]>([]);
   useEffect(() => {
-  Promise.all([
-    getOffers(),
-    getIncomingOffers(),
-  ])
-    .then(([myOffers, incoming]) => {
-      console.log("GIFTY offers:", myOffers);
-      console.log("GIFTY incoming offers:", incoming);
-
-      setOffers(myOffers);
-      setIncomingOffers(incoming);
+  getOwnedGifts()
+    .then((data) => {
+      console.log("GIFTY owned gifts:", data);
+      setOwnedNFTs(data);
     })
     .catch((error) => {
-      console.error("GIFTY offers error:", error);
+      console.error("GIFTY owned gifts error:", error);
+    });
+
+  getOffers()
+    .then((data) => {
+      // ...
+    });
+
+  getIncomingOffers()
+    .then((data) => {
+      // ...
     });
 }, []);
 

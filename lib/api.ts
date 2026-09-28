@@ -74,6 +74,25 @@ export async function getGifts() {
 
   return response.json();
 }
+export async function getOwnedGifts() {
+  const initData = getTelegramInitData();
+
+  if (!initData) {
+    throw new Error('Telegram initData is missing');
+  }
+
+  const response = await fetch(
+    `${API_URL}/gifts/owned?initData=${encodeURIComponent(initData)}`,
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Owned gifts API error:', errorText);
+    throw new Error('Failed to fetch owned gifts');
+  }
+
+  return response.json();
+}
 
 export async function createTransaction(data: {
   type: string;
