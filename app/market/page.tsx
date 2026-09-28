@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getGifts } from '../../lib/api';
+import TelegramAvatar from '../../components/TelegramAvatar';
 
 type StockGift = {
   id: string;
@@ -142,7 +143,7 @@ export default function MarketPage() {
               <span>🎁</span><span className="text-[10px]">Cases</span>
             </a>
             <a href="/profile" className="flex flex-col items-center gap-1 text-slate-500">
-              <span>👤</span><span className="text-[10px]">Profile</span>
+              <TelegramAvatar size={22} /><span className="text-[10px]">Profile</span>
             </a>
           </div>
         </nav>

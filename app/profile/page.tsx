@@ -9,10 +9,13 @@ import {
   getOffers,
   getOwnedGifts,
   getProfileHistory,
+  releaseOfferAcceptance,
   rejectOffer,
   sellGift,
   unlistGift,
 } from "../../lib/api";
+import TelegramAvatar from "../../components/TelegramAvatar";
+import { getTelegramInitData } from "../../lib/telegram";
 
 type Gift = {
   id: string;
@@ -62,8 +65,14 @@ export default function ProfilePage() {
   const [priceEditor, setPriceEditor] = useState<{ gift: Gift; editing: boolean } | null>(null);
   const [priceInput, setPriceInput] = useState("");
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
+  const refresh = useCallback(async (options?: { silent?: boolean }) => {
+    if (!getTelegramInitData()) {
+      setError("Open your profile inside the GIFTY Telegram bot to load your account.");
+      setLoading(false);
+      return;
+    }
+
+    if (!options?.silent) setLoading(true);
     setError("");
     try {
       const [ownedGifts, listedGifts, myOffers, receivedOffers, activity] = await Promise.all([
@@ -84,6 +93,14 @@ export default function ProfilePage() {
       setLoading(false);
     }
   }, []);
+
+  async function refreshHistoryQuietly() {
+    try {
+      setHistory(await getProfileHistory());
+    } catch (cause) {
+      console.error("Could not refresh profile history:", cause);
+    }
+  }
 
   useEffect(() => {
     void refresh();
@@ -117,6 +134,7 @@ export default function ProfilePage() {
         ? items.map((item) => item.id === gift.id ? updated : item)
         : [updated, ...items.filter((item) => item.id !== gift.id)]);
       setPriceEditor(null);
+      void refreshHistoryQuietly();
     });
   }
 
@@ -126,6 +144,7 @@ export default function ProfilePage() {
       setListed((items) => items.filter((item) => item.id !== gift.id));
       setOwned((items) => [updated, ...items.filter((item) => item.id !== gift.id)]);
       setIncomingOffers((items) => items.map((offer) => offer.gift?.id === gift.id && offer.status === "PENDING" ? { ...offer, status: "CANCELLED" } : offer));
+      void refreshHistoryQuietly();
     });
   }
 
@@ -133,6 +152,7 @@ export default function ProfilePage() {
     await runAction(`cancel:${offer.id}`, async () => {
       const updated = await cancelOffer(offer.id);
       setOffers((items) => items.map((item) => item.id === offer.id ? { ...item, ...updated } : item));
+      void refreshHistoryQuietly();
     });
   }
 
@@ -149,6 +169,7 @@ export default function ProfilePage() {
       if (offer.gift) {
         setListed((items) => items.map((item) => item.id === offer.gift?.id ? { ...item, status: "RESERVED" } : item));
       }
+      void refreshHistoryQuietly();
     });
   }
 
@@ -156,6 +177,18 @@ export default function ProfilePage() {
     await runAction(`reject:${offer.id}`, async () => {
       const updated = await rejectOffer(offer.id);
       setIncomingOffers((items) => items.map((item) => item.id === offer.id ? { ...item, ...updated } : item));
+      void refreshHistoryQuietly();
+    });
+  }
+
+  async function releaseAcceptedOffer(offer: Offer) {
+    await runAction(`release:${offer.id}`, async () => {
+      const updated = await releaseOfferAcceptance(offer.id);
+      setIncomingOffers((items) => items.map((item) => item.id === offer.id ? { ...item, ...updated } : item));
+      if (offer.gift) {
+        setListed((items) => items.map((item) => item.id === offer.gift?.id ? { ...item, status: "LISTED" } : item));
+      }
+      void refreshHistoryQuietly();
     });
   }
 
@@ -172,14 +205,17 @@ export default function ProfilePage() {
   return (
     <main className="min-h-screen bg-[#f5f8ff] text-slate-900">
       <div className="mx-auto min-h-screen max-w-[480px] px-4 pb-28">
-        <header className="py-5">
-          <p className="text-sm font-semibold tracking-[0.18em] text-blue-700">ORBIT</p>
-          <h1 className="text-2xl font-bold">Profile</h1>
+        <header className="flex items-center justify-between py-5">
+          <div>
+            <p className="text-sm font-semibold tracking-[0.18em] text-blue-700">ORBIT</p>
+            <h1 className="text-2xl font-bold">Profile</h1>
+          </div>
+          <button type="button" onClick={() => void refresh()} disabled={loading || Boolean(busy)} aria-label="Refresh profile" className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-lg text-blue-700 shadow-sm disabled:opacity-50">↻</button>
         </header>
 
         <section className="rounded-3xl border border-slate-200 bg-white p-5">
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-3xl">👤</div>
+            <TelegramAvatar size={64} />
             <div>
               <h2 className="font-semibold">My collection</h2>
               <p className="mt-1 text-xs text-slate-500">Your gifts and marketplace activity</p>
@@ -227,7 +263,7 @@ export default function ProfilePage() {
                 <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">Listed for sale</h2><span className="text-xs text-slate-500">{listed.length} items</span></div>
                 {listed.length === 0 ? <EmptyState icon="🏷️" title="No active listings" detail="Gifts you list for sale will appear here." /> : listed.map((gift) => <article key={gift.id} className="mb-3 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3">
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-3xl">{gift.emoji || "🎁"}</div>
-                  <div className="min-w-0 flex-1"><h3 className="truncate text-sm font-semibold">{gift.name}</h3><p className="mt-1 truncate text-xs text-slate-500">{gift.collection}</p><p className="mt-2 text-sm font-semibold">{formatTon(gift.priceTon)} TON</p>{gift.status === "RESERVED" && <p className="mt-1 text-[11px] text-amber-300">Reserved for an accepted offer</p>}</div>
+                  <div className="min-w-0 flex-1"><h3 className="truncate text-sm font-semibold">{gift.name}</h3><p className="mt-1 truncate text-xs text-slate-500">{gift.collection}</p><p className="mt-2 text-sm font-semibold">{formatTon(gift.priceTon)} TON</p>{gift.status === "RESERVED" && <p className="mt-1 text-[11px] text-amber-700">Reserved for an accepted offer</p>}</div>
                   <div className="flex flex-col gap-2"><button type="button" disabled={Boolean(busy) || gift.status === "RESERVED"} onClick={() => openPriceEditor(gift, true)} className="rounded-xl bg-slate-100 px-3 py-2 text-xs disabled:opacity-50">Edit</button><button type="button" disabled={Boolean(busy) || gift.status === "RESERVED"} onClick={() => void removeListing(gift)} className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600 disabled:opacity-50">{busy === `unlist:${gift.id}` ? "…" : "Unlist"}</button></div>
                 </article>)}
               </section>
@@ -236,7 +272,7 @@ export default function ProfilePage() {
             {tab === "offers" && (
               <section className="mt-5 space-y-8">
                 <OfferList title="My offers" emptyTitle="No active offers" emptyDetail="Offers you make on gifts will appear here." offers={activeOffers} busy={busy} actionLabel="Cancel offer" actionKey="cancel" onAction={withdrawOffer} />
-                <OfferList title="Incoming offers" emptyTitle="No active incoming offers" emptyDetail="Offers for your gifts will appear here." offers={activeIncomingOffers} busy={busy} actionLabel="Accept" actionKey="accept" onAction={acceptIncomingOffer} onReject={rejectIncomingOffer} incoming />
+                <OfferList title="Incoming offers" emptyTitle="No active incoming offers" emptyDetail="Offers for your gifts will appear here." offers={activeIncomingOffers} busy={busy} actionLabel="Accept" actionKey="accept" onAction={acceptIncomingOffer} onReject={rejectIncomingOffer} onRelease={releaseAcceptedOffer} incoming />
               </section>
             )}
           </>
@@ -294,7 +330,7 @@ export default function ProfilePage() {
               <span className="text-[10px]">Cases</span>
             </a>
             <a href="/profile" aria-current="page" className="flex flex-col items-center gap-1 text-blue-700">
-              <span>👤</span>
+              <TelegramAvatar size={22} />
               <span className="text-[10px]">Profile</span>
             </a>
           </div>
@@ -318,10 +354,11 @@ function EmptyState({ icon, title, detail }: { icon: string; title: string; deta
   return <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center"><div className="text-4xl">{icon}</div><p className="mt-3 text-sm font-medium">{title}</p><p className="mt-1 text-xs text-slate-500">{detail}</p></div>;
 }
 
-function OfferList({ title, emptyTitle, emptyDetail, offers, busy, actionLabel, actionKey, onAction, onReject, incoming = false }: {
+function OfferList({ title, emptyTitle, emptyDetail, offers, busy, actionLabel, actionKey, onAction, onReject, onRelease, incoming = false }: {
   title: string; emptyTitle: string; emptyDetail: string; offers: Offer[]; busy: string;
   actionLabel: string; actionKey: "cancel" | "accept"; onAction: (offer: Offer) => Promise<void>; incoming?: boolean;
   onReject?: (offer: Offer) => Promise<void>;
+  onRelease?: (offer: Offer) => Promise<void>;
 }) {
   return <div>
     <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{title}</h2><span className="text-xs text-slate-500">{offers.length} offers</span></div>
@@ -330,6 +367,10 @@ function OfferList({ title, emptyTitle, emptyDetail, offers, busy, actionLabel, 
       {offer.status === "PENDING" && <div className={incoming ? "mt-3 grid grid-cols-2 gap-2" : "mt-3"}>
         <button type="button" disabled={Boolean(busy)} onClick={() => void onAction(offer)} className={`w-full rounded-xl py-2 text-xs disabled:opacity-50 ${actionKey === "accept" ? "bg-blue-700 font-semibold text-white" : "bg-slate-100 text-slate-700"}`}>{busy === `${actionKey}:${offer.id}` ? "Please wait…" : actionLabel}</button>
         {incoming && onReject && <button type="button" disabled={Boolean(busy)} onClick={() => void onReject(offer)} className="w-full rounded-xl bg-slate-100 py-2 text-xs disabled:opacity-50">{busy === `reject:${offer.id}` ? "Please wait…" : "Decline"}</button>}
+      </div>}
+      {incoming && offer.status === "ACCEPTED" && onRelease && <div className="mt-3 rounded-xl bg-amber-50 p-3">
+        <p className="text-xs leading-5 text-amber-900">This offer only reserves the gift in GIFTY. Payment and NFT transfer are not automated yet. Release it if the deal will not continue.</p>
+        <button type="button" disabled={Boolean(busy)} onClick={() => void onRelease(offer)} className="mt-2 w-full rounded-xl bg-white py-2 text-xs font-medium text-slate-700 shadow-sm disabled:opacity-50">{busy === `release:${offer.id}` ? "Please wait…" : "Release reservation"}</button>
       </div>}
     </article>)}
   </div>;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import TelegramAvatar from "../../components/TelegramAvatar";
 
 const cases = [
   {
@@ -150,7 +151,7 @@ export default function CasesPage() {
               href="/profile"
               className="flex flex-col items-center gap-1 text-slate-500"
             >
-              <span>👤</span>
+              <TelegramAvatar size={22} />
               <span className="text-[10px]">Profile</span>
             </a>
 

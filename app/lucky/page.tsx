@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import TelegramAvatar from "../../components/TelegramAvatar";
 
 const gifts = [
   { name: "Diamond Ring", emoji: "💎", price: "24.5 TON" },
@@ -200,7 +201,7 @@ export default function LuckyPage() {
               href="/profile"
               className="flex flex-col items-center gap-1 text-slate-500"
             >
-              <span>👤</span>
+              <TelegramAvatar size={22} />
               <span className="text-[10px]">Profile</span>
             </a>
 

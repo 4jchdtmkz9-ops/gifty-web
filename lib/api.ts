@@ -305,6 +305,21 @@ export async function rejectOffer(offerId: string) {
   return response.json();
 }
 
+export async function releaseOfferAcceptance(offerId: string) {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Telegram initData is missing');
+
+  const response = await fetch(`${API_URL}/offers/release-accepted`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ offerId, initData }),
+  });
+  if (!response.ok) {
+    throw new Error(await responseError(response, 'Failed to release accepted offer'));
+  }
+  return response.json();
+}
+
 export async function getIncomingOffers() {
   const initData = getTelegramInitData();
 

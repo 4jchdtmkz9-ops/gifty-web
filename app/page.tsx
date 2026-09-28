@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import TelegramAvatar from '../components/TelegramAvatar';
 import {
   authenticateTelegram,
   connectWallet,
@@ -274,7 +275,7 @@ export default function Home() {
               href="/profile"
               className="flex flex-col items-center gap-1 text-slate-500"
             >
-              <span>👤</span>
+              <TelegramAvatar size={22} />
               <span className="text-[10px]">Profile</span>
             </a>
 
