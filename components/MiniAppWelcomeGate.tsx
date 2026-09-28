@@ -14,7 +14,7 @@ export default function MiniAppWelcomeGate({
 
   return (
     <main className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col overflow-y-auto bg-white text-slate-950">
-      <div className="relative mx-auto flex h-[65dvh] min-h-[360px] max-h-[680px] w-full max-w-[480px] shrink-0 items-center justify-center">
+      <div className="relative mx-auto aspect-[9/16] w-full shrink-0">
         <Image
           src="/orbit-welcome.jpg"
           alt="ORBIT digital collectibles"
