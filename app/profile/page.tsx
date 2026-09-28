@@ -199,14 +199,18 @@ const [ownedNFTs, setOwnedNFTs] = useState<any[]>([]);
       alert("Gift listed for sale");
     } catch (error) {
       console.error("Sell gift error:", error);
-      alert("Failed to list gift");
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to list gift",
+      );
     }
   }}
   className="mt-3 w-full rounded-xl bg-white py-2 text-xs font-semibold text-black"
 >
   Sell
 </button>
-
                   </div>
                 </div>
               ))}
