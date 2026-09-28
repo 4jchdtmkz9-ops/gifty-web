@@ -115,11 +115,15 @@ export async function sellGift(
     }),
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Sell gift API error:', errorText);
-    throw new Error('Failed to sell gift');
-  }
+if (!response.ok) {
+  const errorText = await response.text();
+
+  console.error('Sell gift API error:', errorText);
+
+  throw new Error(
+    `Sell API ${response.status}: ${errorText}`,
+  );
+}
 
   return response.json();
 }
