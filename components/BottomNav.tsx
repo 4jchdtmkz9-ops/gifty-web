@@ -5,6 +5,7 @@ import CasesIcon from './CasesIcon';
 import HomeIcon from './HomeIcon';
 import MarketIcon from './MarketIcon';
 import TelegramAvatar from './TelegramAvatar';
+import { useOrbitTheme } from './OrbitThemeContext';
 
 type NavTab = 'home' | 'market' | 'cases' | 'profile';
 
@@ -16,6 +17,8 @@ const tabs: { id: NavTab; label: string; href: string }[] = [
 ];
 
 export default function BottomNav({ active }: { active: NavTab | null }) {
+  const { theme, toggleTheme } = useOrbitTheme();
+
   return (
     <nav
       aria-label="Main navigation"
@@ -43,6 +46,25 @@ export default function BottomNav({ active }: { active: NavTab | null }) {
           </Link>
         );
       })}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+        className="flex min-w-[54px] flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 text-slate-500 transition-colors hover:bg-white/60"
+      >
+        {theme === 'dark' ? (
+          <svg viewBox="0 0 24 24" fill="none" className="h-[22px] w-[22px]" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.7" />
+            <path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+          </svg>
+        ) : (
+          <svg viewBox="0 0 24 24" fill="none" className="h-[22px] w-[22px]" aria-hidden="true">
+            <path d="M20.2 15.4A8.4 8.4 0 0 1 8.6 3.8a8.5 8.5 0 1 0 11.6 11.6Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+        <span className="text-[10px] font-medium leading-none">{theme === 'dark' ? 'Light' : 'Dark'}</span>
+      </button>
     </nav>
   );
 }

@@ -101,10 +101,10 @@ export default function CryptanCasePage() {
         </header>
 
         <section className="overflow-hidden rounded-[28px] border border-blue-100 bg-white shadow-[0_12px_32px_rgba(21,87,213,0.09)]">
-          <div className="relative flex h-[220px] items-center overflow-hidden bg-white">
+          <div className="case-art-stage relative flex h-[220px] items-center overflow-hidden bg-white">
             {purchased || opening ? (
               <div ref={rouletteRef} className="relative flex h-full w-full items-center gap-2.5 overflow-hidden px-3">
-                {(purchased || opening) && <span className="pointer-events-none absolute bottom-4 top-4 left-1/2 z-10 w-0.5 -translate-x-1/2 rounded-full bg-yellow-400 shadow-[0_0_10px_rgba(244,191,40,0.8)]" />}
+                {opening && <span className="pointer-events-none absolute inset-y-0 left-1/2 z-10 w-0.5 -translate-x-1/2 bg-yellow-400 shadow-[0_0_10px_rgba(244,191,40,0.8)]" />}
                 {rollItems.map((reward, index) => (
                   <div key={`${reward.id}-${index}`} data-roll-index={index}>
                     <CaseRewardCard reward={reward} compact />
@@ -112,7 +112,7 @@ export default function CryptanCasePage() {
                 ))}
               </div>
             ) : (
-              <Image src={cryptanCase.image} alt="Кейс Криптан" fill sizes="(max-width: 480px) 100vw, 448px" className="bg-white object-contain p-2" priority />
+              <Image src={cryptanCase.image} alt="Кейс Криптан" fill sizes="(max-width: 480px) 100vw, 448px" className="object-contain p-2" priority />
             )}
           </div>
 
