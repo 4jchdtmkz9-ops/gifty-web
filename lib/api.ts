@@ -87,6 +87,34 @@ export async function getGifts() {
 
   return response.json();
 }
+
+export async function getMarketplaceNfts(offset = 0, search = '') {
+  const params = new URLSearchParams({ offset: String(offset) });
+  if (search.trim()) params.set('search', search.trim());
+
+  const response = await fetch(`${API_URL}/market/nfts?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(await responseError(response, 'Failed to fetch marketplace NFTs'));
+  }
+
+  return response.json() as Promise<{
+    items: Array<{
+      id: string;
+      name: string;
+      photo_url: string;
+      collection_id: string;
+      external_collection_number: number;
+      status: string;
+      attributes: Array<{ type: string; value: string; rarity_per_mille: number }>;
+      price: string | null;
+      floor_price?: string | null;
+      animation_url?: string | null;
+      ton_address?: string | null;
+    }>;
+    totalCount: number;
+  }>;
+}
+
 export async function getOwnedGifts() {
   const initData = getTelegramInitData();
 
