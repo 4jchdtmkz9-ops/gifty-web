@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import {
   authenticateTelegram,
   connectWallet,
@@ -79,32 +80,40 @@ export default function Home() {
 }, [walletAddress]);
 
   return (
-    <main className="min-h-screen bg-[#0b0b0f] text-white">
+    <main className="min-h-screen bg-[#f5f8ff] text-slate-900">
       <div className="mx-auto min-h-screen max-w-[480px] px-4 pb-24">
 
         {/* Header */}
-        <header className="flex items-center justify-between py-5">
-          <div>
-            <p className="text-sm text-white/50">Welcome to</p>
-            <h1 className="text-2xl font-bold tracking-tight">GIFTY</h1>
+        <header className="flex items-center justify-between py-4">
+          <div className="min-w-0">
+            <Image src="/orbit-logo.jpg" width={986} height={264} alt="ORBIT" priority className="h-auto w-36 object-contain sm:w-40" />
+            <div className="mt-1 flex items-center gap-2">
+              <span className="h-1 w-5 rounded-full bg-blue-700" />
+              <span className="h-1 w-3 rounded-full bg-yellow-400" />
+              <span className="h-1 w-2 rounded-full bg-red-500" />
+              <p className="text-[10px] font-medium tracking-[0.18em] text-slate-500">DIGITAL COLLECTIBLES</p>
+            </div>
           </div>
 
           <TonConnectButton />
         </header>
 
         {/* Balance */}
-        <section className="mb-5 rounded-3xl border border-white/10 bg-gradient-to-br from-[#252538] to-[#15151d] p-5">
-          <p className="text-sm text-white/50">Your balance</p>
+        <section className="mb-5 overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-yellow-50 p-5 shadow-[0_14px_36px_rgba(21,87,213,0.08)]">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-slate-500">Your balance</p>
+            <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-[10px] font-semibold text-yellow-800">ORBIT WALLET</span>
+          </div>
 
           <div className="mt-2 flex items-end justify-between">
             <div>
-              <div className="text-3xl font-bold">{balance} TON</div>
-              <p className="mt-1 text-xs text-white/40">
+              <div className="text-3xl font-bold tracking-tight text-blue-950">{balance} <span className="text-lg text-blue-700">TON</span></div>
+              <p className="mt-1 text-xs text-slate-500">
                 Connect wallet to start trading
               </p>
             </div>
 
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-2xl">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
               💎
             </div>
           </div>
@@ -115,26 +124,26 @@ export default function Home() {
 
           <a
             href="/market"
-            className="rounded-2xl bg-white/5 p-4 text-center transition hover:bg-white/10"
+            className="rounded-2xl bg-slate-50 p-4 text-center transition hover:bg-slate-100"
           >
             <div className="text-xl">🛍️</div>
-            <div className="mt-2 text-xs text-white/70">Market</div>
+            <div className="mt-2 text-xs text-slate-700">Market</div>
           </a>
 
           <a
             href="/cases"
-            className="rounded-2xl bg-white/5 p-4 text-center transition hover:bg-white/10"
+            className="rounded-2xl bg-slate-50 p-4 text-center transition hover:bg-slate-100"
           >
             <div className="text-xl">🎁</div>
-            <div className="mt-2 text-xs text-white/70">Cases</div>
+            <div className="mt-2 text-xs text-slate-700">Cases</div>
           </a>
 
           <a
             href="/lucky"
-            className="rounded-2xl bg-white/5 p-4 text-center transition hover:bg-white/10"
+            className="rounded-2xl bg-slate-50 p-4 text-center transition hover:bg-slate-100"
           >
             <div className="text-xl">🍀</div>
-            <div className="mt-2 text-xs text-white/70">Lucky</div>
+            <div className="mt-2 text-xs text-slate-700">Lucky</div>
           </a>
 
         </div>
@@ -146,14 +155,14 @@ export default function Home() {
 
             <a
               href="/market"
-              className="text-sm text-white/40"
+              className="text-sm text-slate-500"
             >
               View all
             </a>
           </div>
 
-          <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#15151c]">
-            <div className="flex h-52 items-center justify-center bg-gradient-to-br from-[#373758] via-[#1e1e30] to-[#111117] text-8xl">
+          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+            <div className="flex h-52 items-center justify-center bg-gradient-to-br from-blue-100 via-white to-yellow-50 text-8xl">
               💎
             </div>
 
@@ -162,20 +171,20 @@ export default function Home() {
                 <div>
                   <h3 className="font-semibold">Diamond Ring</h3>
 
-                  <p className="mt-1 text-sm text-white/40">
+                  <p className="mt-1 text-sm text-slate-500">
                     Telegram Gifts
                   </p>
                 </div>
 
                 <div className="text-right">
-                  <p className="text-xs text-white/40">Price</p>
+                  <p className="text-xs text-slate-500">Price</p>
                   <p className="font-semibold">24.5 TON</p>
                 </div>
               </div>
 
               <a
                 href="/market"
-                className="mt-4 block w-full rounded-2xl bg-white py-3 text-center font-semibold text-black transition hover:bg-white/90"
+                className="mt-4 block w-full rounded-2xl bg-blue-700 py-3 text-center font-semibold text-white transition hover:bg-blue-800"
               >
                 Buy now
               </a>
@@ -190,7 +199,7 @@ export default function Home() {
 
             <a
               href="/market"
-              className="text-sm text-white/40"
+              className="text-sm text-slate-500"
             >
               See all
             </a>
@@ -200,9 +209,9 @@ export default function Home() {
             {gifts.map((gift) => (
               <div
                 key={gift.name}
-                className="overflow-hidden rounded-3xl border border-white/10 bg-[#15151c]"
+                className="overflow-hidden rounded-3xl border border-slate-200 bg-white"
               >
-                <div className="flex h-36 items-center justify-center bg-gradient-to-br from-[#25253a] to-[#111117] text-6xl">
+                <div className="flex h-36 items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 text-6xl">
                   {gift.emoji}
                 </div>
 
@@ -211,7 +220,7 @@ export default function Home() {
                     {gift.name}
                   </h3>
 
-                  <p className="mt-1 truncate text-xs text-white/40">
+                  <p className="mt-1 truncate text-xs text-slate-500">
                     {gift.collection}
                   </p>
 
@@ -222,7 +231,7 @@ export default function Home() {
 
                     <a
                       href="/market"
-                      className="rounded-xl bg-white/10 px-3 py-2 text-xs transition hover:bg-white/20"
+                      className="rounded-xl bg-slate-100 px-3 py-2 text-xs transition hover:bg-slate-200"
                     >
                       Buy
                     </a>
@@ -234,12 +243,12 @@ export default function Home() {
         </section>
 
         {/* Bottom navigation */}
-        <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 border-t border-white/10 bg-[#0b0b0f]/95 px-4 py-3 backdrop-blur-xl">
+        <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_rgba(21,87,213,0.08)] backdrop-blur-xl">
           <div className="grid grid-cols-4">
 
             <a
               href="/"
-              className="flex flex-col items-center gap-1 text-white"
+              className="flex flex-col items-center gap-1 text-blue-700"
             >
               <span>🏠</span>
               <span className="text-[10px]">Home</span>
@@ -247,7 +256,7 @@ export default function Home() {
 
             <a
               href="/market"
-              className="flex flex-col items-center gap-1 text-white/40"
+              className="flex flex-col items-center gap-1 text-slate-500"
             >
               <span>🛍️</span>
               <span className="text-[10px]">Market</span>
@@ -255,7 +264,7 @@ export default function Home() {
 
             <a
               href="/cases"
-              className="flex flex-col items-center gap-1 text-white/40"
+              className="flex flex-col items-center gap-1 text-slate-500"
             >
               <span>🎁</span>
               <span className="text-[10px]">Cases</span>
@@ -263,7 +272,7 @@ export default function Home() {
 
             <a
               href="/profile"
-              className="flex flex-col items-center gap-1 text-white/40"
+              className="flex flex-col items-center gap-1 text-slate-500"
             >
               <span>👤</span>
               <span className="text-[10px]">Profile</span>

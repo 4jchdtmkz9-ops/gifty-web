@@ -46,17 +46,17 @@ export default function LuckyPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0b0b0f] text-white">
+    <main className="min-h-screen bg-[#f5f8ff] text-slate-900">
       <div className="mx-auto min-h-screen max-w-[480px] px-4 pb-28">
 
         {/* Header */}
         <header className="py-5">
-          <p className="text-sm text-white/40">GIFTY</p>
+          <p className="text-sm font-semibold tracking-[0.18em] text-blue-700">ORBIT</p>
           <h1 className="text-2xl font-bold">Lucky Buy</h1>
         </header>
 
         {/* Intro */}
-        <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#30304b] to-[#15151c] p-6 text-center">
+          <section className="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-yellow-50 p-6 text-center shadow-[0_14px_36px_rgba(21,87,213,0.08)]">
 
           <div className="text-6xl">🍀</div>
 
@@ -64,12 +64,12 @@ export default function LuckyPage() {
             Try your luck
           </h2>
 
-          <p className="mt-2 text-sm leading-6 text-white/40">
+          <p className="mt-2 text-sm leading-6 text-slate-500">
             Pick a random NFT from the available gifts.
           </p>
 
-          <div className="mt-5 rounded-2xl bg-black/20 p-4">
-            <p className="text-xs text-white/30">
+          <div className="mt-5 rounded-2xl bg-slate-100 p-4">
+            <p className="text-xs text-slate-400">
               Demo entry
             </p>
 
@@ -88,7 +88,7 @@ export default function LuckyPage() {
               Possible gifts
             </h2>
 
-            <span className="text-xs text-white/30">
+            <span className="text-xs text-slate-400">
               {gifts.length} NFTs
             </span>
           </div>
@@ -100,8 +100,8 @@ export default function LuckyPage() {
                 key={gift.name}
                 className={`rounded-2xl border p-3 text-center transition ${
                   selected === index
-                    ? "scale-105 border-white bg-white/10"
-                    : "border-white/10 bg-[#15151c]"
+                    ? "scale-105 border-blue-500 bg-blue-50 shadow-md"
+                    : "border-slate-200 bg-white"
                 }`}
               >
 
@@ -113,7 +113,7 @@ export default function LuckyPage() {
                   {gift.name}
                 </p>
 
-                <p className="mt-1 text-[10px] text-white/30">
+                <p className="mt-1 text-[10px] text-slate-400">
                   {gift.price}
                 </p>
 
@@ -128,18 +128,18 @@ export default function LuckyPage() {
         <button
           onClick={playLucky}
           disabled={rolling}
-          className="mt-6 w-full rounded-2xl bg-white py-4 font-semibold text-black transition active:scale-[0.98] disabled:opacity-50"
+          className="mt-6 w-full rounded-2xl bg-blue-700 py-4 font-semibold text-white transition active:scale-[0.98] disabled:opacity-50"
         >
           {rolling ? "Choosing..." : "🍀 Try Lucky Buy"}
         </button>
 
         {/* Result */}
         {result && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-5 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/45 px-5 backdrop-blur-sm">
 
-            <div className="w-full max-w-[360px] rounded-3xl border border-white/10 bg-[#15151c] p-8 text-center">
+            <div className="w-full max-w-[360px] rounded-3xl border border-slate-200 bg-white p-8 text-center">
 
-              <p className="text-sm text-white/40">
+              <p className="text-sm text-slate-500">
                 You got
               </p>
 
@@ -151,13 +151,13 @@ export default function LuckyPage() {
                 {result.name}
               </h2>
 
-              <p className="mt-2 text-white/40">
+              <p className="mt-2 text-slate-500">
                 Market value: {result.price}
               </p>
 
               <button
                 onClick={() => setResult(null)}
-                className="mt-6 w-full rounded-2xl bg-white py-4 font-semibold text-black"
+                className="mt-6 w-full rounded-2xl bg-blue-700 py-4 font-semibold text-white"
               >
                 Continue
               </button>
@@ -168,13 +168,13 @@ export default function LuckyPage() {
         )}
 
         {/* Bottom navigation */}
-        <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 border-t border-white/10 bg-[#0b0b0f]/95 px-4 py-3 backdrop-blur-xl">
+        <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_rgba(21,87,213,0.08)] backdrop-blur-xl">
 
           <div className="grid grid-cols-4">
 
             <a
               href="/"
-              className="flex flex-col items-center gap-1 text-white/40"
+              className="flex flex-col items-center gap-1 text-slate-500"
             >
               <span>🏠</span>
               <span className="text-[10px]">Home</span>
@@ -182,7 +182,7 @@ export default function LuckyPage() {
 
             <a
               href="/market"
-              className="flex flex-col items-center gap-1 text-white/40"
+              className="flex flex-col items-center gap-1 text-slate-500"
             >
               <span>🛍️</span>
               <span className="text-[10px]">Market</span>
@@ -190,7 +190,7 @@ export default function LuckyPage() {
 
             <a
               href="/cases"
-              className="flex flex-col items-center gap-1 text-white/40"
+              className="flex flex-col items-center gap-1 text-slate-500"
             >
               <span>🎁</span>
               <span className="text-[10px]">Cases</span>
@@ -198,7 +198,7 @@ export default function LuckyPage() {
 
             <a
               href="/profile"
-              className="flex flex-col items-center gap-1 text-white/40"
+              className="flex flex-col items-center gap-1 text-slate-500"
             >
               <span>👤</span>
               <span className="text-[10px]">Profile</span>

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'GIFTY',
-  description: 'Telegram Gifts Marketplace',
+  title: 'ORBIT — Digital Collectibles',
+  description: 'Discover and trade digital collectibles',
 };
 
 export default function RootLayout({
