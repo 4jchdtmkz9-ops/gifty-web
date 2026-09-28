@@ -2,6 +2,19 @@ import { getTelegramInitData } from './telegram';
 
 const API_URL = 'https://gifty-api-75hj.onrender.com';
 
+async function responseError(response: Response, fallback: string) {
+  const text = await response.text();
+  try {
+    const payload = JSON.parse(text) as { message?: string | string[] };
+    if (payload.message) {
+      return Array.isArray(payload.message) ? payload.message.join(', ') : payload.message;
+    }
+  } catch {
+    // Use the response body as-is when it is not JSON.
+  }
+  return text || fallback;
+}
+
 export async function authenticateTelegram() {
   const initData = getTelegramInitData();
 
@@ -86,11 +99,32 @@ export async function getOwnedGifts() {
   );
 
   if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Owned gifts API error:', errorText);
-    throw new Error('Failed to fetch owned gifts');
+    throw new Error(await responseError(response, 'Failed to fetch owned gifts'));
   }
 
+  return response.json();
+}
+export async function getListedGifts() {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Telegram initData is missing');
+
+  const response = await fetch(
+    `${API_URL}/gifts/listed?initData=${encodeURIComponent(initData)}`,
+  );
+  if (!response.ok) throw new Error(await responseError(response, 'Failed to fetch listed gifts'));
+  return response.json();
+}
+
+export async function unlistGift(giftId: string) {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Telegram initData is missing');
+
+  const response = await fetch(`${API_URL}/gifts/unlist`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ giftId, initData }),
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'Failed to remove listing'));
   return response.json();
 }
 export async function sellGift(
@@ -116,13 +150,8 @@ export async function sellGift(
   });
 
 if (!response.ok) {
-  const errorText = await response.text();
-
-  console.error('Sell gift API error:', errorText);
-
-  throw new Error(
-    `Sell API ${response.status}: ${errorText}`,
-  );
+  const message = await responseError(response, 'Failed to list gift');
+  throw new Error(`Sell failed (${response.status}): ${message}`);
 }
 
   return response.json();
@@ -183,7 +212,7 @@ export async function createOffer(data: {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to create offer');
+    throw new Error(await responseError(response, 'Failed to create offer'));
   }
 
   return response.json();
@@ -201,7 +230,7 @@ export async function getOffers() {
   );
 
   if (!response.ok) {
-    throw new Error('Failed to fetch offers');
+    throw new Error(await responseError(response, 'Failed to fetch offers'));
   }
 
   return response.json();
@@ -226,7 +255,7 @@ export async function cancelOffer(offerId: string) {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to cancel offer');
+    throw new Error(await responseError(response, 'Failed to cancel offer'));
   }
 
   return response.json();
@@ -250,11 +279,25 @@ export async function acceptOffer(offerId: string) {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to accept offer');
+    throw new Error(await responseError(response, 'Failed to accept offer'));
   }
 
   return response.json();
 }
+
+export async function rejectOffer(offerId: string) {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Telegram initData is missing');
+
+  const response = await fetch(`${API_URL}/offers/reject`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ offerId, initData }),
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'Failed to reject offer'));
+  return response.json();
+}
+
 export async function getIncomingOffers() {
   const initData = getTelegramInitData();
 
@@ -267,7 +310,7 @@ export async function getIncomingOffers() {
   );
 
   if (!response.ok) {
-    throw new Error('Failed to fetch incoming offers');
+    throw new Error(await responseError(response, 'Failed to fetch incoming offers'));
   }
 
   return response.json();

@@ -170,10 +170,10 @@ export default function MarketPage() {
               <span className="text-[10px]">Cases</span>
             </button>
 
-            <button className="flex flex-col items-center gap-1 text-white/40">
+            <a href="/profile" className="flex flex-col items-center gap-1 text-white/40">
               <span>👤</span>
               <span className="text-[10px]">Profile</span>
-            </button>
+            </a>
           </div>
         </nav>
 
