@@ -101,12 +101,35 @@ export default function CryptanCasePage() {
         </header>
 
         <section className="overflow-hidden rounded-[28px] border border-blue-100 bg-white shadow-[0_12px_32px_rgba(21,87,213,0.09)]">
-          <div className="relative flex h-[220px] items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_50%_55%,rgba(255,218,110,0.3),transparent_66%),linear-gradient(145deg,#eff6ff,#ffffff_55%,#fff8e5)]">
-            <span className="absolute left-5 top-5 h-2 w-2 rounded-full bg-blue-400/70" aria-hidden="true" />
-            <span className="absolute right-8 top-10 h-1.5 w-1.5 rounded-full bg-red-400/80" aria-hidden="true" />
-            <Image src={cryptanCase.image} alt="Кейс Криптан" fill sizes="(max-width: 480px) 100vw, 448px" className="object-contain p-2 drop-shadow-[0_12px_16px_rgba(18,48,94,0.2)]" priority />
+          <div className="relative flex h-[220px] items-center overflow-hidden bg-white">
+            {purchased || opening ? (
+              <div ref={rouletteRef} className="relative flex h-full w-full items-center gap-2.5 overflow-hidden px-3">
+                {(purchased || opening) && <span className="pointer-events-none absolute bottom-4 top-4 left-1/2 z-10 w-0.5 -translate-x-1/2 rounded-full bg-yellow-400 shadow-[0_0_10px_rgba(244,191,40,0.8)]" />}
+                {rollItems.map((reward, index) => (
+                  <div key={`${reward.id}-${index}`} data-roll-index={index}>
+                    <CaseRewardCard reward={reward} compact />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <Image src={cryptanCase.image} alt="Кейс Криптан" fill sizes="(max-width: 480px) 100vw, 448px" className="bg-white object-contain p-2" priority />
+            )}
           </div>
-          <div className="p-4">
+
+          {purchased && (
+            <div className="px-4 pt-3">
+              <button
+                type="button"
+                onClick={openCase}
+                disabled={opening}
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60"
+              >
+                {opening ? 'Opening…' : 'Open'}
+              </button>
+            </div>
+          )}
+
+          <div className="p-4 pt-3">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-bold text-blue-950">Криптан</h2>
@@ -122,34 +145,15 @@ export default function CryptanCasePage() {
 
             {notice && <p role="status" className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">{notice}</p>}
 
-            <button
-              type="button"
-              onClick={purchased ? openCase : demoPurchase}
-              disabled={opening}
-              className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60"
-            >
-              {opening ? 'Opening…' : purchased ? 'Open case' : 'Buy case · 30 TON'}
-            </button>
-          </div>
-        </section>
-
-        <section className="mt-6">
-          <div className="mb-3 flex items-end justify-between">
-            <div>
-              <p className="text-[10px] font-bold tracking-[0.16em] text-blue-700">LEFT TO RIGHT</p>
-              <h2 className="mt-1 text-base font-bold text-blue-950">Case roulette</h2>
-            </div>
-            {opening && <span className="text-[10px] font-medium text-blue-600">Rolling…</span>}
-          </div>
-          <div className="relative overflow-hidden rounded-[22px] border border-blue-100 bg-white py-3 shadow-[0_5px_18px_rgba(21,87,213,0.05)]">
-            {opening && <span className="pointer-events-none absolute bottom-2 top-2 left-1/2 z-10 w-0.5 -translate-x-1/2 rounded-full bg-yellow-400 shadow-[0_0_10px_rgba(244,191,40,0.8)]" />}
-            <div ref={rouletteRef} className="relative flex gap-2.5 overflow-hidden px-3">
-              {rollItems.map((reward, index) => (
-                <div key={`${reward.id}-${index}`} data-roll-index={index}>
-                  <CaseRewardCard reward={reward} compact />
-                </div>
-              ))}
-            </div>
+            {!purchased && (
+              <button
+                type="button"
+                onClick={demoPurchase}
+                className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(21,87,213,0.2)] transition active:scale-[0.99]"
+              >
+                Buy case · 30 TON
+              </button>
+            )}
           </div>
         </section>
 
@@ -159,7 +163,7 @@ export default function CryptanCasePage() {
               <p className="text-[10px] font-bold tracking-[0.16em] text-blue-700">POSSIBLE NFTS</p>
               <h2 className="mt-1 text-base font-bold text-blue-950">What you can win</h2>
             </div>
-            <span className="text-[10px] text-slate-500">Price on each card</span>
+            <span className="text-[10px] text-slate-500">Prices in TON</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {cryptanRewards.map((reward) => <CaseRewardCard key={reward.id} reward={reward} />)}

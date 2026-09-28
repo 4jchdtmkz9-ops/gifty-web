@@ -25,7 +25,7 @@ export default function CasesPage() {
             href={`/cases/${cryptanCase.id}`}
             className="group overflow-hidden rounded-[24px] border border-blue-100 bg-white shadow-[0_8px_24px_rgba(21,87,213,0.08)] transition active:scale-[0.98]"
           >
-            <div className="relative flex h-36 items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-yellow-50">
+            <div className="relative flex h-36 items-center justify-center overflow-hidden bg-white">
               <Image src={cryptanCase.image} alt="Кейс Криптан" fill sizes="(max-width: 480px) 50vw, 220px" className="object-contain p-2 transition duration-300 group-hover:scale-105" />
               <span className="absolute right-2 top-2 rounded-full bg-white/95 px-2 py-1 text-[10px] font-bold text-blue-800 shadow-sm">{cryptanCase.price}</span>
             </div>
