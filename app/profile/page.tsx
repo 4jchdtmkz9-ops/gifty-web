@@ -276,6 +276,27 @@ export default function ProfilePage() {
             </form>
           </div>
         )}
+
+        <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-[480px] -translate-x-1/2 border-t border-white/10 bg-[#0b0b0f]/95 px-4 py-3 backdrop-blur-xl">
+          <div className="grid grid-cols-4">
+            <a href="/" className="flex flex-col items-center gap-1 text-white/40">
+              <span>🏠</span>
+              <span className="text-[10px]">Home</span>
+            </a>
+            <a href="/market" className="flex flex-col items-center gap-1 text-white/40">
+              <span>🛍️</span>
+              <span className="text-[10px]">Market</span>
+            </a>
+            <a href="/cases" className="flex flex-col items-center gap-1 text-white/40">
+              <span>🎁</span>
+              <span className="text-[10px]">Cases</span>
+            </a>
+            <a href="/profile" aria-current="page" className="flex flex-col items-center gap-1 text-white">
+              <span>👤</span>
+              <span className="text-[10px]">Profile</span>
+            </a>
+          </div>
+        </nav>
       </div>
     </main>
   );
