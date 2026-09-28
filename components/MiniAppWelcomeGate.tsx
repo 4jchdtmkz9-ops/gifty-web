@@ -1,7 +1,9 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+const STARTED_KEY = 'orbit-miniapp-started';
 
 export default function MiniAppWelcomeGate({
   children,
@@ -9,6 +11,17 @@ export default function MiniAppWelcomeGate({
   children: React.ReactNode;
 }) {
   const [hasStarted, setHasStarted] = useState(false);
+
+  useEffect(() => {
+    if (window.sessionStorage.getItem(STARTED_KEY) === '1') {
+      setHasStarted(true);
+    }
+  }, []);
+
+  function startApp() {
+    window.sessionStorage.setItem(STARTED_KEY, '1');
+    setHasStarted(true);
+  }
 
   if (hasStarted) return children;
 
@@ -42,7 +55,7 @@ export default function MiniAppWelcomeGate({
 
         <button
           type="button"
-          onClick={() => setHasStarted(true)}
+          onClick={startApp}
           className="mt-auto flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-700 to-blue-600 px-5 text-base font-semibold text-white shadow-[0_10px_24px_rgba(21,87,213,0.24)] transition active:scale-[0.99] hover:from-blue-800 hover:to-blue-700"
         >
           Start

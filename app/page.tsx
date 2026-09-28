@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import BottomNav from '../components/BottomNav';
 import MarketIcon from '../components/MarketIcon';
 import CasesIcon from '../components/CasesIcon';
@@ -103,7 +104,7 @@ export default function Home() {
         {/* Quick actions */}
         <div className="mb-6 grid grid-cols-3 gap-3">
 
-          <a
+          <Link
             href="/market"
             className="rounded-2xl border border-blue-100 bg-white p-4 text-center shadow-[0_4px_14px_rgba(21,87,213,0.05)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_8px_20px_rgba(21,87,213,0.1)]"
           >
@@ -111,9 +112,9 @@ export default function Home() {
               <MarketIcon size={22} />
             </span>
             <div className="mt-2 text-xs font-medium text-slate-700">Market</div>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/cases"
             className="rounded-2xl border border-blue-100 bg-white p-4 text-center shadow-[0_4px_14px_rgba(21,87,213,0.05)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_8px_20px_rgba(21,87,213,0.1)]"
           >
@@ -121,9 +122,9 @@ export default function Home() {
               <CasesIcon size={22} />
             </span>
             <div className="mt-2 text-xs font-medium text-slate-700">Cases</div>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/lucky"
             className="rounded-2xl border border-blue-100 bg-white p-4 text-center shadow-[0_4px_14px_rgba(21,87,213,0.05)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_8px_20px_rgba(21,87,213,0.1)]"
           >
@@ -131,7 +132,7 @@ export default function Home() {
               <LuckyIcon size={22} />
             </span>
             <div className="mt-2 text-xs font-medium text-slate-700">Lucky</div>
-          </a>
+          </Link>
 
         </div>
 
@@ -140,12 +141,12 @@ export default function Home() {
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold">Featured</h2>
 
-            <a
+            <Link
               href="/market"
               className="text-sm text-slate-500"
             >
               View all
-            </a>
+            </Link>
           </div>
 
           <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
@@ -169,12 +170,12 @@ export default function Home() {
                 </div>
               </div>
 
-              <a
+              <Link
                 href="/market"
                 className="mt-4 block w-full rounded-2xl bg-blue-700 py-3 text-center font-semibold text-white transition hover:bg-blue-800"
               >
                 Buy now
-              </a>
+              </Link>
             </div>
           </div>
         </section>
@@ -184,12 +185,12 @@ export default function Home() {
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold">Trending gifts</h2>
 
-            <a
+            <Link
               href="/market"
               className="text-sm text-slate-500"
             >
               See all
-            </a>
+            </Link>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -216,12 +217,12 @@ export default function Home() {
                       {gift.price}
                     </span>
 
-                    <a
+                    <Link
                       href="/market"
                       className="rounded-xl bg-slate-100 px-3 py-2 text-xs transition hover:bg-slate-200"
                     >
                       Buy
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
