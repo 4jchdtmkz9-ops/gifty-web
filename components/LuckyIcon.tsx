@@ -8,14 +8,11 @@ export default function LuckyIcon({ size = 22 }: { size?: number }) {
       fill="none"
       className="shrink-0"
     >
-      <path
-        d="M12 12c-1.2-2.1-4.9-5.7-7.1-3.5-2.2 2.2 1.4 5.9 3.5 7.1-2.1 1.2-5.7 4.9-3.5 7.1 2.2 2.2 5.9-1.4 7.1-3.5 1.2 2.1 4.9 5.7 7.1 3.5 2.2-2.2-1.4-5.9-3.5-7.1 2.1-1.2 5.7-4.9 3.5-7.1-2.2-2.2-5.9 1.4-7.1 3.5Z"
-        transform="translate(0 -2) scale(1 0.88)"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="12" r="1.3" fill="#f4bf28" />
+      <rect x="3.25" y="3.25" width="11.5" height="11.5" rx="3" stroke="currentColor" strokeWidth="1.8" />
+      <rect x="9.25" y="9.25" width="11.5" height="11.5" rx="3" fill="white" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="6.75" cy="6.75" r="1.15" fill="#2563eb" />
+      <circle cx="12.5" cy="12.5" r="1.15" fill="#f4bf28" />
+      <circle cx="17.25" cy="17.25" r="1.15" fill="#ef4444" />
     </svg>
   );
 }

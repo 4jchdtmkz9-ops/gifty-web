@@ -37,6 +37,38 @@ export async function authenticateTelegram() {
   return response.json();
 }
 
+export type CurrentUser = {
+  id: string;
+  telegramId: string;
+  username: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  photoUrl: string | null;
+  wallets: Array<{
+    id: string;
+    address: string;
+    network: string;
+    isConnected: boolean;
+  }>;
+};
+
+export async function syncTelegramProfile(address?: string) {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Telegram initData is missing');
+
+  const response = await fetch(`${API_URL}/users/me`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initData, address }),
+  });
+
+  if (!response.ok) {
+    throw new Error(await responseError(response, 'Failed to load Telegram profile'));
+  }
+
+  return response.json() as Promise<CurrentUser>;
+}
+
 export async function connectWallet(
   address: string,
   network = 'TON',

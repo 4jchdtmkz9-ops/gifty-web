@@ -13,11 +13,14 @@ import {
   rejectOffer,
   sellGift,
   unlistGift,
+  syncTelegramProfile,
+  type CurrentUser,
 } from "../../lib/api";
 import TelegramAvatar from "../../components/TelegramAvatar";
 import HomeIcon from "../../components/HomeIcon";
 import BottomNav from "../../components/BottomNav";
 import { getTelegramInitData } from "../../lib/telegram";
+import { useIsConnectionRestored, useTonAddress } from "@tonconnect/ui-react";
 
 type Gift = {
   id: string;
@@ -54,7 +57,10 @@ function formatTon(amount: string | number) {
 }
 
 export default function ProfilePage() {
+  const walletAddress = useTonAddress();
+  const connectionRestored = useIsConnectionRestored();
   const [tab, setTab] = useState<Tab>("owned");
+  const [account, setAccount] = useState<CurrentUser | null>(null);
   const [owned, setOwned] = useState<Gift[]>([]);
   const [listed, setListed] = useState<Gift[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
@@ -68,6 +74,8 @@ export default function ProfilePage() {
   const [priceInput, setPriceInput] = useState("");
 
   const refresh = useCallback(async (options?: { silent?: boolean }) => {
+    if (!connectionRestored) return;
+
     if (!getTelegramInitData()) {
       setError("Open your profile inside the GIFTY Telegram bot to load your account.");
       setLoading(false);
@@ -77,6 +85,8 @@ export default function ProfilePage() {
     if (!options?.silent) setLoading(true);
     setError("");
     try {
+      const currentAccount = await syncTelegramProfile(walletAddress || undefined);
+      setAccount(currentAccount);
       const [ownedGifts, listedGifts, myOffers, receivedOffers, activity] = await Promise.all([
         getOwnedGifts(),
         getListedGifts(),
@@ -94,7 +104,7 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [connectionRestored, walletAddress]);
 
   async function refreshHistoryQuietly() {
     try {
@@ -105,7 +115,7 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
-    void refresh();
+    if (connectionRestored) void refresh();
   }, [refresh]);
 
   async function runAction(key: string, action: () => Promise<void>) {
@@ -219,9 +229,26 @@ export default function ProfilePage() {
           <div className="flex items-center gap-4">
             <TelegramAvatar size={64} />
             <div>
-              <h2 className="font-semibold">My collection</h2>
-              <p className="mt-1 text-xs text-slate-500">Your gifts and marketplace activity</p>
+              <h2 className="font-semibold">
+                {[account?.firstName, account?.lastName].filter(Boolean).join(" ") || (account?.username ? `@${account.username}` : "Telegram user")}
+              </h2>
+              <p className="mt-1 text-xs text-slate-500">
+                {account?.username ? `@${account.username} · ` : ""}Telegram account
+              </p>
             </div>
+          </div>
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-slate-700">TON wallet</p>
+              <p className="mt-1 truncate text-[11px] text-slate-500">
+                {account?.wallets[0]?.address
+                  ? `${account.wallets[0].address.slice(0, 7)}…${account.wallets[0].address.slice(-5)}`
+                  : "No wallet connected"}
+              </p>
+            </div>
+            <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold ${account?.wallets[0]?.isConnected ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-500"}`}>
+              {account?.wallets[0]?.isConnected ? "Connected" : "Not connected"}
+            </span>
           </div>
           <div className="mt-5 grid grid-cols-3 gap-2">
             {tabs.map((item) => (

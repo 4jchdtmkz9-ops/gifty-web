@@ -7,8 +7,6 @@ import MarketIcon from '../components/MarketIcon';
 import CasesIcon from '../components/CasesIcon';
 import LuckyIcon from '../components/LuckyIcon';
 import {
-  authenticateTelegram,
-  connectWallet,
   getTonBalance,
 } from '../lib/api';
 import {
@@ -49,29 +47,10 @@ export default function Home() {
     const [balance, setBalance] = useState('0');
     
   useEffect(() => {
-    authenticateTelegram()
-      .then((user) => {
-        if (user) {
-          console.log('GIFTY Telegram user:', user);
-        }
-      })
-      .catch((error) => {
-        console.error('Telegram authentication error:', error);
-      });
-  }, []);
-    useEffect(() => {
   if (!walletAddress) {
     setBalance('0');
     return;
   }
-
-  connectWallet(walletAddress)
-    .then((wallet) => {
-      console.log('GIFTY wallet connected:', wallet);
-    })
-    .catch((error) => {
-      console.error('Wallet connection error:', error);
-    });
 
   getTonBalance(walletAddress)
     .then((data) => {
