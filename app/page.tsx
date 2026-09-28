@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import TelegramAvatar from '../components/TelegramAvatar';
-import HomeIcon from '../components/HomeIcon';
 import BottomNav from '../components/BottomNav';
+import MarketIcon from '../components/MarketIcon';
+import CasesIcon from '../components/CasesIcon';
+import LuckyIcon from '../components/LuckyIcon';
 import {
   authenticateTelegram,
   connectWallet,
@@ -111,13 +112,11 @@ export default function Home() {
           <div className="mt-2 flex items-end justify-between">
             <div>
               <div className="text-3xl font-bold tracking-tight text-blue-950">{balance} <span className="text-lg text-blue-700">TON</span></div>
-              <p className="mt-1 text-xs text-slate-500">
-                Connect wallet to start trading
-              </p>
-            </div>
-
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
-              💎
+              {!walletAddress && (
+                <p className="mt-1 text-xs text-slate-500">
+                  Connect wallet to start trading
+                </p>
+              )}
             </div>
           </div>
         </section>
@@ -127,26 +126,32 @@ export default function Home() {
 
           <a
             href="/market"
-            className="rounded-2xl bg-slate-50 p-4 text-center transition hover:bg-slate-100"
+            className="rounded-2xl border border-blue-100 bg-white p-4 text-center shadow-[0_4px_14px_rgba(21,87,213,0.05)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_8px_20px_rgba(21,87,213,0.1)]"
           >
-            <div className="text-xl">🛍️</div>
-            <div className="mt-2 text-xs text-slate-700">Market</div>
+            <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+              <MarketIcon size={22} />
+            </span>
+            <div className="mt-2 text-xs font-medium text-slate-700">Market</div>
           </a>
 
           <a
             href="/cases"
-            className="rounded-2xl bg-slate-50 p-4 text-center transition hover:bg-slate-100"
+            className="rounded-2xl border border-blue-100 bg-white p-4 text-center shadow-[0_4px_14px_rgba(21,87,213,0.05)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_8px_20px_rgba(21,87,213,0.1)]"
           >
-            <div className="text-xl">🎁</div>
-            <div className="mt-2 text-xs text-slate-700">Cases</div>
+            <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-yellow-50 text-blue-700">
+              <CasesIcon size={22} />
+            </span>
+            <div className="mt-2 text-xs font-medium text-slate-700">Cases</div>
           </a>
 
           <a
             href="/lucky"
-            className="rounded-2xl bg-slate-50 p-4 text-center transition hover:bg-slate-100"
+            className="rounded-2xl border border-blue-100 bg-white p-4 text-center shadow-[0_4px_14px_rgba(21,87,213,0.05)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_8px_20px_rgba(21,87,213,0.1)]"
           >
-            <div className="text-xl">🍀</div>
-            <div className="mt-2 text-xs text-slate-700">Lucky</div>
+            <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-blue-700">
+              <LuckyIcon size={22} />
+            </span>
+            <div className="mt-2 text-xs font-medium text-slate-700">Lucky</div>
           </a>
 
         </div>
