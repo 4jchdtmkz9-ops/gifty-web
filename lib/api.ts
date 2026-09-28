@@ -79,17 +79,27 @@ export async function createTransaction(data: {
   type: string;
   amountTon: string;
   giftId?: string;
-  buyerId?: string;
 }) {
+  const initData = getTelegramInitData();
+
+  if (!initData) {
+    throw new Error('Telegram initData is missing');
+  }
+
   const response = await fetch(`${API_URL}/transactions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      ...data,
+      initData,
+    }),
   });
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Transaction API error:', errorText);
     throw new Error('Failed to create transaction');
   }
 
