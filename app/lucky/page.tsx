@@ -3,6 +3,7 @@
 import { useState } from "react";
 import TelegramAvatar from "../../components/TelegramAvatar";
 import HomeIcon from "../../components/HomeIcon";
+import BottomNav from "../../components/BottomNav";
 
 const gifts = [
   { name: "Diamond Ring", emoji: "💎", price: "24.5 TON" },
@@ -170,45 +171,7 @@ export default function LuckyPage() {
         )}
 
         {/* Bottom navigation */}
-        <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_rgba(21,87,213,0.08)] backdrop-blur-xl">
-
-          <div className="grid grid-cols-4">
-
-            <a
-              href="/"
-              className="flex flex-col items-center gap-1 text-slate-500"
-            >
-              <HomeIcon />
-              <span className="text-[10px]">Home</span>
-            </a>
-
-            <a
-              href="/market"
-              className="flex flex-col items-center gap-1 text-slate-500"
-            >
-              <span>🛍️</span>
-              <span className="text-[10px]">Market</span>
-            </a>
-
-            <a
-              href="/cases"
-              className="flex flex-col items-center gap-1 text-slate-500"
-            >
-              <span>🎁</span>
-              <span className="text-[10px]">Cases</span>
-            </a>
-
-            <a
-              href="/profile"
-              className="flex flex-col items-center gap-1 text-slate-500"
-            >
-              <TelegramAvatar size={22} />
-              <span className="text-[10px]">Profile</span>
-            </a>
-
-          </div>
-
-        </nav>
+        <BottomNav active={null} />
 
       </div>
     </main>
