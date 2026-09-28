@@ -1,5 +1,6 @@
 'use client';
 
+import HomeIcon from "../../components/HomeIcon";
 import { useEffect, useState } from 'react';
 import { getGifts } from '../../lib/api';
 import TelegramAvatar from '../../components/TelegramAvatar';
@@ -134,7 +135,7 @@ export default function MarketPage() {
         <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_rgba(21,87,213,0.08)] backdrop-blur-xl">
           <div className="grid grid-cols-4">
             <a href="/" className="flex flex-col items-center gap-1 text-slate-500">
-              <span>🏠</span><span className="text-[10px]">Home</span>
+              <HomeIcon /><span className="text-[10px]">Home</span>
             </a>
             <a href="/market" className="flex flex-col items-center gap-1 text-blue-700">
               <span>🛍️</span><span className="text-[10px]">Market</span>

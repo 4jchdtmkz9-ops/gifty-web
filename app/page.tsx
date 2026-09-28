@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import TelegramAvatar from '../components/TelegramAvatar';
+import HomeIcon from '../components/HomeIcon';
 import {
   authenticateTelegram,
   connectWallet,
@@ -87,7 +88,7 @@ export default function Home() {
         {/* Header */}
         <header className="flex items-center justify-between py-4">
           <div className="min-w-0">
-            <Image src="/orbit-logo.jpg" width={986} height={264} alt="ORBIT" priority className="h-auto w-36 object-contain sm:w-40" />
+            <Image src="/orbit-logo.png" width={970} height={249} alt="ORBIT" priority className="h-auto w-36 object-contain sm:w-40" />
             <div className="mt-1 flex items-center gap-2">
               <span className="h-1 w-5 rounded-full bg-blue-700" />
               <span className="h-1 w-3 rounded-full bg-yellow-400" />
@@ -251,7 +252,7 @@ export default function Home() {
               href="/"
               className="flex flex-col items-center gap-1 text-blue-700"
             >
-              <span>🏠</span>
+              <HomeIcon />
               <span className="text-[10px]">Home</span>
             </a>
 

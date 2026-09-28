@@ -15,6 +15,7 @@ import {
   unlistGift,
 } from "../../lib/api";
 import TelegramAvatar from "../../components/TelegramAvatar";
+import HomeIcon from "../../components/HomeIcon";
 import { getTelegramInitData } from "../../lib/telegram";
 
 type Gift = {
@@ -318,7 +319,7 @@ export default function ProfilePage() {
         <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-[480px] -translate-x-1/2 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_rgba(21,87,213,0.08)] backdrop-blur-xl">
           <div className="grid grid-cols-4">
             <a href="/" className="flex flex-col items-center gap-1 text-slate-500">
-              <span>🏠</span>
+              <HomeIcon />
               <span className="text-[10px]">Home</span>
             </a>
             <a href="/market" className="flex flex-col items-center gap-1 text-slate-500">

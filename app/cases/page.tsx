@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import TelegramAvatar from "../../components/TelegramAvatar";
+import HomeIcon from "../../components/HomeIcon";
 
 const cases = [
   {
@@ -127,7 +128,7 @@ export default function CasesPage() {
               href="/"
               className="flex flex-col items-center gap-1 text-slate-500"
             >
-              <span>🏠</span>
+              <HomeIcon />
               <span className="text-[10px]">Home</span>
             </a>
 
