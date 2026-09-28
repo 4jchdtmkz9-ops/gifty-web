@@ -26,7 +26,7 @@ export default function CaseRewardCard({
             className="absolute inset-0 h-full w-full object-contain p-2"
           />
         )}
-        <span className="absolute right-2 top-2 rounded-full bg-white/95 px-2 py-1 text-[10px] font-bold text-blue-800 shadow-sm backdrop-blur">
+        <span className="absolute right-3 top-3 rounded-full bg-white/95 px-2 py-1 text-[10px] font-bold text-blue-800 shadow-sm backdrop-blur">
           {reward.price}
         </span>
       </div>
