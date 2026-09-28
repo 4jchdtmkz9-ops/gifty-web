@@ -39,7 +39,7 @@ export default function MarketPage() {
         if (active) setStock(gifts);
       })
       .catch((error) => {
-        console.error('Failed to load GIFTY stock:', error);
+        console.error('Failed to load ORBIT stock:', error);
         if (active) {
           setStock([]);
           setLoadError(true);
@@ -67,7 +67,7 @@ export default function MarketPage() {
             <h1 className="text-2xl font-bold">Marketplace</h1>
           </div>
           <span className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-semibold tracking-wide text-blue-700">
-            GIFTY STOCK
+            ORBIT STOCK
           </span>
         </header>
 
@@ -82,16 +82,16 @@ export default function MarketPage() {
         </div>
 
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-semibold">Available in GIFTY</h2>
+          <h2 className="font-semibold">Available in ORBIT</h2>
           <span className="text-xs text-slate-400">{filteredGifts.length} items</span>
         </div>
 
         {loading ? (
-          <div className="py-20 text-center text-sm text-slate-500">Loading GIFTY stock…</div>
+          <div className="py-20 text-center text-sm text-slate-500">Loading ORBIT stock…</div>
         ) : loadError ? (
           <div className="py-16 text-center">
             <p className="font-semibold">Marketplace is temporarily unavailable</p>
-            <p className="mt-2 text-sm text-slate-500">Could not load GIFTY stock. Please try again.</p>
+            <p className="mt-2 text-sm text-slate-500">Could not load ORBIT stock. Please try again.</p>
             <button
               onClick={() => setReloadKey((value) => value + 1)}
               className="mt-4 rounded-xl bg-slate-100 px-4 py-2 text-sm"
@@ -103,10 +103,10 @@ export default function MarketPage() {
           <div className="py-20 text-center">
             <div className="text-5xl">🎁</div>
             <p className="mt-4 font-semibold">
-              {search ? 'Nothing found' : 'GIFTY has no gifts in stock yet'}
+              {search ? 'Nothing found' : 'ORBIT has no gifts in stock yet'}
             </p>
             <p className="mt-1 text-sm text-slate-400">
-              {search ? 'Try another search' : 'New gifts will appear here when they are added to GIFTY stock.'}
+              {search ? 'Try another search' : 'New gifts will appear here when they are added to ORBIT stock.'}
             </p>
           </div>
         ) : (
@@ -155,7 +155,7 @@ export default function MarketPage() {
                   <h3 className="text-xl font-bold">{selectedGift.name}</h3>
                   <p className="mt-1 text-sm text-slate-500">{selectedGift.collection}</p>
                 </div>
-                <span className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">GIFTY stock</span>
+                <span className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">ORBIT stock</span>
               </div>
               <div className="mt-5 rounded-2xl bg-slate-50 p-4">
                 <p className="text-xs text-slate-400">Price</p>

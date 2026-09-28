@@ -77,7 +77,7 @@ export default function ProfilePage() {
     if (!connectionRestored) return;
 
     if (!await waitForTelegramInitData()) {
-      setError("Open your profile inside the GIFTY Telegram bot to load your account.");
+      setError("Open your profile inside the ORBIT Telegram bot to load your account.");
       setLoading(false);
       return;
     }
@@ -378,7 +378,7 @@ function OfferList({ title, emptyTitle, emptyDetail, offers, busy, actionLabel, 
         {incoming && onReject && <button type="button" disabled={Boolean(busy)} onClick={() => void onReject(offer)} className="w-full rounded-xl bg-slate-100 py-2 text-xs disabled:opacity-50">{busy === `reject:${offer.id}` ? "Please wait…" : "Decline"}</button>}
       </div>}
       {incoming && offer.status === "ACCEPTED" && onRelease && <div className="mt-3 rounded-xl bg-amber-50 p-3">
-        <p className="text-xs leading-5 text-amber-900">This offer only reserves the gift in GIFTY. Payment and NFT transfer are not automated yet. Release it if the deal will not continue.</p>
+        <p className="text-xs leading-5 text-amber-900">This offer only reserves the gift in ORBIT. Payment and NFT transfer are not automated yet. Release it if the deal will not continue.</p>
         <button type="button" disabled={Boolean(busy)} onClick={() => void onRelease(offer)} className="mt-2 w-full rounded-xl bg-white py-2 text-xs font-medium text-slate-700 shadow-sm disabled:opacity-50">{busy === `release:${offer.id}` ? "Please wait…" : "Release reservation"}</button>
       </div>}
     </article>)}
