@@ -5,6 +5,7 @@ import { TonConnectUIProvider, useIsConnectionRestored, useTonAddress } from '@t
 import { THEME } from '@tonconnect/ui';
 import { syncTelegramProfile } from '../lib/api';
 import { getTelegramInitData } from '../lib/telegram';
+import MiniAppWelcomeGate from '../components/MiniAppWelcomeGate';
 
 function WalletDatabaseSync() {
   const connectionRestored = useIsConnectionRestored();
@@ -47,7 +48,7 @@ export default function Providers({
   return (
     <TonConnectUIProvider manifestUrl={TON_CONNECT_MANIFEST_URL} uiPreferences={{ theme: THEME.LIGHT, borderRadius: 'm' }}>
       <WalletDatabaseSync />
-      {children}
+      <MiniAppWelcomeGate>{children}</MiniAppWelcomeGate>
     </TonConnectUIProvider>
   );
 }
