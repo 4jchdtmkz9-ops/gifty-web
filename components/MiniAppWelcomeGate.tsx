@@ -26,8 +26,8 @@ export default function MiniAppWelcomeGate({
   if (hasStarted) return children;
 
   return (
-    <main className="fixed inset-0 z-[100] flex min-h-[100dvh] flex-col overflow-hidden bg-[#f7faff] text-slate-950">
-      <div className="relative mx-3 mt-3 h-[61dvh] min-h-[320px] max-h-[560px] shrink-0 overflow-hidden rounded-[30px] border border-blue-100/80 bg-white shadow-[0_18px_50px_rgba(21,87,213,0.12)]">
+    <main className="welcome-gate fixed inset-0 z-[100] flex min-h-[100dvh] flex-col overflow-hidden bg-[#f7faff] text-slate-950">
+      <div className="welcome-art-frame relative mx-3 mt-3 h-[61dvh] min-h-[320px] max-h-[560px] shrink-0 overflow-hidden rounded-[30px] border border-blue-100/80 bg-white shadow-[0_18px_50px_rgba(21,87,213,0.12)]">
         <Image
           src="/orbit-welcome.jpg"
           alt="ORBIT digital collectibles"
