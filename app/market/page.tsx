@@ -17,6 +17,10 @@ type StockGift = {
   modelRarityPerMille?: number | null;
   backdropRarityPerMille?: number | null;
   symbolRarityPerMille?: number | null;
+  backdropName?: string | null;
+  backdropColor?: string | null;
+  symbolName?: string | null;
+  symbolImageUrl?: string | null;
 };
 
 type SortKey = 'price-asc' | 'price-desc' | 'model-rarity' | 'backdrop-rarity' | 'symbol-rarity';
@@ -28,6 +32,33 @@ const sortOptions: { id: SortKey; label: string }[] = [
   { id: 'backdrop-rarity', label: 'Background rarity: rarest first' },
   { id: 'symbol-rarity', label: 'Symbol rarity: rarest first' },
 ];
+
+const giftBackdrops = [
+  ['Black', '#17191d'], ['Onyx Black', '#202329'], ['Gunmetal', '#30363d'], ['Mint Green', '#a8e6cf'],
+  ['Camo Green', '#596b3a'], ['Mexican Pink', '#e94b9b'], ['Ivory White', '#f5f0df'], ['Lemongrass', '#d9e978'],
+  ['Neon Blue', '#218cff'], ['Purple', '#8756d9'], ['Orange', '#f28b32'], ['Cyberpunk', '#fd4be3'],
+  ['Platinum', '#d5d9df'], ['Midnight Blue', '#172c55'], ['Malachite', '#14a878'], ['Electric Indigo', '#6544df'],
+  ['Desert Sand', '#c7a77a'], ['Pure Gold', '#e5b83e'], ['Emerald', '#168c5d'], ['Raspberry', '#d82f68'],
+  ['Electric Purple', '#a239ea'], ['Light Olive', '#a8ad65'], ['Copper', '#b66a45'], ['Marine Blue', '#276a9b'],
+  ['Grape', '#713f94'], ['Dark Lilac', '#9274aa'], ['Shamrock Green', '#39a66b'], ['Navy Blue', '#233b68'],
+  ['Hunter Green', '#355b45'], ['Pistachio', '#afd082'], ['Pacific Cyan', '#25b5c6'], ['Strawberry', '#ee6f89'],
+  ['French Blue', '#3978bd'], ['Burgundy', '#742d49'], ['Seal Brown', '#563d35'], ['Cobalt Blue', '#2756c6'],
+  ['Tactical Pine', '#3b5144'], ['Sapphire', '#2458a6'], ['Old Gold', '#b18a3c'], ['Roman Silver', '#87939b'],
+  ['Amber', '#e1a52c'], ['Persimmon', '#e8783f'], ['Pine Green', '#27634a'], ['Rifle Green', '#465448'],
+  ['Tomato', '#e34b43'], ['Chestnut', '#89543f'], ['Turquoise', '#37c1bd'], ['Caramel', '#bd8752'],
+  ['Indigo Dye', '#354d8c'], ['Fandango', '#c44491'], ['Carmine', '#b92e4b'], ['Aquamarine', '#68d6c7'],
+  ['Dark Green', '#174b38'], ['Satin Gold', '#c6a456'], ['Ranger Green', '#596b51'], ['Khaki Green', '#9b9a5a'],
+  ['Lavender', '#b8a0e0'], ['Azure Blue', '#39a1de'], ['Cappuccino', '#b28a6b'], ['Mystic Pearl', '#ded9ed'],
+  ['Celtic Blue', '#2877bb'], ['Rosewood', '#70404e'], ['Chocolate', '#70452f'], ['Feldgrau', '#667267'],
+  ['French Violet', '#7850a0'], ['Sky Blue', '#83c9ee'], ['English Violet', '#57446f'], ['Silver Blue', '#829caf'],
+  ['Gunship Green', '#4b6255'], ['Coral Red', '#f27670'], ['Mustard', '#d2aa39'], ['Moonstone', '#83aaa7'],
+  ['Steel Grey', '#75818a'], ['Battleship Grey', '#69737d'], ['Burnt Sienna', '#b9563d'], ['Deep Cyan', '#087e88'],
+  ['Jade Green', '#45a982'], ['Carrot Juice', '#ed7d27'], ['Pacific Green', '#20aa87'], ['Fire Engine', '#cf3038'],
+] as const;
+
+function normalizeTrait(value: string) {
+  return value.trim().toLocaleLowerCase();
+}
 
 function formatGram(price: string) {
   const amount = Number(price);
@@ -47,8 +78,15 @@ export default function MarketPage() {
   const [sortOpen, setSortOpen] = useState(false);
   const [collectionOpen, setCollectionOpen] = useState(false);
   const [filterSearch, setFilterSearch] = useState('');
+  const [backdropSearch, setBackdropSearch] = useState('');
+  const [symbolSearch, setSymbolSearch] = useState('');
   const [collectionSearch, setCollectionSearch] = useState('');
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
+  const [selectedBackdrops, setSelectedBackdrops] = useState<string[]>([]);
+  const [selectedSymbol, setSelectedSymbol] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [filterSection, setFilterSection] = useState<'collections' | 'backdrops' | 'symbols' | null>(null);
   const [selectedCollection, setSelectedCollection] = useState('all');
   const [sortBy, setSortBy] = useState<SortKey>('price-asc');
 
@@ -79,11 +117,21 @@ export default function MarketPage() {
   const belongsToCollection = (gift: StockGift, collectionGiftName: string) =>
     normalizeGiftName(gift.name) === normalizeGiftName(collectionGiftName);
 
-  const activeFilterCount = selectedCollections.length;
+  const activeFilterCount = selectedCollections.length + selectedBackdrops.length + Number(Boolean(selectedSymbol)) + Number(Boolean(minPrice || maxPrice)) + Number(selectedCollection !== 'all');
 
   const filteredGifts = stock
     .filter((gift) => `${gift.name} ${gift.collection}`.toLowerCase().includes(search.trim().toLowerCase()))
     .filter((gift) => !selectedCollectionName || belongsToCollection(gift, selectedCollectionName))
+    .filter((gift) => {
+      const price = Number(gift.priceTon);
+      return (minPrice === '' || (Number.isFinite(price) && price >= Number(minPrice)))
+        && (maxPrice === '' || (Number.isFinite(price) && price <= Number(maxPrice)));
+    })
+    .filter((gift) => selectedBackdrops.length === 0 || selectedBackdrops.some((name) =>
+      normalizeTrait(gift.backdropName ?? '') === normalizeTrait(name)
+        || normalizeTrait(gift.backdropColor ?? '') === normalizeTrait(giftBackdrops.find(([backdropName]) => backdropName === name)?.[1] ?? ''),
+    ))
+    .filter((gift) => !selectedSymbol || normalizeTrait(gift.symbolName ?? '') === normalizeTrait(selectedSymbol))
     .filter((gift) => selectedCollections.length === 0 || selectedCollections.some((collectionName) => {
       const collection = telegramGiftCollections.find((item) => item.name === collectionName);
       return collection ? belongsToCollection(gift, collection.giftName) : false;
@@ -113,6 +161,25 @@ export default function MarketPage() {
   const collectionChoices = telegramGiftCollections.filter((item) =>
     `${item.name} ${item.giftName}`.toLowerCase().includes(collectionSearch.trim().toLowerCase()),
   );
+  const backdropChoices = giftBackdrops.filter(([name]) => name.toLowerCase().includes(backdropSearch.trim().toLowerCase()));
+  const symbolChoices = [...new Map(stock
+    .filter((gift) => Boolean(gift.symbolName))
+    .map((gift) => [normalizeTrait(gift.symbolName!), { name: gift.symbolName!, imageUrl: gift.symbolImageUrl ?? null }]),
+  ).values()].filter((symbol) => symbol.name.toLowerCase().includes(symbolSearch.trim().toLowerCase()));
+
+  const clearFilters = () => {
+    setSelectedCollections([]);
+    setSelectedBackdrops([]);
+    setSelectedSymbol('');
+    setMinPrice('');
+    setMaxPrice('');
+    setSelectedCollection('all');
+    setFilterSearch('');
+    setBackdropSearch('');
+    setSymbolSearch('');
+    setCollectionSearch('');
+    setFilterSection(null);
+  };
 
   return (
     <main className="min-h-screen bg-[#f5f8ff] text-slate-900">
@@ -148,6 +215,9 @@ export default function MarketPage() {
           <button type="button" onClick={() => setCollectionOpen(true)} className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm">
             <span className="max-w-28 truncate">{selectedCollection === 'all' ? 'Collection' : selectedCollection}</span>
             <span className="text-slate-400">⌄</span>
+          </button>
+          <button type="button" onClick={clearFilters} title="Clear filters" aria-label="Clear all filters" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-red-100 bg-white text-red-500 shadow-sm transition hover:bg-red-50 active:scale-95">
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2m3 0-.9 14H5.9L5 6m4 4v6m6-6v6" /></svg>
           </button>
         </div>
 
@@ -215,24 +285,65 @@ export default function MarketPage() {
                 <div><h2 id="market-filter-title" className="text-lg font-bold">Filter NFTs</h2><p className="mt-0.5 text-xs text-slate-500">Search and select from {telegramGiftCollections.length} gift collections</p></div>
                 <button type="button" onClick={() => setFilterOpen(false)} aria-label="Close filters" className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>
               </div>
-              <div className="border-b border-slate-100 p-4">
-                <input value={filterSearch} onChange={(event) => setFilterSearch(event.target.value)} placeholder="Search NFT by name..." className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-400" />
-              </div>
-              <div className="max-h-[48vh] overflow-y-auto px-4 py-2">
-                {filterChoices.length === 0 ? <p className="py-10 text-center text-sm text-slate-500">No matching collections.</p> : filterChoices.map((gift) => {
-                  const stockCount = stock.filter((stockGift) => belongsToCollection(stockGift, gift.giftName)).length;
-                  return <label key={gift.slug} className="flex cursor-pointer items-center gap-3 border-b border-slate-100 py-3 last:border-0">
-                    <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50 text-2xl">
-                      <span aria-hidden="true">🎁</span>
-                      <img src={giftCollectionImage(gift.slug)} alt="" loading="lazy" className="absolute h-12 w-12 rounded-xl object-cover" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
-                    </span>
-                    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-slate-800">{gift.name}</span><span className="mt-0.5 block truncate text-xs text-slate-400">{stockCount} in ORBIT stock</span></span>
-                    <input type="checkbox" checked={selectedCollections.includes(gift.name)} onChange={() => setSelectedCollections((items) => items.includes(gift.name) ? items.filter((name) => name !== gift.name) : [...items, gift.name])} className="h-5 w-5 accent-blue-700" aria-label={`Select ${gift.name}`} />
-                  </label>;
-                })}
+              <div className="max-h-[58vh] space-y-3 overflow-y-auto px-4 py-3">
+                <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
+                  <h3 className="mb-2 text-sm font-semibold text-slate-800">Price range <span className="font-normal text-slate-400">(TON)</span></h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="text-xs text-slate-500">From<input type="number" min="0" step="any" inputMode="decimal" value={minPrice} onChange={(event) => setMinPrice(event.target.value)} placeholder="0" className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-400" /></label>
+                    <label className="text-xs text-slate-500">To<input type="number" min="0" step="any" inputMode="decimal" value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)} placeholder="No limit" className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-400" /></label>
+                  </div>
+                </div>
+
+                <div className="overflow-hidden rounded-2xl border border-slate-100">
+                  <button type="button" onClick={() => setFilterSection(filterSection === 'backdrops' ? null : 'backdrops')} className="flex w-full items-center justify-between px-3 py-3 text-left">
+                    <span><span className="block text-sm font-semibold text-slate-800">Background</span><span className="text-xs text-slate-400">{selectedBackdrops.length ? selectedBackdrops.join(', ') : 'Choose backdrop color'}</span></span><span className="text-slate-400">{filterSection === 'backdrops' ? '⌃' : '⌄'}</span>
+                  </button>
+                  {filterSection === 'backdrops' && <div className="border-t border-slate-100 p-3">
+                    <input value={backdropSearch} onChange={(event) => setBackdropSearch(event.target.value)} placeholder="Search background..." className="mb-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-blue-400" />
+                    <div className="max-h-48 space-y-0.5 overflow-y-auto">
+                      {backdropChoices.map(([name, color]) => <label key={name} className="flex cursor-pointer items-center gap-3 rounded-xl px-2 py-2 hover:bg-slate-50">
+                        <span className="h-5 w-5 shrink-0 rounded-full border border-black/10 shadow-inner" style={{ backgroundColor: color }} />
+                        <span className="flex-1 text-sm text-slate-700">{name}</span>
+                        <input type="checkbox" checked={selectedBackdrops.includes(name)} onChange={() => setSelectedBackdrops((items) => items.includes(name) ? items.filter((item) => item !== name) : [...items, name])} className="h-4 w-4 accent-blue-700" aria-label={`Select ${name} background`} />
+                      </label>)}
+                    </div>
+                  </div>}
+                </div>
+
+                <div className="overflow-hidden rounded-2xl border border-slate-100">
+                  <button type="button" onClick={() => setFilterSection(filterSection === 'symbols' ? null : 'symbols')} className="flex w-full items-center justify-between px-3 py-3 text-left">
+                    <span><span className="block text-sm font-semibold text-slate-800">Symbol</span><span className="text-xs text-slate-400">{selectedSymbol || 'Choose gift symbol'}</span></span><span className="text-slate-400">{filterSection === 'symbols' ? '⌃' : '⌄'}</span>
+                  </button>
+                  {filterSection === 'symbols' && <div className="border-t border-slate-100 p-3">
+                    <input value={symbolSearch} onChange={(event) => setSymbolSearch(event.target.value)} placeholder="Search symbol..." className="mb-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-blue-400" />
+                    {symbolChoices.length ? <div className="max-h-48 space-y-0.5 overflow-y-auto">{symbolChoices.map((symbol) => <button key={normalizeTrait(symbol.name)} type="button" onClick={() => setSelectedSymbol(selectedSymbol === symbol.name ? '' : symbol.name)} className={`flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left ${selectedSymbol === symbol.name ? 'bg-blue-50' : 'hover:bg-slate-50'}`}>
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-lg">{symbol.imageUrl ? <img src={symbol.imageUrl} alt="" className="h-full w-full object-contain" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : '✦'}</span>
+                      <span className="flex-1 text-sm text-slate-700">{symbol.name}</span><span className="text-lg text-slate-500">{selectedSymbol === symbol.name ? '✓' : '›'}</span>
+                    </button>)}</div> : <p className="py-5 text-center text-xs leading-5 text-slate-500">No symbol data in the current ORBIT inventory yet. Symbols will appear here when NFT trait data is added.</p>}
+                  </div>}
+                </div>
+
+                <div className="overflow-hidden rounded-2xl border border-slate-100">
+                  <button type="button" onClick={() => setFilterSection(filterSection === 'collections' ? null : 'collections')} className="flex w-full items-center justify-between px-3 py-3 text-left">
+                    <span><span className="block text-sm font-semibold text-slate-800">Gift collections</span><span className="text-xs text-slate-400">{selectedCollections.length ? `${selectedCollections.length} selected` : `Select from ${telegramGiftCollections.length} collections`}</span></span><span className="text-slate-400">{filterSection === 'collections' ? '⌃' : '⌄'}</span>
+                  </button>
+                  {filterSection === 'collections' && <div className="border-t border-slate-100 p-3">
+                    <input value={filterSearch} onChange={(event) => setFilterSearch(event.target.value)} placeholder="Search NFT by name..." className="mb-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-blue-400" />
+                    <div className="max-h-52 overflow-y-auto">
+                      {filterChoices.length === 0 ? <p className="py-5 text-center text-sm text-slate-500">No matching collections.</p> : filterChoices.map((gift) => {
+                        const stockCount = stock.filter((stockGift) => belongsToCollection(stockGift, gift.giftName)).length;
+                        return <label key={gift.slug} className="flex cursor-pointer items-center gap-3 border-b border-slate-100 py-2 last:border-0">
+                          <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-50 text-lg"><span aria-hidden="true">🎁</span><img src={giftCollectionImage(gift.slug)} alt="" loading="lazy" className="absolute h-9 w-9 rounded-full object-cover" onError={(event) => { event.currentTarget.style.display = 'none'; }} /></span>
+                          <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-slate-800">{gift.name}</span><span className="text-[11px] text-slate-400">{stockCount} in ORBIT stock</span></span>
+                          <input type="checkbox" checked={selectedCollections.includes(gift.name)} onChange={() => setSelectedCollections((items) => items.includes(gift.name) ? items.filter((name) => name !== gift.name) : [...items, gift.name])} className="h-4 w-4 accent-blue-700" aria-label={`Select ${gift.name}`} />
+                        </label>;
+                      })}
+                    </div>
+                  </div>}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3 border-t border-slate-100 p-4">
-                <button type="button" onClick={() => setSelectedCollections([])} className="rounded-2xl bg-slate-100 py-3 text-sm font-semibold text-slate-700">Clear</button>
+                <button type="button" onClick={clearFilters} className="rounded-2xl bg-slate-100 py-3 text-sm font-semibold text-slate-700">Clear</button>
                 <button type="button" onClick={() => setFilterOpen(false)} className="rounded-2xl bg-blue-700 py-3 text-sm font-semibold text-white">Show {filteredGifts.length} NFTs</button>
               </div>
             </section>

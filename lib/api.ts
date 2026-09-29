@@ -127,6 +127,10 @@ export async function getGifts() {
     modelRarityPerMille?: number | null;
     backdropRarityPerMille?: number | null;
     symbolRarityPerMille?: number | null;
+    backdropName?: string | null;
+    backdropColor?: string | null;
+    symbolName?: string | null;
+    symbolImageUrl?: string | null;
   }>>;
 }
 
