@@ -18,8 +18,8 @@ type StockGift = {
 function formatTon(price: string) {
   const amount = Number(price);
   return Number.isFinite(amount)
-    ? `${amount.toLocaleString('en-US', { maximumFractionDigits: 3 })} TON`
-    : `${price} TON`;
+    ? `${amount.toLocaleString('en-US', { maximumFractionDigits: 3 })} GRAM`
+    : `${price} GRAM`;
 }
 
 export default function MarketPage() {

@@ -34,12 +34,11 @@ export default function TonBalanceBadge() {
   }, [address]);
 
   return (
-    <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-2 shadow-sm" aria-label={`${formatTonBalance(balance)} TON balance`}>
-      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 text-blue-600" fill="currentColor">
-        <path d="M12 2.2 2.7 7.55v8.9L12 21.8l9.3-5.35v-8.9L12 2.2Zm0 2.3 6.9 4-6.9 4-6.9-4 6.9-4Zm-7.1 6 5.95 3.45v5.3L4.9 15.8v-5.3Zm14.2 0v5.3l-5.95 3.45v-5.3l5.95-3.45Z" />
+    <div className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#14283f] px-4 py-2.5 shadow-[0_4px_12px_rgba(15,35,58,0.2)]" aria-label={`${formatTonBalance(balance)} GRAM balance`}>
+      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="currentColor">
+        <path d="M12 1.8 22.2 12 12 22.2 1.8 12 12 1.8Zm0 4.2-1.15 4.85L6 12l4.85 1.15L12 18l1.15-4.85L18 12l-4.85-1.15L12 6Z" />
       </svg>
-      <span className="text-xs font-semibold tabular-nums text-slate-800">{formatTonBalance(balance)}</span>
-      <span className="text-[10px] font-bold text-blue-700">TON</span>
+      <span className="text-base font-bold tabular-nums text-white">{formatTonBalance(balance)} GRAM</span>
     </div>
   );
 }

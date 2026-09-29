@@ -239,7 +239,7 @@ export default function ProfilePage() {
           </div>
           <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
             <div className="min-w-0">
-              <p className="text-xs font-medium text-slate-700">TON wallet</p>
+              <p className="text-xs font-medium text-slate-700">GRAM wallet</p>
               <p className="mt-1 truncate text-[11px] text-slate-500">
                 {account?.wallets[0]?.address
                   ? `${account.wallets[0].address.slice(0, 7)}…${account.wallets[0].address.slice(-5)}`
@@ -285,7 +285,7 @@ export default function ProfilePage() {
                 <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">Listed for sale</h2><span className="text-xs text-slate-500">{listed.length} items</span></div>
                 {listed.length === 0 ? <EmptyState icon="🏷️" title="No active listings" detail="Gifts you list for sale will appear here." /> : listed.map((gift) => <article key={gift.id} className="mb-3 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3">
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-3xl">{gift.emoji || "🎁"}</div>
-                  <div className="min-w-0 flex-1"><h3 className="truncate text-sm font-semibold">{gift.name}</h3><p className="mt-1 truncate text-xs text-slate-500">{gift.collection}</p><p className="mt-2 text-sm font-semibold">{formatTon(gift.priceTon)} TON</p>{gift.status === "RESERVED" && <p className="mt-1 text-[11px] text-amber-700">Reserved for an accepted offer</p>}</div>
+                  <div className="min-w-0 flex-1"><h3 className="truncate text-sm font-semibold">{gift.name}</h3><p className="mt-1 truncate text-xs text-slate-500">{gift.collection}</p><p className="mt-2 text-sm font-semibold">{formatTon(gift.priceTon)} GRAM</p>{gift.status === "RESERVED" && <p className="mt-1 text-[11px] text-amber-700">Reserved for an accepted offer</p>}</div>
                   <div className="flex flex-col gap-2"><button type="button" disabled={Boolean(busy) || gift.status === "RESERVED"} onClick={() => openPriceEditor(gift, true)} className="rounded-xl bg-slate-100 px-3 py-2 text-xs disabled:opacity-50">Edit</button><button type="button" disabled={Boolean(busy) || gift.status === "RESERVED"} onClick={() => void removeListing(gift)} className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600 disabled:opacity-50">{busy === `unlist:${gift.id}` ? "…" : "Unlist"}</button></div>
                 </article>)}
               </section>
@@ -314,7 +314,7 @@ export default function ProfilePage() {
                   <p className="mt-1 truncate text-xs text-slate-500">{item.gift?.name || "Gift"} · {new Date(item.createdAt).toLocaleString()}</p>
                 </div>
                 <div className="text-right">
-                  {item.amountTon != null && <p className="text-sm font-semibold">{formatTon(item.amountTon)} TON</p>}
+                  {item.amountTon != null && <p className="text-sm font-semibold">{formatTon(item.amountTon)} GRAM</p>}
                   <p className="mt-1 text-[10px] uppercase text-slate-500">{item.status}</p>
                 </div>
               </div>)}
@@ -327,7 +327,7 @@ export default function ProfilePage() {
             <form role="dialog" aria-modal="true" aria-labelledby="price-editor-title" onSubmit={(event) => { event.preventDefault(); void saveListingPrice(); }} onClick={(event) => event.stopPropagation()} className="w-full max-w-[440px] rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl">
               <h2 id="price-editor-title" className="text-lg font-semibold">{priceEditor.editing ? "Edit listing price" : "List gift for sale"}</h2>
               <p className="mt-1 text-sm text-slate-500">{priceEditor.gift.name}</p>
-              <label htmlFor="listing-price" className="mt-5 block text-xs text-slate-500">Price in TON</label>
+              <label htmlFor="listing-price" className="mt-5 block text-xs text-slate-500">Price in GRAM</label>
               <input id="listing-price" inputMode="decimal" type="number" min="0.000000001" step="0.000000001" required value={priceInput} onChange={(event) => setPriceInput(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-slate-300" placeholder="e.g. 2.5" />
               <div className="mt-5 grid grid-cols-2 gap-3">
                 <button type="button" disabled={Boolean(busy)} onClick={() => setPriceEditor(null)} className="rounded-xl bg-slate-100 py-3 text-sm disabled:opacity-50">Cancel</button>
@@ -365,7 +365,7 @@ function OfferList({ title, emptyTitle, emptyDetail, offers, busy, actionLabel, 
   return <div>
     <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{title}</h2><span className="text-xs text-slate-500">{offers.length} offers</span></div>
     {offers.length === 0 ? <EmptyState icon={incoming ? "📥" : "📭"} title={emptyTitle} detail={emptyDetail} /> : offers.map((offer) => <article key={offer.id} className="mb-3 rounded-2xl border border-slate-200 bg-white p-4">
-      <div className="flex items-center gap-3"><div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-3xl">{offer.gift?.emoji || "🎁"}</div><div className="min-w-0 flex-1"><h3 className="truncate text-sm font-semibold">{offer.gift?.name || "Gift"}</h3><p className="mt-1 text-xs text-slate-500">{incoming ? (offer.buyer?.username ? `From @${offer.buyer.username}` : "Incoming offer") : "Your offer"}</p><p className="mt-1 font-semibold">{formatTon(offer.amountTon)} TON</p></div><span className="rounded-xl bg-slate-50 px-2 py-2 text-[10px] text-slate-600">{offer.status}</span></div>
+      <div className="flex items-center gap-3"><div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-3xl">{offer.gift?.emoji || "🎁"}</div><div className="min-w-0 flex-1"><h3 className="truncate text-sm font-semibold">{offer.gift?.name || "Gift"}</h3><p className="mt-1 text-xs text-slate-500">{incoming ? (offer.buyer?.username ? `From @${offer.buyer.username}` : "Incoming offer") : "Your offer"}</p><p className="mt-1 font-semibold">{formatTon(offer.amountTon)} GRAM</p></div><span className="rounded-xl bg-slate-50 px-2 py-2 text-[10px] text-slate-600">{offer.status}</span></div>
       {offer.status === "PENDING" && <div className={incoming ? "mt-3 grid grid-cols-2 gap-2" : "mt-3"}>
         <button type="button" disabled={Boolean(busy)} onClick={() => void onAction(offer)} className={`w-full rounded-xl py-2 text-xs disabled:opacity-50 ${actionKey === "accept" ? "bg-blue-700 font-semibold text-white" : "bg-slate-100 text-slate-700"}`}>{busy === `${actionKey}:${offer.id}` ? "Please wait…" : actionLabel}</button>
         {incoming && onReject && <button type="button" disabled={Boolean(busy)} onClick={() => void onReject(offer)} className="w-full rounded-xl bg-slate-100 py-2 text-xs disabled:opacity-50">{busy === `reject:${offer.id}` ? "Please wait…" : "Decline"}</button>}

@@ -21,25 +21,25 @@ const gifts = [
   {
     name: 'Diamond Ring',
     collection: 'Telegram Gifts',
-    price: '24.5 TON',
+    price: '24.5 GRAM',
     emoji: '💎',
   },
   {
     name: 'Astral Shard',
     collection: 'Limited Gifts',
-    price: '18.2 TON',
+    price: '18.2 GRAM',
     emoji: '🔮',
   },
   {
     name: 'Golden Bear',
     collection: 'Rare Gifts',
-    price: '42 TON',
+    price: '42 GRAM',
     emoji: '🐻',
   },
   {
     name: 'Crystal Heart',
     collection: 'Premium Gifts',
-    price: '31.8 TON',
+    price: '31.8 GRAM',
     emoji: '💜',
   },
 ];
@@ -92,7 +92,7 @@ export default function Home() {
 
           <div className="mt-2 flex items-end justify-between">
             <div>
-              <div className="text-3xl font-bold tracking-tight text-blue-950">{formatTonBalance(balance)} <span className="text-lg text-blue-700">TON</span></div>
+              <div className="text-3xl font-bold tracking-tight text-blue-950">{formatTonBalance(balance)} <span className="text-lg text-blue-700">GRAM</span></div>
               {!walletAddress && (
                 <p className="mt-1 text-xs text-slate-500">
                   Connect wallet to start trading
@@ -167,7 +167,7 @@ export default function Home() {
 
                 <div className="text-right">
                   <p className="text-xs text-slate-500">Price</p>
-                  <p className="font-semibold">24.5 TON</p>
+                  <p className="font-semibold">24.5 GRAM</p>
                 </div>
               </div>
 

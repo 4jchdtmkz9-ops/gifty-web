@@ -38,7 +38,7 @@ export default function CryptanCasePage() {
   function demoPurchase() {
     window.sessionStorage.setItem(DEMO_PURCHASE_KEY, '1');
     setPurchased(true);
-    setNotice('Demo purchase complete — no TON was charged.');
+    setNotice('Demo purchase complete — no GRAM was charged.');
   }
 
   function openCase() {
@@ -137,12 +137,12 @@ export default function CryptanCasePage() {
                 <h2 className="text-lg font-bold text-blue-950">Криптан</h2>
                 <p className="mt-0.5 text-xs text-slate-500">5 collectible Telegram gifts</p>
               </div>
-              <span className="rounded-full bg-blue-50 px-3 py-1.5 text-sm font-bold text-blue-800">30 TON</span>
+              <span className="rounded-full bg-blue-50 px-3 py-1.5 text-sm font-bold text-blue-800">30 GRAM</span>
             </div>
 
             <div className="mt-4 rounded-2xl border border-yellow-200 bg-yellow-50/80 px-3 py-2.5">
               <p className="text-[11px] font-bold text-yellow-900">Demo only</p>
-              <p className="mt-0.5 text-[10px] leading-4 text-yellow-800">No real TON is charged and no NFT is transferred in this preview.</p>
+              <p className="mt-0.5 text-[10px] leading-4 text-yellow-800">No real GRAM is charged and no NFT is transferred in this preview.</p>
             </div>
 
             {notice && <p role="status" className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">{notice}</p>}
@@ -153,7 +153,7 @@ export default function CryptanCasePage() {
                 onClick={demoPurchase}
                 className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(21,87,213,0.2)] transition active:scale-[0.99]"
               >
-                Buy case · 30 TON
+                Buy case · 30 GRAM
               </button>
             )}
           </div>
@@ -165,7 +165,7 @@ export default function CryptanCasePage() {
               <p className="text-[10px] font-bold tracking-[0.16em] text-blue-700">POSSIBLE NFTS</p>
               <h2 className="mt-1 text-base font-bold text-blue-950">What you can win</h2>
             </div>
-            <span className="text-[10px] text-slate-500">Prices in TON</span>
+            <span className="text-[10px] text-slate-500">Prices in GRAM</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {cryptanRewards.map((reward) => <CaseRewardCard key={reward.id} reward={reward} />)}

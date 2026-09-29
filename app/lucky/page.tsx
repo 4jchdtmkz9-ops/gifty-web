@@ -6,12 +6,12 @@ import HomeIcon from "../../components/HomeIcon";
 import BottomNav from "../../components/BottomNav";
 
 const gifts = [
-  { name: "Diamond Ring", emoji: "💎", price: "24.5 TON" },
-  { name: "Astral Shard", emoji: "🔮", price: "18.2 TON" },
-  { name: "Golden Bear", emoji: "🐻", price: "42 TON" },
-  { name: "Crystal Heart", emoji: "💜", price: "31.8 TON" },
-  { name: "Magic Mushroom", emoji: "🍄", price: "12.4 TON" },
-  { name: "Star", emoji: "⭐", price: "8.9 TON" },
+  { name: "Diamond Ring", emoji: "💎", price: "24.5 GRAM" },
+  { name: "Astral Shard", emoji: "🔮", price: "18.2 GRAM" },
+  { name: "Golden Bear", emoji: "🐻", price: "42 GRAM" },
+  { name: "Crystal Heart", emoji: "💜", price: "31.8 GRAM" },
+  { name: "Magic Mushroom", emoji: "🍄", price: "12.4 GRAM" },
+  { name: "Star", emoji: "⭐", price: "8.9 GRAM" },
 ];
 
 export default function LuckyPage() {
@@ -77,7 +77,7 @@ export default function LuckyPage() {
             </p>
 
             <p className="mt-1 text-xl font-bold">
-              1 TON
+              1 GRAM
             </p>
           </div>
 
