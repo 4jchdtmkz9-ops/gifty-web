@@ -191,7 +191,7 @@ export default function MarketPage() {
           />
         </div>
 
-        <div className="mb-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="sticky top-0 z-40 -mx-4 mb-5 flex gap-2 overflow-x-auto bg-[#f5f8ff]/95 px-4 py-3 shadow-[0_8px_16px_-16px_rgba(15,23,42,0.35)] backdrop-blur-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <button type="button" onClick={() => setFilterOpen(true)} className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm">
             <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><circle cx="7" cy="5" r="2" fill="white" stroke="currentColor" strokeWidth="1.8"/><circle cx="13" cy="10" r="2" fill="white" stroke="currentColor" strokeWidth="1.8"/><circle cx="8" cy="15" r="2" fill="white" stroke="currentColor" strokeWidth="1.8"/></svg>
             Filter{activeFilterCount > 0 && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">{activeFilterCount}</span>}
@@ -272,10 +272,7 @@ export default function MarketPage() {
             <section role="dialog" aria-modal="true" aria-labelledby="market-filter-title" onClick={(event) => event.stopPropagation()} className="max-h-[82vh] w-full max-w-[480px] overflow-hidden rounded-t-[30px] bg-white shadow-2xl">
               <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
                 <div><h2 id="market-filter-title" className="text-lg font-bold">Filter NFTs</h2><p className="mt-0.5 text-xs text-slate-500">Filter by price, background and symbol</p></div>
-                <div className="flex items-center gap-2">
-                  <button type="button" onClick={clearFilters} title="Clear filters" aria-label="Clear all filters" className="flex h-9 items-center gap-1.5 rounded-full bg-red-50 px-3 text-xs font-semibold text-red-600"><svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2m3 0-.9 14H5.9L5 6m4 4v6m6-6v6" /></svg>Clear</button>
-                  <button type="button" onClick={() => setFilterOpen(false)} aria-label="Close filters" className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>
-                </div>
+                <button type="button" onClick={() => setFilterOpen(false)} aria-label="Close filters" className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>
               </div>
               <div className="max-h-[58vh] space-y-3 overflow-y-auto px-4 py-3">
                 <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
