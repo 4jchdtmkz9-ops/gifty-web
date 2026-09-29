@@ -123,6 +123,10 @@ export async function getGifts() {
     collection: string;
     emoji: string | null;
     priceTon: string;
+    imageUrl?: string | null;
+    modelRarityPerMille?: number | null;
+    backdropRarityPerMille?: number | null;
+    symbolRarityPerMille?: number | null;
   }>>;
 }
 

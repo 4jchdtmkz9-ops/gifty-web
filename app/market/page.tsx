@@ -1,9 +1,7 @@
 'use client';
 
-import HomeIcon from "../../components/HomeIcon";
 import { useEffect, useState } from 'react';
 import { getGifts } from '../../lib/api';
-import TelegramAvatar from '../../components/TelegramAvatar';
 import BottomNav from '../../components/BottomNav';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
 import GramIcon from '../../components/GramIcon';
@@ -14,9 +12,23 @@ type StockGift = {
   collection: string;
   emoji: string | null;
   priceTon: string;
+  imageUrl?: string | null;
+  modelRarityPerMille?: number | null;
+  backdropRarityPerMille?: number | null;
+  symbolRarityPerMille?: number | null;
 };
 
-function formatTon(price: string) {
+type SortKey = 'price-asc' | 'price-desc' | 'model-rarity' | 'backdrop-rarity' | 'symbol-rarity';
+
+const sortOptions: { id: SortKey; label: string }[] = [
+  { id: 'price-asc', label: 'Price: low to high' },
+  { id: 'price-desc', label: 'Price: high to low' },
+  { id: 'model-rarity', label: 'Model rarity: rarest first' },
+  { id: 'backdrop-rarity', label: 'Background rarity: rarest first' },
+  { id: 'symbol-rarity', label: 'Symbol rarity: rarest first' },
+];
+
+function formatGram(price: string) {
   const amount = Number(price);
   return Number.isFinite(amount)
     ? `${amount.toLocaleString('en-US', { maximumFractionDigits: 3 })} GRAM`
@@ -30,6 +42,12 @@ export default function MarketPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
+  const [filterSearch, setFilterSearch] = useState('');
+  const [selectedGiftIds, setSelectedGiftIds] = useState<string[]>([]);
+  const [selectedCollection, setSelectedCollection] = useState('all');
+  const [sortBy, setSortBy] = useState<SortKey>('price-asc');
 
   useEffect(() => {
     let active = true;
@@ -56,8 +74,39 @@ export default function MarketPage() {
     };
   }, [reloadKey]);
 
-  const filteredGifts = stock.filter((gift) =>
-    `${gift.name} ${gift.collection}`.toLowerCase().includes(search.trim().toLowerCase()),
+  const collections = [...new Set(stock.map((gift) => gift.collection).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const sortHasRarity = (key: SortKey) => {
+    if (key === 'model-rarity') return stock.some((gift) => gift.modelRarityPerMille != null);
+    if (key === 'backdrop-rarity') return stock.some((gift) => gift.backdropRarityPerMille != null);
+    if (key === 'symbol-rarity') return stock.some((gift) => gift.symbolRarityPerMille != null);
+    return true;
+  };
+
+  const filteredGifts = stock
+    .filter((gift) => `${gift.name} ${gift.collection}`.toLowerCase().includes(search.trim().toLowerCase()))
+    .filter((gift) => selectedCollection === 'all' || gift.collection === selectedCollection)
+    .filter((gift) => selectedGiftIds.length === 0 || selectedGiftIds.includes(gift.id))
+    .sort((a, b) => {
+      if (sortBy === 'price-asc' || sortBy === 'price-desc') {
+        const difference = Number(a.priceTon) - Number(b.priceTon);
+        return sortBy === 'price-asc' ? difference : -difference;
+      }
+
+      const rarityKey = sortBy === 'model-rarity'
+        ? 'modelRarityPerMille'
+        : sortBy === 'backdrop-rarity'
+          ? 'backdropRarityPerMille'
+          : 'symbolRarityPerMille';
+      const rarityA = a[rarityKey];
+      const rarityB = b[rarityKey];
+      if (rarityA == null && rarityB == null) return 0;
+      if (rarityA == null) return 1;
+      if (rarityB == null) return -1;
+      return rarityA - rarityB;
+    });
+
+  const filterChoices = stock.filter((gift) =>
+    `${gift.name} ${gift.collection}`.toLowerCase().includes(filterSearch.trim().toLowerCase()),
   );
 
   return (
@@ -79,6 +128,26 @@ export default function MarketPage() {
             placeholder="Search gifts..."
             className="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-11 pr-4 text-sm shadow-sm outline-none placeholder:text-slate-400 focus:border-blue-400"
           />
+        </div>
+
+        <div className="mb-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <button type="button" onClick={() => setFilterOpen(true)} className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm">
+            <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><circle cx="7" cy="5" r="2" fill="white" stroke="currentColor" strokeWidth="1.8"/><circle cx="13" cy="10" r="2" fill="white" stroke="currentColor" strokeWidth="1.8"/><circle cx="8" cy="15" r="2" fill="white" stroke="currentColor" strokeWidth="1.8"/></svg>
+            Filter{selectedGiftIds.length > 0 && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">{selectedGiftIds.length}</span>}
+            <span className="text-slate-400">⌄</span>
+          </button>
+          <button type="button" onClick={() => setSortOpen(true)} className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm">
+            <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5" fill="none"><path d="M6 16V4m0 0L3 7m3-3 3 3m5-3v12m0 0 3-3m-3 3-3-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            Sort <span className="text-slate-400">⌄</span>
+          </button>
+          <label className="relative inline-flex shrink-0 items-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <span className="pointer-events-none max-w-28 truncate pl-4 text-sm font-semibold text-slate-800">{selectedCollection === 'all' ? 'Collection' : selectedCollection}</span>
+            <span className="pointer-events-none px-2 text-slate-400">⌄</span>
+            <select aria-label="Choose collection" value={selectedCollection} onChange={(event) => setSelectedCollection(event.target.value)} className="absolute inset-0 h-full w-full cursor-pointer opacity-0">
+              <option value="all">All collections</option>
+              {collections.map((collection) => <option key={collection} value={collection}>{collection}</option>)}
+            </select>
+          </label>
         </div>
 
         <div className="mb-4 flex items-center justify-between">
@@ -118,14 +187,14 @@ export default function MarketPage() {
                 className="overflow-hidden rounded-3xl border border-slate-200 bg-white text-left transition hover:border-blue-200 active:scale-[0.98]"
               >
                 <div className="flex h-40 items-center justify-center bg-gradient-to-br from-blue-50 via-white to-yellow-50 text-6xl">
-                  {gift.emoji || '🎁'}
+                  {gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name} loading="lazy" className="h-full w-full object-contain p-3" /> : gift.emoji || '🎁'}
                 </div>
                 <div className="p-3">
                   <h3 className="truncate text-sm font-semibold">{gift.name}</h3>
                   <p className="mt-1 truncate text-xs text-slate-400">{gift.collection}</p>
                   <div className="mt-3">
                     <p className="text-[10px] text-slate-400">Price</p>
-                    <p className="text-sm font-semibold"><GramIcon size={14} className="mr-1 text-blue-700" />{formatTon(gift.priceTon)}</p>
+            <p className="text-sm font-semibold"><GramIcon size={14} className="mr-1 text-blue-700" />{formatGram(gift.priceTon)}</p>
                   </div>
                 </div>
               </button>
@@ -133,6 +202,52 @@ export default function MarketPage() {
           </div>
         )}
         <BottomNav active="market" />
+
+        {filterOpen && (
+          <div className="fixed inset-0 z-[110] flex items-end justify-center bg-slate-950/40 backdrop-blur-sm" onClick={() => setFilterOpen(false)}>
+            <section role="dialog" aria-modal="true" aria-labelledby="market-filter-title" onClick={(event) => event.stopPropagation()} className="max-h-[82vh] w-full max-w-[480px] overflow-hidden rounded-t-[30px] bg-white shadow-2xl">
+              <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                <div><h2 id="market-filter-title" className="text-lg font-bold">Filter NFTs</h2><p className="mt-0.5 text-xs text-slate-500">Choose gifts from ORBIT stock</p></div>
+                <button type="button" onClick={() => setFilterOpen(false)} aria-label="Close filters" className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>
+              </div>
+              <div className="border-b border-slate-100 p-4">
+                <input value={filterSearch} onChange={(event) => setFilterSearch(event.target.value)} placeholder="Search NFT by name..." className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-400" />
+              </div>
+              <div className="max-h-[48vh] overflow-y-auto px-4 py-2">
+                {filterChoices.length === 0 ? <p className="py-10 text-center text-sm text-slate-500">No matching NFTs in stock.</p> : filterChoices.map((gift) => (
+                  <label key={gift.id} className="flex cursor-pointer items-center gap-3 border-b border-slate-100 py-3 last:border-0">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50 text-2xl">
+                      {gift.imageUrl ? <img src={gift.imageUrl} alt="" className="h-full w-full object-contain" /> : gift.emoji || '🎁'}
+                    </span>
+                    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-slate-800">{gift.name}</span><span className="mt-0.5 block truncate text-xs text-slate-400">{gift.collection}</span></span>
+                    <input type="checkbox" checked={selectedGiftIds.includes(gift.id)} onChange={() => setSelectedGiftIds((ids) => ids.includes(gift.id) ? ids.filter((id) => id !== gift.id) : [...ids, gift.id])} className="h-5 w-5 accent-blue-700" aria-label={`Select ${gift.name}`} />
+                  </label>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-3 border-t border-slate-100 p-4">
+                <button type="button" onClick={() => setSelectedGiftIds([])} className="rounded-2xl bg-slate-100 py-3 text-sm font-semibold text-slate-700">Clear</button>
+                <button type="button" onClick={() => setFilterOpen(false)} className="rounded-2xl bg-blue-700 py-3 text-sm font-semibold text-white">Show {filteredGifts.length} NFTs</button>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {sortOpen && (
+          <div className="fixed inset-0 z-[110] flex items-end justify-center bg-slate-950/40 backdrop-blur-sm" onClick={() => setSortOpen(false)}>
+            <section role="dialog" aria-modal="true" aria-labelledby="market-sort-title" onClick={(event) => event.stopPropagation()} className="w-full max-w-[480px] rounded-t-[30px] bg-white p-5 shadow-2xl">
+              <div className="mb-3 flex items-center justify-between"><div><h2 id="market-sort-title" className="text-lg font-bold">Sort NFTs</h2><p className="mt-0.5 text-xs text-slate-500">Select how to order the catalog</p></div><button type="button" onClick={() => setSortOpen(false)} aria-label="Close sorting" className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button></div>
+              <div className="space-y-1">
+                {sortOptions.map((option) => {
+                  const available = sortHasRarity(option.id);
+                  return <button key={option.id} type="button" disabled={!available} onClick={() => { setSortBy(option.id); setSortOpen(false); }} className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-sm ${available ? 'text-slate-700 hover:bg-slate-50' : 'cursor-not-allowed text-slate-300'}`}>
+                    <span>{option.label}{!available && <span className="mt-0.5 block text-[10px]">Telegram rarity data unavailable</span>}</span>
+                    <span className={`flex h-5 w-5 items-center justify-center rounded-full border ${sortBy === option.id ? 'border-blue-700 bg-blue-700 text-white' : 'border-slate-300 text-transparent'}`}>✓</span>
+                  </button>;
+                })}
+              </div>
+            </section>
+          </div>
+        )}
 
         {selectedGift && (
           <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/35 backdrop-blur-sm">
@@ -159,7 +274,7 @@ export default function MarketPage() {
               </div>
               <div className="mt-5 rounded-2xl bg-slate-50 p-4">
                 <p className="text-xs text-slate-400">Price</p>
-                <p className="mt-1 text-2xl font-bold"><GramIcon size={20} className="mr-1 text-blue-700" />{formatTon(selectedGift.priceTon)}</p>
+            <p className="mt-1 text-2xl font-bold"><GramIcon size={20} className="mr-1 text-blue-700" />{formatGram(selectedGift.priceTon)}</p>
               </div>
             </div>
           </div>
