@@ -26,6 +26,26 @@ const rewards: LuckyReward[] = [
 
 const spinPriceGram = '1';
 
+function CasinoChip() {
+  return (
+    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#14283f] shadow-[0_8px_20px_rgba(20,40,63,0.2)]">
+      <svg aria-hidden="true" viewBox="0 0 56 56" className="h-14 w-14" fill="none">
+        <circle cx="28" cy="28" r="25" fill="#14283f" stroke="#e8bd59" strokeWidth="1.5" />
+        <circle cx="28" cy="28" r="20.5" stroke="#ffffff" strokeOpacity=".3" />
+        <circle cx="28" cy="8" r="1.5" fill="#e8bd59" />
+        <circle cx="42.1" cy="13.9" r="1.5" fill="#e8bd59" />
+        <circle cx="48" cy="28" r="1.5" fill="#e8bd59" />
+        <circle cx="42.1" cy="42.1" r="1.5" fill="#e8bd59" />
+        <circle cx="28" cy="48" r="1.5" fill="#e8bd59" />
+        <circle cx="13.9" cy="42.1" r="1.5" fill="#e8bd59" />
+        <circle cx="8" cy="28" r="1.5" fill="#e8bd59" />
+        <circle cx="13.9" cy="13.9" r="1.5" fill="#e8bd59" />
+        <path d="M20 20h16l-11 17" stroke="#f4bf28" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </div>
+  );
+}
+
 function chooseWeightedReward() {
   const available = rewards.filter((reward) => reward.chance > 0);
   const roll = Math.random() * available.reduce((total, reward) => total + reward.chance, 0);
@@ -91,21 +111,22 @@ export default function LuckyPage() {
         <header className="flex items-center justify-between gap-2 py-2">
           <div>
             <p className="text-sm font-semibold tracking-[0.18em] text-blue-700">ORBIT</p>
-            <h1 className="text-2xl font-bold">Lucky Buy</h1>
+            <h1 className="text-2xl font-bold">Lucky</h1>
           </div>
           <TonBalanceBadge />
         </header>
 
-        <section className="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-yellow-50 p-4 text-center shadow-[0_14px_36px_rgba(21,87,213,0.08)]">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-700 text-2xl text-white shadow-lg shadow-blue-700/20">✦</div>
-          <h2 className="mt-2 text-xl font-bold">Try your luck</h2>
-          <p className="mt-1 text-xs leading-5 text-slate-500">Spin for GRAM rewards or a Telegram gift.</p>
+        <section className="rounded-3xl border border-blue-100 bg-white p-4 text-center shadow-[0_12px_30px_rgba(21,87,213,0.07)]">
+          <CasinoChip />
+          <p className="mt-2 text-[10px] font-bold tracking-[0.2em] text-amber-600">LUCKY DRAW</p>
+          <h2 className="mt-1 text-xl font-bold">Try your luck</h2>
+          <p className="mt-1 text-xs leading-5 text-slate-500">Spin for GRAM or a collectible.</p>
 
-          <div className="mt-3 rounded-2xl bg-slate-100 p-2.5">
-            <p className="text-[11px] text-slate-400">Demo spin price</p>
-            <p className="mt-0.5 text-lg font-bold"><GramIcon size={16} className="mr-1 text-blue-700" />{spinPriceGram} GRAM</p>
-            <p className="mt-0.5 text-[11px] leading-4 text-slate-500">Demo only — no GRAM charged, nothing added to inventory.</p>
+          <div className="mt-3 flex items-center justify-between rounded-2xl border border-blue-100 bg-[#f5f8ff] px-3 py-2.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Spin cost</span>
+            <span className="flex items-center text-base font-bold text-slate-900"><GramIcon size={16} className="mr-1 text-blue-700" />{spinPriceGram} GRAM</span>
           </div>
+          <p className="mt-2 text-[10px] leading-4 text-slate-400">Demo mode: no payment or inventory changes.</p>
         </section>
 
         <section className="mt-4">
