@@ -121,7 +121,7 @@ export default function LuckyPage() {
           <CasinoChip />
           <p className="mt-2 text-[10px] font-bold tracking-[0.2em] text-amber-600">LUCKY DRAW</p>
           <h2 className="mt-1 text-xl font-bold">Try your luck</h2>
-          <p className="mt-1 text-xs leading-5 text-slate-500">Spin for GRAM or a collectible.</p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">Each spin costs 1 GRAM. Possible results are listed below.</p>
 
           <div className="mt-3 flex flex-col items-center rounded-2xl border border-blue-100 bg-[#f5f8ff] px-3 py-2.5 text-center">
             <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Spin cost</span>
