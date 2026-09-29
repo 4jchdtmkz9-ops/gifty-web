@@ -132,7 +132,7 @@ export default function LuckyPage() {
         </section>
 
         <button type="button" onClick={playLucky} disabled={rolling} className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-2rem)] max-w-[448px] -translate-x-1/2 rounded-2xl bg-blue-700 py-3.5 font-semibold text-white shadow-lg shadow-blue-900/20 transition active:scale-[0.98] disabled:opacity-50">
-          {rolling ? 'Choosing…' : '✦ Try Lucky Buy'}
+          Spin
         </button>
 
         {result && (
