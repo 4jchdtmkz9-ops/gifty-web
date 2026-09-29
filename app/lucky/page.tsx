@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import BottomNav from '../../components/BottomNav';
 import GramIcon from '../../components/GramIcon';
-import { giftCollectionImage } from '../../lib/telegramGiftCollections';
 
 type LuckyReward = {
   id: string;
@@ -12,7 +11,7 @@ type LuckyReward = {
   valueGram: string;
   chance: number;
   emoji?: string;
-  imageSlug?: string;
+  imageUrl?: string;
 };
 
 const rewards: LuckyReward[] = [
@@ -20,8 +19,8 @@ const rewards: LuckyReward[] = [
   { id: 'gram-02', kind: 'gram', name: 'GRAM', valueGram: '0.2', chance: 28, emoji: '✦' },
   { id: 'gram-05', kind: 'gram', name: 'GRAM', valueGram: '0.5', chance: 30, emoji: '✦' },
   { id: 'gram-1', kind: 'gram', name: 'GRAM', valueGram: '1', chance: 15, emoji: '✦' },
-  { id: 'chill-flame', kind: 'nft', name: 'Chill Flame', valueGram: '6', chance: 5, imageSlug: 'chillflame' },
-  { id: 'plush-pepe', kind: 'nft', name: 'Plush Pepe', valueGram: '7999', chance: 0, imageSlug: 'plushpepe' },
+  { id: 'chill-flame', kind: 'nft', name: 'Chill Flame', valueGram: '6', chance: 5, imageUrl: 'https://nft.fragment.com/gift/chillflame-135698.webp' },
+  { id: 'plush-pepe', kind: 'nft', name: 'Plush Pepe', valueGram: '7999', chance: 0, imageUrl: 'https://nft.fragment.com/gift/plushpepe-1829.webp' },
 ];
 
 const spinPriceGram = '1';
@@ -50,7 +49,7 @@ function RewardArt({ reward, large = false }: { reward: LuckyReward; large?: boo
 
   return <div className={`relative flex ${size} items-center justify-center overflow-hidden rounded-2xl bg-slate-100 text-4xl`}>
     <span aria-hidden="true">🎁</span>
-    <img src={giftCollectionImage(reward.imageSlug!)} alt="" className="absolute inset-0 h-full w-full object-contain" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
+    <img src={reward.imageUrl} alt={reward.name} className="absolute inset-0 h-full w-full object-contain" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
   </div>;
 }
 
@@ -67,9 +66,8 @@ export default function LuckyPage() {
     setSelected(null);
 
     let count = 0;
-    const possibleRewards = rewards.filter((reward) => reward.chance > 0);
     const interval = setInterval(() => {
-      const highlighted = possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
+      const highlighted = rewards[Math.floor(Math.random() * rewards.length)];
       setSelected(highlighted.id);
       count++;
 
@@ -109,12 +107,12 @@ export default function LuckyPage() {
         <section className="mt-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-semibold">Possible rewards</h2>
-            <span className="text-xs text-slate-400">Chance</span>
+            <span className="text-xs text-slate-400">6 rewards</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             {rewards.map((reward) => (
-              <div key={reward.id} className={`relative flex min-h-40 flex-col items-center rounded-2xl border p-3 text-center transition ${selected === reward.id ? 'scale-[1.03] border-blue-500 bg-blue-50 shadow-md' : 'border-slate-200 bg-white'} ${reward.chance === 0 ? 'opacity-70' : ''}`}>
+              <div key={reward.id} className={`relative flex min-h-36 flex-col items-center rounded-2xl border p-2.5 text-center transition ${selected === reward.id ? 'scale-[1.03] border-blue-500 bg-blue-50 shadow-md' : 'border-slate-200 bg-white'} ${reward.chance === 0 ? 'opacity-70' : ''}`}>
                 <RewardArt reward={reward} />
                 {reward.kind === 'gram' ? (
                   <p className="mt-2 flex items-center justify-center text-base font-bold"><GramIcon size={17} className="mr-1 text-blue-700" />{reward.valueGram}</p>
@@ -124,7 +122,6 @@ export default function LuckyPage() {
                     <p className="mt-1 flex items-center justify-center text-xs text-slate-500"><GramIcon size={13} className="mr-1 text-blue-700" />{reward.valueGram}</p>
                   </>
                 )}
-                <span className="absolute right-2 top-2 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-600">{reward.chance}%</span>
               </div>
             ))}
           </div>
