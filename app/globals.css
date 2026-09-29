@@ -39,6 +39,50 @@ select {
   font-size: 16px;
 }
 
+.market-filter-bar {
+  background-color: var(--background);
+  box-shadow: none;
+}
+
+.profile-tabs {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.case-roulette-stage {
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgb(55 121 238 / 12%), transparent 52%),
+    linear-gradient(135deg, #f0f6ff 0%, #ffffff 48%, #fffaf0 100%);
+}
+
+.case-roulette-stage::before,
+.case-roulette-stage::after {
+  position: absolute;
+  z-index: 0;
+  content: '';
+  pointer-events: none;
+}
+
+.case-roulette-stage::before {
+  inset: 18% -18%;
+  border: 1px solid rgb(21 87 213 / 13%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 18px rgb(21 87 213 / 3%), 0 0 0 46px rgb(244 191 40 / 3%);
+  transform: rotate(-8deg);
+}
+
+.case-roulette-stage::after {
+  inset: 0;
+  opacity: 0.55;
+  background-image:
+    radial-gradient(circle at 12% 24%, rgb(21 87 213 / 28%) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 83% 70%, rgb(244 191 40 / 55%) 0 1.2px, transparent 2px),
+    radial-gradient(circle at 69% 18%, rgb(21 87 213 / 20%) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 25% 82%, rgb(244 191 40 / 38%) 0 1px, transparent 1.8px);
+}
+
 html[data-theme='dark'] {
   color-scheme: dark;
   --background: #0b1220;
@@ -118,6 +162,26 @@ html[data-theme='dark'] main [class*='bg-emerald-100'] {
 html[data-theme='dark'] main .case-art-stage {
   background: #fff !important;
   background-image: none !important;
+}
+
+html[data-theme='dark'] .case-roulette-stage {
+  background:
+    radial-gradient(ellipse at 50% 50%, rgb(57 121 238 / 24%), transparent 54%),
+    linear-gradient(135deg, #101a2b 0%, #17263d 52%, #202332 100%);
+}
+
+html[data-theme='dark'] .case-roulette-stage::before {
+  border-color: rgb(125 170 255 / 20%);
+  box-shadow: 0 0 0 18px rgb(125 170 255 / 5%), 0 0 0 46px rgb(244 191 40 / 4%);
+}
+
+html[data-theme='dark'] .case-roulette-stage::after {
+  opacity: 0.72;
+  background-image:
+    radial-gradient(circle at 12% 24%, rgb(145 184 255 / 68%) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 83% 70%, rgb(255 211 105 / 78%) 0 1.2px, transparent 2px),
+    radial-gradient(circle at 69% 18%, rgb(145 184 255 / 58%) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 25% 82%, rgb(255 211 105 / 62%) 0 1px, transparent 1.8px);
 }
 
 html[data-theme='dark'] main [class*='text-blue-950'] {

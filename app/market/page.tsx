@@ -205,7 +205,7 @@ export default function MarketPage() {
           />
         </div>
 
-        <div className="sticky top-0 z-40 -mx-4 mb-5 flex gap-2 overflow-x-auto bg-[#f5f8ff]/95 px-4 py-3 shadow-[0_8px_16px_-16px_rgba(15,23,42,0.35)] backdrop-blur-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="market-filter-bar sticky top-0 z-40 -mx-4 mb-5 flex gap-2 overflow-x-auto px-4 py-3 shadow-[0_8px_16px_-16px_rgba(15,23,42,0.35)] backdrop-blur-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <button type="button" onClick={() => setFilterOpen(true)} className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm">
             <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><circle cx="7" cy="5" r="2" fill="white" stroke="currentColor" strokeWidth="1.8"/><circle cx="13" cy="10" r="2" fill="white" stroke="currentColor" strokeWidth="1.8"/><circle cx="8" cy="15" r="2" fill="white" stroke="currentColor" strokeWidth="1.8"/></svg>
             Filter{activeFilterCount > 0 && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">{activeFilterCount}</span>}

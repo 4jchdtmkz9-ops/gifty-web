@@ -254,7 +254,7 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        <div className="mt-5 grid grid-cols-3 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm" role="tablist">
+        <div className="profile-tabs mt-5 grid grid-cols-3 gap-1 rounded-2xl p-1.5" role="tablist">
           {tabs.map((item) => (
             <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} onClick={() => setTab(item.id)} className={`flex items-center justify-center gap-1.5 rounded-xl py-3 text-xs font-semibold transition-colors ${tab === item.id ? "bg-blue-700 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"}`}>
               <span>{item.label}</span>

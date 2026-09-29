@@ -103,10 +103,10 @@ export default function CryptanCasePage() {
         </header>
 
         <section className="overflow-hidden rounded-[28px] border border-blue-100 bg-white shadow-[0_12px_32px_rgba(21,87,213,0.09)]">
-          <div className="case-art-stage relative flex h-[220px] items-center overflow-hidden bg-white">
+          <div className={`relative flex h-[220px] items-center overflow-hidden ${purchased || opening ? 'case-roulette-stage' : 'case-art-stage bg-white'}`}>
             {purchased || opening ? (
               <div className="relative h-full w-full">
-                <div ref={rouletteRef} className="absolute inset-0 flex items-center gap-2.5 overflow-hidden px-3">
+                <div ref={rouletteRef} className="case-roulette-track absolute inset-0 z-10 flex items-center gap-2.5 overflow-hidden px-3">
                   {rollItems.map((reward, index) => (
                     <div key={`${reward.id}-${index}`} data-roll-index={index}>
                       <CaseRewardCard reward={reward} compact />
