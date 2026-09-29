@@ -12,16 +12,14 @@ export default function CasesPage() {
   return (
     <main className="min-h-screen bg-[#f5f8ff] text-slate-900">
       <div className="mx-auto min-h-screen max-w-[480px] px-4 pb-28">
-        <header className="py-5">
-          <div className="flex items-center justify-between gap-3">
+        <header className="flex items-start justify-between gap-3 py-5">
+          <div className="min-w-0">
             <OrbitWordmark />
-            <TonBalanceBadge />
+            <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-blue-950">Cases</h1>
+            <p className="mt-1 text-xs text-slate-500">Pick a case and see what’s inside.</p>
           </div>
-          <div className="mt-1 flex items-end justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-blue-950">Cases</h1>
-              <p className="mt-1 text-xs text-slate-500">Pick a case and see what’s inside.</p>
-            </div>
+          <div className="flex shrink-0 flex-col items-end gap-2">
+            <TonBalanceBadge />
             <span className="rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-[10px] font-semibold text-yellow-800">DEMO</span>
           </div>
         </header>
