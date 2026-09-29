@@ -5,6 +5,7 @@ import { getGifts } from '../../lib/api';
 import BottomNav from '../../components/BottomNav';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
 import GramIcon from '../../components/GramIcon';
+import { giftCollectionImage, normalizeGiftName, telegramGiftCollections } from '../../lib/telegramGiftCollections';
 
 type StockGift = {
   id: string;
@@ -44,15 +45,15 @@ export default function MarketPage() {
   const [reloadKey, setReloadKey] = useState(0);
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
+  const [collectionOpen, setCollectionOpen] = useState(false);
   const [filterSearch, setFilterSearch] = useState('');
-  const [selectedGiftIds, setSelectedGiftIds] = useState<string[]>([]);
+  const [collectionSearch, setCollectionSearch] = useState('');
+  const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedCollection, setSelectedCollection] = useState('all');
   const [sortBy, setSortBy] = useState<SortKey>('price-asc');
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
-    setLoadError(false);
 
     getGifts()
       .then((gifts) => {
@@ -74,18 +75,19 @@ export default function MarketPage() {
     };
   }, [reloadKey]);
 
-  const collections = [...new Set(stock.map((gift) => gift.collection).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-  const sortHasRarity = (key: SortKey) => {
-    if (key === 'model-rarity') return stock.some((gift) => gift.modelRarityPerMille != null);
-    if (key === 'backdrop-rarity') return stock.some((gift) => gift.backdropRarityPerMille != null);
-    if (key === 'symbol-rarity') return stock.some((gift) => gift.symbolRarityPerMille != null);
-    return true;
-  };
+  const selectedCollectionName = telegramGiftCollections.find((item) => item.name === selectedCollection)?.giftName;
+  const belongsToCollection = (gift: StockGift, collectionGiftName: string) =>
+    normalizeGiftName(gift.name) === normalizeGiftName(collectionGiftName);
+
+  const activeFilterCount = selectedCollections.length;
 
   const filteredGifts = stock
     .filter((gift) => `${gift.name} ${gift.collection}`.toLowerCase().includes(search.trim().toLowerCase()))
-    .filter((gift) => selectedCollection === 'all' || gift.collection === selectedCollection)
-    .filter((gift) => selectedGiftIds.length === 0 || selectedGiftIds.includes(gift.id))
+    .filter((gift) => !selectedCollectionName || belongsToCollection(gift, selectedCollectionName))
+    .filter((gift) => selectedCollections.length === 0 || selectedCollections.some((collectionName) => {
+      const collection = telegramGiftCollections.find((item) => item.name === collectionName);
+      return collection ? belongsToCollection(gift, collection.giftName) : false;
+    }))
     .sort((a, b) => {
       if (sortBy === 'price-asc' || sortBy === 'price-desc') {
         const difference = Number(a.priceTon) - Number(b.priceTon);
@@ -99,14 +101,17 @@ export default function MarketPage() {
           : 'symbolRarityPerMille';
       const rarityA = a[rarityKey];
       const rarityB = b[rarityKey];
-      if (rarityA == null && rarityB == null) return 0;
+      if (rarityA == null && rarityB == null) return a.name.localeCompare(b.name);
       if (rarityA == null) return 1;
       if (rarityB == null) return -1;
       return rarityA - rarityB;
     });
 
-  const filterChoices = stock.filter((gift) =>
-    `${gift.name} ${gift.collection}`.toLowerCase().includes(filterSearch.trim().toLowerCase()),
+  const filterChoices = telegramGiftCollections.filter((item) =>
+    `${item.name} ${item.giftName}`.toLowerCase().includes(filterSearch.trim().toLowerCase()),
+  );
+  const collectionChoices = telegramGiftCollections.filter((item) =>
+    `${item.name} ${item.giftName}`.toLowerCase().includes(collectionSearch.trim().toLowerCase()),
   );
 
   return (
@@ -133,21 +138,17 @@ export default function MarketPage() {
         <div className="mb-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <button type="button" onClick={() => setFilterOpen(true)} className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm">
             <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><circle cx="7" cy="5" r="2" fill="white" stroke="currentColor" strokeWidth="1.8"/><circle cx="13" cy="10" r="2" fill="white" stroke="currentColor" strokeWidth="1.8"/><circle cx="8" cy="15" r="2" fill="white" stroke="currentColor" strokeWidth="1.8"/></svg>
-            Filter{selectedGiftIds.length > 0 && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">{selectedGiftIds.length}</span>}
+            Filter{activeFilterCount > 0 && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">{activeFilterCount}</span>}
             <span className="text-slate-400">⌄</span>
           </button>
           <button type="button" onClick={() => setSortOpen(true)} className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm">
             <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5" fill="none"><path d="M6 16V4m0 0L3 7m3-3 3 3m5-3v12m0 0 3-3m-3 3-3-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
             Sort <span className="text-slate-400">⌄</span>
           </button>
-          <label className="relative inline-flex shrink-0 items-center rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <span className="pointer-events-none max-w-28 truncate pl-4 text-sm font-semibold text-slate-800">{selectedCollection === 'all' ? 'Collection' : selectedCollection}</span>
-            <span className="pointer-events-none px-2 text-slate-400">⌄</span>
-            <select aria-label="Choose collection" value={selectedCollection} onChange={(event) => setSelectedCollection(event.target.value)} className="absolute inset-0 h-full w-full cursor-pointer opacity-0">
-              <option value="all">All collections</option>
-              {collections.map((collection) => <option key={collection} value={collection}>{collection}</option>)}
-            </select>
-          </label>
+          <button type="button" onClick={() => setCollectionOpen(true)} className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm">
+            <span className="max-w-28 truncate">{selectedCollection === 'all' ? 'Collection' : selectedCollection}</span>
+            <span className="text-slate-400">⌄</span>
+          </button>
         </div>
 
         <div className="mb-4 flex items-center justify-between">
@@ -162,7 +163,11 @@ export default function MarketPage() {
             <p className="font-semibold">Marketplace is temporarily unavailable</p>
             <p className="mt-2 text-sm text-slate-500">Could not load ORBIT stock. Please try again.</p>
             <button
-              onClick={() => setReloadKey((value) => value + 1)}
+              onClick={() => {
+                setLoading(true);
+                setLoadError(false);
+                setReloadKey((value) => value + 1);
+              }}
               className="mt-4 rounded-xl bg-slate-100 px-4 py-2 text-sm"
             >
               Retry
@@ -207,25 +212,27 @@ export default function MarketPage() {
           <div className="fixed inset-0 z-[110] flex items-end justify-center bg-slate-950/40 backdrop-blur-sm" onClick={() => setFilterOpen(false)}>
             <section role="dialog" aria-modal="true" aria-labelledby="market-filter-title" onClick={(event) => event.stopPropagation()} className="max-h-[82vh] w-full max-w-[480px] overflow-hidden rounded-t-[30px] bg-white shadow-2xl">
               <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-                <div><h2 id="market-filter-title" className="text-lg font-bold">Filter NFTs</h2><p className="mt-0.5 text-xs text-slate-500">Choose gifts from ORBIT stock</p></div>
+                <div><h2 id="market-filter-title" className="text-lg font-bold">Filter NFTs</h2><p className="mt-0.5 text-xs text-slate-500">Search and select from {telegramGiftCollections.length} gift collections</p></div>
                 <button type="button" onClick={() => setFilterOpen(false)} aria-label="Close filters" className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>
               </div>
               <div className="border-b border-slate-100 p-4">
                 <input value={filterSearch} onChange={(event) => setFilterSearch(event.target.value)} placeholder="Search NFT by name..." className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-400" />
               </div>
               <div className="max-h-[48vh] overflow-y-auto px-4 py-2">
-                {filterChoices.length === 0 ? <p className="py-10 text-center text-sm text-slate-500">No matching NFTs in stock.</p> : filterChoices.map((gift) => (
-                  <label key={gift.id} className="flex cursor-pointer items-center gap-3 border-b border-slate-100 py-3 last:border-0">
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50 text-2xl">
-                      {gift.imageUrl ? <img src={gift.imageUrl} alt="" className="h-full w-full object-contain" /> : gift.emoji || '🎁'}
+                {filterChoices.length === 0 ? <p className="py-10 text-center text-sm text-slate-500">No matching collections.</p> : filterChoices.map((gift) => {
+                  const stockCount = stock.filter((stockGift) => belongsToCollection(stockGift, gift.giftName)).length;
+                  return <label key={gift.slug} className="flex cursor-pointer items-center gap-3 border-b border-slate-100 py-3 last:border-0">
+                    <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50 text-2xl">
+                      <span aria-hidden="true">🎁</span>
+                      <img src={giftCollectionImage(gift.slug)} alt="" loading="lazy" className="absolute h-12 w-12 rounded-xl object-cover" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
                     </span>
-                    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-slate-800">{gift.name}</span><span className="mt-0.5 block truncate text-xs text-slate-400">{gift.collection}</span></span>
-                    <input type="checkbox" checked={selectedGiftIds.includes(gift.id)} onChange={() => setSelectedGiftIds((ids) => ids.includes(gift.id) ? ids.filter((id) => id !== gift.id) : [...ids, gift.id])} className="h-5 w-5 accent-blue-700" aria-label={`Select ${gift.name}`} />
-                  </label>
-                ))}
+                    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-slate-800">{gift.name}</span><span className="mt-0.5 block truncate text-xs text-slate-400">{stockCount} in ORBIT stock</span></span>
+                    <input type="checkbox" checked={selectedCollections.includes(gift.name)} onChange={() => setSelectedCollections((items) => items.includes(gift.name) ? items.filter((name) => name !== gift.name) : [...items, gift.name])} className="h-5 w-5 accent-blue-700" aria-label={`Select ${gift.name}`} />
+                  </label>;
+                })}
               </div>
               <div className="grid grid-cols-2 gap-3 border-t border-slate-100 p-4">
-                <button type="button" onClick={() => setSelectedGiftIds([])} className="rounded-2xl bg-slate-100 py-3 text-sm font-semibold text-slate-700">Clear</button>
+                <button type="button" onClick={() => setSelectedCollections([])} className="rounded-2xl bg-slate-100 py-3 text-sm font-semibold text-slate-700">Clear</button>
                 <button type="button" onClick={() => setFilterOpen(false)} className="rounded-2xl bg-blue-700 py-3 text-sm font-semibold text-white">Show {filteredGifts.length} NFTs</button>
               </div>
             </section>
@@ -235,15 +242,42 @@ export default function MarketPage() {
         {sortOpen && (
           <div className="fixed inset-0 z-[110] flex items-end justify-center bg-slate-950/40 backdrop-blur-sm" onClick={() => setSortOpen(false)}>
             <section role="dialog" aria-modal="true" aria-labelledby="market-sort-title" onClick={(event) => event.stopPropagation()} className="w-full max-w-[480px] rounded-t-[30px] bg-white p-5 shadow-2xl">
-              <div className="mb-3 flex items-center justify-between"><div><h2 id="market-sort-title" className="text-lg font-bold">Sort NFTs</h2><p className="mt-0.5 text-xs text-slate-500">Select how to order the catalog</p></div><button type="button" onClick={() => setSortOpen(false)} aria-label="Close sorting" className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button></div>
+              <div className="mb-3 flex items-center justify-between"><div><h2 id="market-sort-title" className="text-lg font-bold">Sort NFTs</h2><p className="mt-0.5 text-xs text-slate-500">Rarity sorting needs Telegram attributes. Items without them are ordered by name.</p></div><button type="button" onClick={() => setSortOpen(false)} aria-label="Close sorting" className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button></div>
               <div className="space-y-1">
                 {sortOptions.map((option) => {
-                  const available = sortHasRarity(option.id);
-                  return <button key={option.id} type="button" disabled={!available} onClick={() => { setSortBy(option.id); setSortOpen(false); }} className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-sm ${available ? 'text-slate-700 hover:bg-slate-50' : 'cursor-not-allowed text-slate-300'}`}>
-                    <span>{option.label}{!available && <span className="mt-0.5 block text-[10px]">Telegram rarity data unavailable</span>}</span>
+                  return <button key={option.id} type="button" onClick={() => { setSortBy(option.id); setSortOpen(false); }} className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-sm text-slate-700 hover:bg-slate-50">
+                    <span>{option.label}</span>
                     <span className={`flex h-5 w-5 items-center justify-center rounded-full border ${sortBy === option.id ? 'border-blue-700 bg-blue-700 text-white' : 'border-slate-300 text-transparent'}`}>✓</span>
                   </button>;
                 })}
+              </div>
+            </section>
+          </div>
+        )}
+
+        {collectionOpen && (
+          <div className="fixed inset-0 z-[110] flex items-end justify-center bg-slate-950/40 backdrop-blur-sm" onClick={() => setCollectionOpen(false)}>
+            <section role="dialog" aria-modal="true" aria-labelledby="market-collection-title" onClick={(event) => event.stopPropagation()} className="max-h-[82vh] w-full max-w-[480px] overflow-hidden rounded-t-[30px] bg-white shadow-2xl">
+              <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                <div><h2 id="market-collection-title" className="text-lg font-bold">Choose collection</h2><p className="mt-0.5 text-xs text-slate-500">{telegramGiftCollections.length} Telegram gift collections</p></div>
+                <button type="button" onClick={() => setCollectionOpen(false)} aria-label="Close collections" className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>
+              </div>
+              <div className="border-b border-slate-100 p-4">
+                <input value={collectionSearch} onChange={(event) => setCollectionSearch(event.target.value)} placeholder="Search collection..." className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-400" />
+              </div>
+              <div className="max-h-[55vh] overflow-y-auto px-4 py-2">
+                <button type="button" onClick={() => { setSelectedCollection('all'); setCollectionOpen(false); }} className="flex w-full items-center justify-between border-b border-slate-100 py-3 text-left text-sm font-semibold text-slate-700">
+                  <span>All collections</span><span className={`flex h-5 w-5 items-center justify-center rounded-full border ${selectedCollection === 'all' ? 'border-blue-700 bg-blue-700 text-white' : 'border-slate-300 text-transparent'}`}>✓</span>
+                </button>
+                {collectionChoices.map((collection) => <button key={collection.slug} type="button" onClick={() => { setSelectedCollection(collection.name); setCollectionOpen(false); }} className="flex w-full items-center gap-3 border-b border-slate-100 py-3 text-left last:border-0">
+                  <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50">
+                    <span aria-hidden="true">🎁</span>
+                    <img src={giftCollectionImage(collection.slug)} alt="" loading="lazy" className="absolute h-11 w-11 rounded-xl object-cover" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800">{collection.name}</span>
+                  <span className={`flex h-5 w-5 items-center justify-center rounded-full border ${selectedCollection === collection.name ? 'border-blue-700 bg-blue-700 text-white' : 'border-slate-300 text-transparent'}`}>✓</span>
+                </button>)}
+                {collectionChoices.length === 0 && <p className="py-10 text-center text-sm text-slate-500">No matching collections.</p>}
               </div>
             </section>
           </div>
