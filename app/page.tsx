@@ -7,6 +7,7 @@ import BottomNav from '../components/BottomNav';
 import MarketIcon from '../components/MarketIcon';
 import CasesIcon from '../components/CasesIcon';
 import LuckyIcon from '../components/LuckyIcon';
+import { formatTonBalance } from '../lib/formatTon';
 import {
   getTonBalance,
 } from '../lib/api';
@@ -91,7 +92,7 @@ export default function Home() {
 
           <div className="mt-2 flex items-end justify-between">
             <div>
-              <div className="text-3xl font-bold tracking-tight text-blue-950">{balance} <span className="text-lg text-blue-700">TON</span></div>
+              <div className="text-3xl font-bold tracking-tight text-blue-950">{formatTonBalance(balance)} <span className="text-lg text-blue-700">TON</span></div>
               {!walletAddress && (
                 <p className="mt-1 text-xs text-slate-500">
                   Connect wallet to start trading

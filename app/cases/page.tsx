@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import BottomNav from '../../components/BottomNav';
+import TonBalanceBadge from '../../components/TonBalanceBadge';
 import { cryptanCase } from '../../lib/caseData';
 
 export default function CasesPage() {
@@ -10,7 +11,10 @@ export default function CasesPage() {
     <main className="min-h-screen bg-[#f5f8ff] text-slate-900">
       <div className="mx-auto min-h-screen max-w-[480px] px-4 pb-28">
         <header className="py-5">
-          <p className="text-[10px] font-bold tracking-[0.2em] text-blue-700">ORBIT</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[10px] font-bold tracking-[0.2em] text-blue-700">ORBIT</p>
+            <TonBalanceBadge />
+          </div>
           <div className="mt-1 flex items-end justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-blue-950">Cases</h1>

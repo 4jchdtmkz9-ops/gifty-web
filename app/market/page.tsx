@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { getGifts } from '../../lib/api';
 import TelegramAvatar from '../../components/TelegramAvatar';
 import BottomNav from '../../components/BottomNav';
+import TonBalanceBadge from '../../components/TonBalanceBadge';
 
 type StockGift = {
   id: string;
@@ -61,14 +62,12 @@ export default function MarketPage() {
   return (
     <main className="min-h-screen bg-[#f5f8ff] text-slate-900">
       <div className="mx-auto min-h-screen max-w-[480px] px-4 pb-28">
-        <header className="flex items-center justify-between py-5">
+        <header className="flex items-start justify-between gap-3 py-5">
           <div>
             <p className="text-sm font-semibold tracking-[0.18em] text-blue-700">ORBIT</p>
             <h1 className="text-2xl font-bold">Marketplace</h1>
           </div>
-          <span className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-semibold tracking-wide text-blue-700">
-            ORBIT STOCK
-          </span>
+          <TonBalanceBadge />
         </header>
 
         <div className="relative mb-4">
