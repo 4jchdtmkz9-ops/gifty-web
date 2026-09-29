@@ -20,7 +20,7 @@ export default function CaseRewardCard({
         {!imageFailed && (
           <img
             src={reward.image}
-            alt={`${reward.name} ${reward.number}`}
+            alt={reward.name}
             loading="lazy"
             referrerPolicy="no-referrer"
             onError={() => setImageFailed(true)}
@@ -33,7 +33,6 @@ export default function CaseRewardCard({
       </div>
       <div className="p-2.5">
         <p className="truncate text-xs font-semibold text-slate-800">{reward.name}</p>
-        <p className="mt-1 truncate text-[10px] text-slate-500">{reward.number}</p>
       </div>
     </div>
   );
