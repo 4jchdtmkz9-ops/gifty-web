@@ -77,16 +77,14 @@ export default function MarketPage() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const [collectionOpen, setCollectionOpen] = useState(false);
-  const [filterSearch, setFilterSearch] = useState('');
   const [backdropSearch, setBackdropSearch] = useState('');
   const [symbolSearch, setSymbolSearch] = useState('');
   const [collectionSearch, setCollectionSearch] = useState('');
-  const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedBackdrops, setSelectedBackdrops] = useState<string[]>([]);
   const [selectedSymbol, setSelectedSymbol] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
-  const [filterSection, setFilterSection] = useState<'collections' | 'backdrops' | 'symbols' | null>(null);
+  const [filterSection, setFilterSection] = useState<'backdrops' | 'symbols' | null>(null);
   const [selectedCollection, setSelectedCollection] = useState('all');
   const [sortBy, setSortBy] = useState<SortKey>('price-asc');
 
@@ -117,7 +115,7 @@ export default function MarketPage() {
   const belongsToCollection = (gift: StockGift, collectionGiftName: string) =>
     normalizeGiftName(gift.name) === normalizeGiftName(collectionGiftName);
 
-  const activeFilterCount = selectedCollections.length + selectedBackdrops.length + Number(Boolean(selectedSymbol)) + Number(Boolean(minPrice || maxPrice)) + Number(selectedCollection !== 'all');
+  const activeFilterCount = selectedBackdrops.length + Number(Boolean(selectedSymbol)) + Number(Boolean(minPrice || maxPrice)) + Number(selectedCollection !== 'all');
 
   const filteredGifts = stock
     .filter((gift) => `${gift.name} ${gift.collection}`.toLowerCase().includes(search.trim().toLowerCase()))
@@ -132,10 +130,6 @@ export default function MarketPage() {
         || normalizeTrait(gift.backdropColor ?? '') === normalizeTrait(giftBackdrops.find(([backdropName]) => backdropName === name)?.[1] ?? ''),
     ))
     .filter((gift) => !selectedSymbol || normalizeTrait(gift.symbolName ?? '') === normalizeTrait(selectedSymbol))
-    .filter((gift) => selectedCollections.length === 0 || selectedCollections.some((collectionName) => {
-      const collection = telegramGiftCollections.find((item) => item.name === collectionName);
-      return collection ? belongsToCollection(gift, collection.giftName) : false;
-    }))
     .sort((a, b) => {
       if (sortBy === 'price-asc' || sortBy === 'price-desc') {
         const difference = Number(a.priceTon) - Number(b.priceTon);
@@ -155,9 +149,6 @@ export default function MarketPage() {
       return rarityA - rarityB;
     });
 
-  const filterChoices = telegramGiftCollections.filter((item) =>
-    `${item.name} ${item.giftName}`.toLowerCase().includes(filterSearch.trim().toLowerCase()),
-  );
   const collectionChoices = telegramGiftCollections.filter((item) =>
     `${item.name} ${item.giftName}`.toLowerCase().includes(collectionSearch.trim().toLowerCase()),
   );
@@ -168,13 +159,11 @@ export default function MarketPage() {
   ).values()].filter((symbol) => symbol.name.toLowerCase().includes(symbolSearch.trim().toLowerCase()));
 
   const clearFilters = () => {
-    setSelectedCollections([]);
     setSelectedBackdrops([]);
     setSelectedSymbol('');
     setMinPrice('');
     setMaxPrice('');
     setSelectedCollection('all');
-    setFilterSearch('');
     setBackdropSearch('');
     setSymbolSearch('');
     setCollectionSearch('');
@@ -282,8 +271,11 @@ export default function MarketPage() {
           <div className="fixed inset-0 z-[110] flex items-end justify-center bg-slate-950/40 backdrop-blur-sm" onClick={() => setFilterOpen(false)}>
             <section role="dialog" aria-modal="true" aria-labelledby="market-filter-title" onClick={(event) => event.stopPropagation()} className="max-h-[82vh] w-full max-w-[480px] overflow-hidden rounded-t-[30px] bg-white shadow-2xl">
               <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-                <div><h2 id="market-filter-title" className="text-lg font-bold">Filter NFTs</h2><p className="mt-0.5 text-xs text-slate-500">Search and select from {telegramGiftCollections.length} gift collections</p></div>
-                <button type="button" onClick={() => setFilterOpen(false)} aria-label="Close filters" className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>
+                <div><h2 id="market-filter-title" className="text-lg font-bold">Filter NFTs</h2><p className="mt-0.5 text-xs text-slate-500">Filter by price, background and symbol</p></div>
+                <div className="flex items-center gap-2">
+                  <button type="button" onClick={clearFilters} title="Clear filters" aria-label="Clear all filters" className="flex h-9 items-center gap-1.5 rounded-full bg-red-50 px-3 text-xs font-semibold text-red-600"><svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2m3 0-.9 14H5.9L5 6m4 4v6m6-6v6" /></svg>Clear</button>
+                  <button type="button" onClick={() => setFilterOpen(false)} aria-label="Close filters" className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>
+                </div>
               </div>
               <div className="max-h-[58vh] space-y-3 overflow-y-auto px-4 py-3">
                 <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
@@ -323,28 +315,9 @@ export default function MarketPage() {
                   </div>}
                 </div>
 
-                <div className="overflow-hidden rounded-2xl border border-slate-100">
-                  <button type="button" onClick={() => setFilterSection(filterSection === 'collections' ? null : 'collections')} className="flex w-full items-center justify-between px-3 py-3 text-left">
-                    <span><span className="block text-sm font-semibold text-slate-800">Gift collections</span><span className="text-xs text-slate-400">{selectedCollections.length ? `${selectedCollections.length} selected` : `Select from ${telegramGiftCollections.length} collections`}</span></span><span className="text-slate-400">{filterSection === 'collections' ? '⌃' : '⌄'}</span>
-                  </button>
-                  {filterSection === 'collections' && <div className="border-t border-slate-100 p-3">
-                    <input value={filterSearch} onChange={(event) => setFilterSearch(event.target.value)} placeholder="Search NFT by name..." className="mb-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-blue-400" />
-                    <div className="max-h-52 overflow-y-auto">
-                      {filterChoices.length === 0 ? <p className="py-5 text-center text-sm text-slate-500">No matching collections.</p> : filterChoices.map((gift) => {
-                        const stockCount = stock.filter((stockGift) => belongsToCollection(stockGift, gift.giftName)).length;
-                        return <label key={gift.slug} className="flex cursor-pointer items-center gap-3 border-b border-slate-100 py-2 last:border-0">
-                          <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-50 text-lg"><span aria-hidden="true">🎁</span><img src={giftCollectionImage(gift.slug)} alt="" loading="lazy" className="absolute h-9 w-9 rounded-full object-cover" onError={(event) => { event.currentTarget.style.display = 'none'; }} /></span>
-                          <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-slate-800">{gift.name}</span><span className="text-[11px] text-slate-400">{stockCount} in ORBIT stock</span></span>
-                          <input type="checkbox" checked={selectedCollections.includes(gift.name)} onChange={() => setSelectedCollections((items) => items.includes(gift.name) ? items.filter((name) => name !== gift.name) : [...items, gift.name])} className="h-4 w-4 accent-blue-700" aria-label={`Select ${gift.name}`} />
-                        </label>;
-                      })}
-                    </div>
-                  </div>}
-                </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 border-t border-slate-100 p-4">
-                <button type="button" onClick={clearFilters} className="rounded-2xl bg-slate-100 py-3 text-sm font-semibold text-slate-700">Clear</button>
-                <button type="button" onClick={() => setFilterOpen(false)} className="rounded-2xl bg-blue-700 py-3 text-sm font-semibold text-white">Show {filteredGifts.length} NFTs</button>
+              <div className="border-t border-slate-100 p-4">
+                <button type="button" onClick={() => setFilterOpen(false)} className="w-full rounded-2xl bg-blue-700 py-3 text-sm font-semibold text-white">Show {filteredGifts.length} NFTs</button>
               </div>
             </section>
           </div>
