@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import BottomNav from '../../components/BottomNav';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
+import GramIcon from '../../components/GramIcon';
 import { cryptanCase } from '../../lib/caseData';
 
 export default function CasesPage() {
@@ -31,7 +32,7 @@ export default function CasesPage() {
           >
             <div className="case-art-stage relative flex h-36 items-center justify-center overflow-hidden bg-white">
               <Image src={cryptanCase.image} alt="Кейс Криптан" fill sizes="(max-width: 480px) 50vw, 220px" className="object-contain p-2 transition duration-300 group-hover:scale-105" />
-              <span className="absolute right-2 top-2 rounded-full bg-white/95 px-2 py-1 text-[10px] font-bold text-blue-800 shadow-sm">{cryptanCase.price}</span>
+              <span className="absolute right-2 top-2 rounded-full bg-white/95 px-2 py-1 text-[10px] font-bold text-blue-800 shadow-sm"><GramIcon size={12} className="mr-0.5" />{cryptanCase.price}</span>
             </div>
             <div className="p-3">
               <h2 className="truncate text-sm font-bold text-blue-950">{cryptanCase.name}</h2>

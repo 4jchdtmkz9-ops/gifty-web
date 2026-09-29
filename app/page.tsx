@@ -8,6 +8,7 @@ import MarketIcon from '../components/MarketIcon';
 import CasesIcon from '../components/CasesIcon';
 import LuckyIcon from '../components/LuckyIcon';
 import { formatTonBalance } from '../lib/formatTon';
+import GramIcon from '../components/GramIcon';
 import {
   getTonBalance,
 } from '../lib/api';
@@ -92,7 +93,7 @@ export default function Home() {
 
           <div className="mt-2 flex items-end justify-between">
             <div>
-              <div className="text-3xl font-bold tracking-tight text-blue-950">{formatTonBalance(balance)} <span className="text-lg text-blue-700">GRAM</span></div>
+              <div className="flex items-center gap-1.5 text-3xl font-bold tracking-tight text-blue-950"><GramIcon size={22} className="text-blue-700" />{formatTonBalance(balance)} <span className="text-lg text-blue-700">GRAM</span></div>
               {!walletAddress && (
                 <p className="mt-1 text-xs text-slate-500">
                   Connect wallet to start trading
@@ -167,7 +168,7 @@ export default function Home() {
 
                 <div className="text-right">
                   <p className="text-xs text-slate-500">Price</p>
-                  <p className="font-semibold">24.5 GRAM</p>
+                  <p className="font-semibold"><GramIcon size={15} className="mr-1 text-blue-700" />24.5 GRAM</p>
                 </div>
               </div>
 
@@ -215,6 +216,7 @@ export default function Home() {
 
                   <div className="mt-3 flex items-center justify-between">
                     <span className="text-sm font-semibold">
+                      <GramIcon size={14} className="mr-1 text-blue-700" />
                       {gift.price}
                     </span>
 

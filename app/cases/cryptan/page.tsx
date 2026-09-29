@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import BottomNav from '../../../components/BottomNav';
 import CaseRewardCard from '../../../components/CaseRewardCard';
+import GramIcon from '../../../components/GramIcon';
 import { cryptanCase, cryptanRewards, type CaseReward } from '../../../lib/caseData';
 
 const DEMO_PURCHASE_KEY = 'orbit-demo-case-cryptan-purchased';
@@ -137,7 +138,7 @@ export default function CryptanCasePage() {
                 <h2 className="text-lg font-bold text-blue-950">Криптан</h2>
                 <p className="mt-0.5 text-xs text-slate-500">5 collectible Telegram gifts</p>
               </div>
-              <span className="rounded-full bg-blue-50 px-3 py-1.5 text-sm font-bold text-blue-800">30 GRAM</span>
+              <span className="rounded-full bg-blue-50 px-3 py-1.5 text-sm font-bold text-blue-800"><GramIcon size={15} className="mr-1" />30 GRAM</span>
             </div>
 
             <div className="mt-4 rounded-2xl border border-yellow-200 bg-yellow-50/80 px-3 py-2.5">
@@ -153,7 +154,7 @@ export default function CryptanCasePage() {
                 onClick={demoPurchase}
                 className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(21,87,213,0.2)] transition active:scale-[0.99]"
               >
-                Buy case · 30 GRAM
+                Buy case · <GramIcon size={14} className="mx-1" />30 GRAM
               </button>
             )}
           </div>
@@ -165,7 +166,7 @@ export default function CryptanCasePage() {
               <p className="text-[10px] font-bold tracking-[0.16em] text-blue-700">POSSIBLE NFTS</p>
               <h2 className="mt-1 text-base font-bold text-blue-950">What you can win</h2>
             </div>
-            <span className="text-[10px] text-slate-500">Prices in GRAM</span>
+            <span className="text-[10px] text-slate-500"><GramIcon size={11} className="mr-0.5 text-blue-700" />Prices in GRAM</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {cryptanRewards.map((reward) => <CaseRewardCard key={reward.id} reward={reward} />)}

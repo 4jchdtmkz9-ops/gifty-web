@@ -4,6 +4,7 @@ import { useState } from "react";
 import TelegramAvatar from "../../components/TelegramAvatar";
 import HomeIcon from "../../components/HomeIcon";
 import BottomNav from "../../components/BottomNav";
+import GramIcon from "../../components/GramIcon";
 
 const gifts = [
   { name: "Diamond Ring", emoji: "💎", price: "24.5 GRAM" },
@@ -77,7 +78,7 @@ export default function LuckyPage() {
             </p>
 
             <p className="mt-1 text-xl font-bold">
-              1 GRAM
+              <GramIcon size={18} className="mr-1 text-blue-700" />1 GRAM
             </p>
           </div>
 
@@ -117,7 +118,7 @@ export default function LuckyPage() {
                 </p>
 
                 <p className="mt-1 text-[10px] text-slate-400">
-                  {gift.price}
+                  <GramIcon size={12} className="mr-0.5 text-blue-700" />{gift.price}
                 </p>
 
               </div>
@@ -155,7 +156,7 @@ export default function LuckyPage() {
               </h2>
 
               <p className="mt-2 text-slate-500">
-                Market value: {result.price}
+                Market value: <GramIcon size={14} className="mx-0.5 text-blue-700" />{result.price}
               </p>
 
               <button

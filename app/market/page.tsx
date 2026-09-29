@@ -6,6 +6,7 @@ import { getGifts } from '../../lib/api';
 import TelegramAvatar from '../../components/TelegramAvatar';
 import BottomNav from '../../components/BottomNav';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
+import GramIcon from '../../components/GramIcon';
 
 type StockGift = {
   id: string;
@@ -124,7 +125,7 @@ export default function MarketPage() {
                   <p className="mt-1 truncate text-xs text-slate-400">{gift.collection}</p>
                   <div className="mt-3">
                     <p className="text-[10px] text-slate-400">Price</p>
-                    <p className="text-sm font-semibold">{formatTon(gift.priceTon)}</p>
+                    <p className="text-sm font-semibold"><GramIcon size={14} className="mr-1 text-blue-700" />{formatTon(gift.priceTon)}</p>
                   </div>
                 </div>
               </button>
@@ -158,7 +159,7 @@ export default function MarketPage() {
               </div>
               <div className="mt-5 rounded-2xl bg-slate-50 p-4">
                 <p className="text-xs text-slate-400">Price</p>
-                <p className="mt-1 text-2xl font-bold">{formatTon(selectedGift.priceTon)}</p>
+                <p className="mt-1 text-2xl font-bold"><GramIcon size={20} className="mr-1 text-blue-700" />{formatTon(selectedGift.priceTon)}</p>
               </div>
             </div>
           </div>

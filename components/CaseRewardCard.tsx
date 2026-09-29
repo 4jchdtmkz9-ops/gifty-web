@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { CaseReward } from '../lib/caseData';
+import GramIcon from './GramIcon';
 
 export default function CaseRewardCard({
   reward,
@@ -27,7 +28,7 @@ export default function CaseRewardCard({
           />
         )}
         <span className="absolute right-3 top-3 rounded-full bg-white/95 px-2 py-1 text-[10px] font-bold text-blue-800 shadow-sm backdrop-blur">
-          {reward.price}
+          <GramIcon size={12} className="mr-0.5" />{reward.price}
         </span>
       </div>
       <div className="p-2.5">
