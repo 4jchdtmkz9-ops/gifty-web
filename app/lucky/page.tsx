@@ -122,9 +122,9 @@ export default function LuckyPage() {
           <h2 className="mt-1 text-xl font-bold">Try your luck</h2>
           <p className="mt-1 text-xs leading-5 text-slate-500">Spin for GRAM or a collectible.</p>
 
-          <div className="mt-3 flex items-center justify-between rounded-2xl border border-blue-100 bg-[#f5f8ff] px-3 py-2.5">
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Spin cost</span>
-            <span className="flex items-center text-base font-bold text-slate-900"><GramIcon size={16} className="mr-1 text-blue-700" />{spinPriceGram} GRAM</span>
+          <div className="mt-3 flex flex-col items-center rounded-2xl border border-blue-100 bg-[#f5f8ff] px-3 py-2.5 text-center">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Spin cost</span>
+            <span className="mt-0.5 flex items-center justify-center text-lg font-bold leading-tight text-slate-900"><GramIcon size={19} className="mr-1.5 text-blue-700" />{spinPriceGram} GRAM</span>
           </div>
           <p className="mt-2 text-[10px] leading-4 text-slate-400">Demo mode: no payment or inventory changes.</p>
         </section>
