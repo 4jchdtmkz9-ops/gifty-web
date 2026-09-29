@@ -5,6 +5,7 @@ import Link from 'next/link';
 import BottomNav from '../../components/BottomNav';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
 import GramIcon from '../../components/GramIcon';
+import OrbitWordmark from '../../components/OrbitWordmark';
 import { cryptanCase } from '../../lib/caseData';
 
 export default function CasesPage() {
@@ -13,7 +14,7 @@ export default function CasesPage() {
       <div className="mx-auto min-h-screen max-w-[480px] px-4 pb-28">
         <header className="py-5">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-[10px] font-bold tracking-[0.2em] text-blue-700">ORBIT</p>
+            <OrbitWordmark />
             <TonBalanceBadge />
           </div>
           <div className="mt-1 flex items-end justify-between">

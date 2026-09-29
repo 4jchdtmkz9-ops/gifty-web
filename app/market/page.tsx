@@ -5,6 +5,7 @@ import { getGifts } from '../../lib/api';
 import BottomNav from '../../components/BottomNav';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
 import GramIcon from '../../components/GramIcon';
+import OrbitWordmark from '../../components/OrbitWordmark';
 import { giftCollectionImage, normalizeGiftName, telegramGiftCollections } from '../../lib/telegramGiftCollections';
 
 type StockGift = {
@@ -183,7 +184,7 @@ export default function MarketPage() {
       <div className="mx-auto min-h-screen max-w-[480px] px-4 pb-28">
         <header className="flex items-start justify-between gap-3 py-5">
           <div>
-            <p className="text-sm font-semibold tracking-[0.18em] text-blue-700">ORBIT</p>
+            <OrbitWordmark />
             <h1 className="text-2xl font-bold">Marketplace</h1>
           </div>
           <TonBalanceBadge />

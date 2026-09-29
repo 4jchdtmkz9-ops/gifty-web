@@ -4,6 +4,7 @@ import { useState } from 'react';
 import BottomNav from '../../components/BottomNav';
 import GramIcon from '../../components/GramIcon';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
+import OrbitWordmark from '../../components/OrbitWordmark';
 
 type LuckyReward = {
   id: string;
@@ -110,7 +111,7 @@ export default function LuckyPage() {
       <div className="mx-auto min-h-screen max-w-[480px] px-4 pb-32">
         <header className="flex items-center justify-between gap-2 py-2">
           <div>
-            <p className="text-sm font-semibold tracking-[0.18em] text-blue-700">ORBIT</p>
+            <OrbitWordmark />
             <h1 className="text-2xl font-bold">Lucky</h1>
           </div>
           <TonBalanceBadge />

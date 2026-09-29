@@ -20,6 +20,7 @@ import TelegramAvatar from "../../components/TelegramAvatar";
 import GramIcon from "../../components/GramIcon";
 import HomeIcon from "../../components/HomeIcon";
 import BottomNav from "../../components/BottomNav";
+import OrbitWordmark from "../../components/OrbitWordmark";
 import { waitForTelegramInitData } from "../../lib/telegram";
 import { useIsConnectionRestored, useTonAddress } from "@tonconnect/ui-react";
 
@@ -220,7 +221,7 @@ export default function ProfilePage() {
       <div className="mx-auto min-h-screen max-w-[480px] px-4 pb-28">
         <header className="flex items-center justify-between py-5">
           <div>
-            <p className="text-sm font-semibold tracking-[0.18em] text-blue-700">ORBIT</p>
+            <OrbitWordmark />
             <h1 className="text-2xl font-bold">Profile</h1>
           </div>
           <button type="button" onClick={() => void refresh()} disabled={loading || Boolean(busy)} aria-label="Refresh profile" className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-lg text-blue-700 shadow-sm disabled:opacity-50">↻</button>

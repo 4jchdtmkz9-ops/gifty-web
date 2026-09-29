@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import BottomNav from '../../../components/BottomNav';
 import CaseRewardCard from '../../../components/CaseRewardCard';
 import GramIcon from '../../../components/GramIcon';
+import OrbitWordmark from '../../../components/OrbitWordmark';
 import { cryptanCase, cryptanRewards, type CaseReward } from '../../../lib/caseData';
 
 const DEMO_PURCHASE_KEY = 'orbit-demo-case-cryptan-purchased';
@@ -95,7 +96,7 @@ export default function CryptanCasePage() {
         <header className="flex items-center gap-3 py-5">
           <Link href="/cases" aria-label="Back to cases" className="flex h-10 w-10 items-center justify-center rounded-full border border-blue-100 bg-white text-lg text-blue-800 shadow-sm">←</Link>
           <div>
-            <p className="text-[10px] font-bold tracking-[0.2em] text-blue-700">ORBIT CASE</p>
+            <OrbitWordmark suffix="CASE" />
             <h1 className="text-xl font-bold leading-tight text-blue-950">{cryptanCase.name}</h1>
           </div>
           <span className="ml-auto rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-[10px] font-semibold text-yellow-800">DEMO</span>
