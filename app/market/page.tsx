@@ -67,6 +67,14 @@ function formatGram(price: string) {
     : `${price} GRAM`;
 }
 
+function ChevronDown() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 20 20" className="block h-4 w-4 shrink-0 text-slate-400" fill="none">
+      <path d="m5 7.5 5 5 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export default function MarketPage() {
   const [search, setSearch] = useState('');
   const [stock, setStock] = useState<StockGift[]>([]);
@@ -200,15 +208,15 @@ export default function MarketPage() {
           <button type="button" onClick={() => setFilterOpen(true)} className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm">
             <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><circle cx="7" cy="5" r="2" fill="white" stroke="currentColor" strokeWidth="1.8"/><circle cx="13" cy="10" r="2" fill="white" stroke="currentColor" strokeWidth="1.8"/><circle cx="8" cy="15" r="2" fill="white" stroke="currentColor" strokeWidth="1.8"/></svg>
             Filter{activeFilterCount > 0 && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">{activeFilterCount}</span>}
-            <span className="text-slate-400">⌄</span>
+            <ChevronDown />
           </button>
           <button type="button" onClick={() => setSortOpen(true)} className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm">
             <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5" fill="none"><path d="M6 16V4m0 0L3 7m3-3 3 3m5-3v12m0 0 3-3m-3 3-3-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            Sort <span className="text-slate-400">⌄</span>
+            Sort <ChevronDown />
           </button>
           <button type="button" onClick={() => setCollectionOpen(true)} className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm">
             <span className="max-w-28 truncate">{selectedCollection === 'all' ? 'Collection' : selectedCollection}</span>
-            <span className="text-slate-400">⌄</span>
+            <ChevronDown />
           </button>
           <button type="button" onClick={clearFilters} title="Clear filters" aria-label="Clear all filters" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-red-100 bg-white text-red-500 shadow-sm transition hover:bg-red-50 active:scale-95">
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2m3 0-.9 14H5.9L5 6m4 4v6m6-6v6" /></svg>
