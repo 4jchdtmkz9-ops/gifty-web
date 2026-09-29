@@ -32,6 +32,13 @@ input {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Prevent iOS Safari/Telegram WebView from zooming the page when an input receives focus. */
+input:not([type='checkbox']):not([type='radio']),
+textarea,
+select {
+  font-size: 16px;
+}
+
 html[data-theme='dark'] {
   color-scheme: dark;
   --background: #0b1220;
