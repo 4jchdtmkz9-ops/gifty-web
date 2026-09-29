@@ -250,20 +250,13 @@ export default function ProfilePage() {
               {account?.wallets[0]?.isConnected ? "Connected" : "Not connected"}
             </span>
           </div>
-          <div className="mt-5 grid grid-cols-3 gap-2">
-            {tabs.map((item) => (
-              <button key={item.id} type="button" onClick={() => setTab(item.id)} className="rounded-2xl bg-slate-50 p-3 text-center">
-                <span className="block text-lg font-bold">{item.count}</span>
-                <span className="text-[10px] text-slate-500">{item.label}</span>
-              </button>
-            ))}
-          </div>
         </section>
 
-        <div className="mt-6 grid grid-cols-3 rounded-2xl bg-slate-50 p-1" role="tablist">
+        <div className="mt-5 grid grid-cols-3 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm" role="tablist">
           {tabs.map((item) => (
-            <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} onClick={() => setTab(item.id)} className={`rounded-xl py-3 text-xs font-medium ${tab === item.id ? "bg-blue-700 text-white shadow-sm" : "text-slate-500"}`}>
-              {item.label}
+            <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} onClick={() => setTab(item.id)} className={`flex items-center justify-center gap-1.5 rounded-xl py-3 text-xs font-semibold transition-colors ${tab === item.id ? "bg-blue-700 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"}`}>
+              <span>{item.label}</span>
+              <span className={`min-w-5 rounded-full px-1.5 py-0.5 text-[10px] leading-none ${tab === item.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"}`}>{item.count}</span>
             </button>
           ))}
         </div>

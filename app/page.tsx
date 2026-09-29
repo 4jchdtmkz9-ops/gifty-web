@@ -108,7 +108,7 @@ export default function Home() {
             href="/market"
             className="rounded-2xl border border-blue-100 bg-white p-4 text-center shadow-[0_4px_14px_rgba(21,87,213,0.05)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_8px_20px_rgba(21,87,213,0.1)]"
           >
-            <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+            <span className="mx-auto flex h-10 w-10 items-center justify-center text-slate-700">
               <MarketIcon size={22} />
             </span>
             <div className="mt-2 text-xs font-medium text-slate-700">Market</div>
@@ -118,7 +118,7 @@ export default function Home() {
             href="/cases"
             className="rounded-2xl border border-blue-100 bg-white p-4 text-center shadow-[0_4px_14px_rgba(21,87,213,0.05)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_8px_20px_rgba(21,87,213,0.1)]"
           >
-            <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-yellow-50 text-blue-700">
+            <span className="mx-auto flex h-10 w-10 items-center justify-center text-slate-700">
               <CasesIcon size={22} />
             </span>
             <div className="mt-2 text-xs font-medium text-slate-700">Cases</div>
@@ -128,7 +128,7 @@ export default function Home() {
             href="/lucky"
             className="rounded-2xl border border-blue-100 bg-white p-4 text-center shadow-[0_4px_14px_rgba(21,87,213,0.05)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_8px_20px_rgba(21,87,213,0.1)]"
           >
-            <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-blue-700">
+            <span className="mx-auto flex h-10 w-10 items-center justify-center text-slate-700">
               <LuckyIcon size={22} />
             </span>
             <div className="mt-2 text-xs font-medium text-slate-700">Lucky</div>
