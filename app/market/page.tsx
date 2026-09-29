@@ -182,7 +182,12 @@ export default function MarketPage() {
         </header>
 
         <div className="relative mb-4">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔎</span>
+          <span aria-hidden="true" className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-700">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <circle cx="10.8" cy="10.8" r="6.8" />
+              <path d="m16 16 4.2 4.2" />
+            </svg>
+          </span>
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
