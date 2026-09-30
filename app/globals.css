@@ -156,10 +156,10 @@ select {
   aspect-ratio: 1;
   display: grid;
   place-items: center;
-  border: 2px solid rgb(255 255 255 / 92%);
+  border: 2px solid rgb(255 255 255 / 94%);
   border-radius: 50%;
-  background: radial-gradient(circle at 32% 25%, #fff 0 8%, #fff7d1 17%, #f4bf28 48%, #d28b09 78%, #9b5a00 100%);
-  box-shadow: 0 0 0 4px rgb(244 191 40 / 22%), 0 5px 15px rgb(81 52 0 / 38%), inset -3px -4px 7px rgb(95 59 0 / 25%);
+  background: transparent;
+  box-shadow: 0 0 0 2px rgb(21 87 213 / 18%), 0 3px 10px rgb(21 41 77 / 24%);
   transform: translate(-50%, -50%);
   pointer-events: none;
   will-change: left, top;
@@ -168,7 +168,7 @@ select {
 .arena-bouncing-orb svg {
   width: 56%;
   height: 56%;
-  stroke: #936407;
+  stroke: #1557d5;
   stroke-linecap: round;
   stroke-width: 1.7;
 }
@@ -177,6 +177,32 @@ select {
   fill: #1557d5;
   stroke: #fff;
   stroke-width: 1;
+}
+
+.nav-sticker-float,
+.nav-sticker-art {
+  display: inline-flex;
+  width: 23px;
+  height: 23px;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  animation: nav-sticker-float 2.7s ease-in-out infinite;
+  transform-origin: 50% 70%;
+}
+
+.nav-sticker-gift { animation-delay: -.6s; }
+.nav-sticker-pvp { animation: nav-sticker-gamepad 3.2s ease-in-out infinite; }
+
+@keyframes nav-sticker-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-2px) rotate(-2deg); }
+}
+
+@keyframes nav-sticker-gamepad {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  35% { transform: translateY(-1px) rotate(-5deg); }
+  70% { transform: translateY(0) rotate(4deg); }
 }
 
 .arena-result-backdrop {
@@ -247,6 +273,7 @@ select {
   .arena-trophy,
   .arena-countdown-number { animation-duration: .01ms; animation-iteration-count: 1; }
   .arena-bet-board { transition-duration: .01ms; }
+  .nav-sticker-float, .nav-sticker-art { animation-duration: .01ms; animation-iteration-count: 1; }
 }
 
 .case-roulette-stage::before {

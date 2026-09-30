@@ -142,7 +142,8 @@ function makeArenaMotion(tile: WeightedTile): ArenaMotion {
   const frameCount = 72;
   const frames = Array.from({ length: frameCount }, (_, index): Keyframe => {
     const progress = index / (frameCount - 1);
-    const eased = 1 - Math.pow(1 - progress, 3.1);
+    // Fast launch, then a gradual and readable slowdown.
+    const eased = 1 - Math.pow(1 - progress, 3.2);
     return {
       left: `${foldArenaAxis(start.x + (endX - start.x) * eased)}%`,
       top: `${foldArenaAxis(start.y + (endY - start.y) * eased)}%`,
@@ -188,7 +189,7 @@ function SquareRoom({ room, rollingSeconds, onShare, copied, onJoin, busy, stake
       ball.style.top = `${ballMotion.target.y}%`;
       return;
     }
-    const animation = ball.animate(ballMotion.frames, { duration: 5200, easing: 'linear', fill: 'forwards' });
+    const animation = ball.animate(ballMotion.frames, { duration: 7000, easing: 'linear', fill: 'forwards' });
     animation.onfinish = () => {
       ball.style.left = `${ballMotion.target.x}%`;
       ball.style.top = `${ballMotion.target.y}%`;
@@ -330,13 +331,13 @@ export default function ArenaPage() {
   useEffect(() => {
     if (activeRoom?.status !== 'COMPLETED') return;
     setRollPhase('flying');
-    const zoomTimer = window.setTimeout(() => setRollPhase('zooming'), 4300);
-    const resultTimer = window.setTimeout(() => setRollPhase('result'), 5500);
+    const zoomTimer = window.setTimeout(() => setRollPhase('zooming'), 6100);
+    const resultTimer = window.setTimeout(() => setRollPhase('result'), 7200);
     const resetTimer = window.setTimeout(() => {
       setRollPhase('idle');
       setRoom(null);
       window.history.replaceState(null, '', '/arena');
-    }, 8200);
+    }, 9900);
     return () => { window.clearTimeout(zoomTimer); window.clearTimeout(resultTimer); window.clearTimeout(resetTimer); };
   }, [activeRoom?.id, activeRoom?.status, setRoom]);
 
@@ -446,7 +447,7 @@ export default function ArenaPage() {
             <button onClick={() => setRollPhase('idle')} className="mt-5 w-full rounded-2xl bg-blue-700 py-3 text-sm font-bold text-white">{t('Continue')}</button>
           </section>
         </div>}
-        <BottomNav active={null} />
+        <BottomNav active="pvp" />
       </div>
     </main>
   );
