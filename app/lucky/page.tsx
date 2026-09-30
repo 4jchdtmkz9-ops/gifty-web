@@ -5,6 +5,7 @@ import BottomNav from '../../components/BottomNav';
 import GramIcon from '../../components/GramIcon';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
 import OrbitWordmark from '../../components/OrbitWordmark';
+import { useOrbitLanguage } from '../../components/OrbitLanguageContext';
 
 type LuckyReward = {
   id: string;
@@ -76,6 +77,7 @@ function RewardArt({ reward, large = false }: { reward: LuckyReward; large?: boo
 }
 
 export default function LuckyPage() {
+  const { t } = useOrbitLanguage();
   const [selected, setSelected] = useState<string | null>(null);
   const [rolling, setRolling] = useState(false);
   const [result, setResult] = useState<LuckyReward | null>(null);
@@ -112,28 +114,28 @@ export default function LuckyPage() {
         <header className="flex items-center justify-between gap-2 py-2">
           <div>
             <OrbitWordmark />
-            <h1 className="text-2xl font-bold">Lucky</h1>
+            <h1 className="text-2xl font-bold">{t('Lucky')}</h1>
           </div>
           <TonBalanceBadge />
         </header>
 
         <section className="rounded-3xl border border-blue-100 bg-white p-4 text-center shadow-[0_12px_30px_rgba(21,87,213,0.07)]">
           <CasinoChip />
-          <p className="mt-2 text-[10px] font-bold tracking-[0.2em] text-amber-600">LUCKY DRAW</p>
-          <h2 className="mt-1 text-xl font-bold">Try your luck</h2>
-          <p className="mt-1 text-xs leading-5 text-slate-500">One spin. A chance to find something rare.</p>
+          <p className="mt-2 text-[10px] font-bold tracking-[0.2em] text-amber-600">{t('LUCKY DRAW')}</p>
+          <h2 className="mt-1 text-xl font-bold">{t('Try your luck')}</h2>
+          <p className="mt-1 text-xs leading-5 text-slate-500">{t('One spin. A chance to find something rare.')}</p>
 
           <div className="mt-3 flex flex-col items-center rounded-2xl border border-blue-100 bg-[#f5f8ff] px-3 py-2.5 text-center">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Spin cost</span>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{t('Spin cost')}</span>
             <span className="mt-0.5 flex items-center justify-center text-lg font-bold leading-tight text-slate-900"><GramIcon size={19} className="mr-1.5 text-blue-700" />{spinPriceGram} GRAM</span>
           </div>
-          <p className="mt-2 text-[10px] leading-4 text-slate-400">Demo mode: no payment or inventory changes.</p>
+          <p className="mt-2 text-[10px] leading-4 text-slate-400">{t('Demo mode: no payment or inventory changes.')}</p>
         </section>
 
         <section className="mt-4">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="font-semibold">Possible rewards</h2>
-            <span className="text-xs text-slate-400">6 rewards</span>
+            <h2 className="font-semibold">{t('Possible rewards')}</h2>
+            <span className="text-xs text-slate-400">{t('6 rewards')}</span>
           </div>
 
           <div className="grid grid-cols-3 gap-2">
@@ -154,18 +156,18 @@ export default function LuckyPage() {
         </section>
 
         <button type="button" onClick={playLucky} disabled={rolling} className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-2rem)] max-w-[448px] -translate-x-1/2 rounded-2xl bg-blue-700 py-3.5 font-semibold text-white shadow-lg shadow-blue-900/20 transition active:scale-[0.98] disabled:opacity-50">
-          Spin
+          {t('Spin')}
         </button>
 
         {result && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/45 px-5 backdrop-blur-sm" onClick={() => setResult(null)}>
             <div role="dialog" aria-modal="true" aria-labelledby="lucky-result-title" onClick={(event) => event.stopPropagation()} className="w-full max-w-[360px] rounded-3xl border border-slate-200 bg-white p-7 text-center shadow-2xl">
-              <p className="text-sm text-slate-500">Demo result</p>
+              <p className="text-sm text-slate-500">{t('Demo result')}</p>
               <div className="my-6 flex justify-center"><RewardArt reward={result} large /></div>
-              <h2 id="lucky-result-title" className="text-2xl font-bold">{result.kind === 'gram' ? 'You got' : result.name}</h2>
-              <p className="mt-2 flex items-center justify-center text-lg font-semibold text-slate-700"><GramIcon size={17} className="mr-1 text-blue-700" />{result.valueGram}{result.kind === 'gram' ? '' : ' GRAM value'}</p>
-              <p className="mt-2 text-xs text-slate-500">Demo only. Nothing was charged or added to your inventory.</p>
-              <button type="button" onClick={() => setResult(null)} className="mt-6 w-full rounded-2xl bg-blue-700 py-4 font-semibold text-white">Continue</button>
+              <h2 id="lucky-result-title" className="text-2xl font-bold">{result.kind === 'gram' ? t('You got') : result.name}</h2>
+              <p className="mt-2 flex items-center justify-center text-lg font-semibold text-slate-700"><GramIcon size={17} className="mr-1 text-blue-700" />{result.valueGram}{result.kind === 'gram' ? '' : ` ${t('GRAM value')}`}</p>
+              <p className="mt-2 text-xs text-slate-500">{t('Demo only. Nothing was charged or added to your inventory.')}</p>
+              <button type="button" onClick={() => setResult(null)} className="mt-6 w-full rounded-2xl bg-blue-700 py-4 font-semibold text-white">{t('Continue')}</button>
             </div>
           </div>
         )}

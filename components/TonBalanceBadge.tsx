@@ -5,8 +5,10 @@ import { useTonAddress } from '@tonconnect/ui-react';
 import { getTonBalance } from '../lib/api';
 import { formatTonBalance } from '../lib/formatTon';
 import GramIcon from './GramIcon';
+import { useOrbitLanguage } from './OrbitLanguageContext';
 
 export default function TonBalanceBadge() {
+  const { t } = useOrbitLanguage();
   const address = useTonAddress();
   const [balance, setBalance] = useState('0');
 
@@ -35,7 +37,7 @@ export default function TonBalanceBadge() {
   }, [address]);
 
   return (
-    <div className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#14283f] px-4 py-2.5 shadow-[0_4px_12px_rgba(15,35,58,0.2)]" aria-label={`${formatTonBalance(balance)} GRAM balance`}>
+    <div className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#14283f] px-4 py-2.5 shadow-[0_4px_12px_rgba(15,35,58,0.2)]" aria-label={`${formatTonBalance(balance)} ${t('GRAM balance')}`}>
       <GramIcon size={22} />
       <span className="text-base font-bold tabular-nums text-white">{formatTonBalance(balance)} GRAM</span>
     </div>

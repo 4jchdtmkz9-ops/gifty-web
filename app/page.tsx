@@ -8,6 +8,7 @@ import MarketIcon from '../components/MarketIcon';
 import CasesIcon from '../components/CasesIcon';
 import LuckyIcon from '../components/LuckyIcon';
 import { formatTonBalance } from '../lib/formatTon';
+import { useOrbitLanguage } from '../components/OrbitLanguageContext';
 import GramIcon from '../components/GramIcon';
 import {
   getTonBalance,
@@ -46,6 +47,7 @@ const gifts = [
 ];
 
 export default function Home() {
+    const { t } = useOrbitLanguage();
     const walletAddress = useTonAddress();
     const [balance, setBalance] = useState('0');
     
@@ -77,7 +79,7 @@ export default function Home() {
               <span className="h-1 w-5 rounded-full bg-blue-700" />
               <span className="h-1 w-3 rounded-full bg-yellow-400" />
               <span className="h-1 w-2 rounded-full bg-red-500" />
-              <p className="text-[10px] font-medium tracking-[0.18em] text-slate-500">DIGITAL COLLECTIBLES</p>
+              <p className="text-[10px] font-medium tracking-[0.18em] text-slate-500">{t('DIGITAL COLLECTIBLES')}</p>
             </div>
           </div>
 
@@ -87,8 +89,8 @@ export default function Home() {
         {/* Balance */}
         <section className="mb-5 overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-yellow-50 p-5 shadow-[0_14px_36px_rgba(21,87,213,0.08)]">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-slate-500">Your balance</p>
-            <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-[10px] font-semibold text-yellow-800">ORBIT WALLET</span>
+            <p className="text-sm font-medium text-slate-500">{t('Your balance')}</p>
+            <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-[10px] font-semibold text-yellow-800">{t('ORBIT WALLET')}</span>
           </div>
 
           <div className="mt-2 flex items-end justify-between">
@@ -96,7 +98,7 @@ export default function Home() {
               <div className="flex items-center gap-1.5 text-3xl font-bold tracking-tight text-blue-950"><GramIcon size={22} className="text-blue-700" />{formatTonBalance(balance)} <span className="text-lg text-blue-700">GRAM</span></div>
               {!walletAddress && (
                 <p className="mt-1 text-xs text-slate-500">
-                  Connect wallet to start trading
+                  {t('Connect wallet to start trading')}
                 </p>
               )}
             </div>
@@ -113,7 +115,7 @@ export default function Home() {
             <span className="mx-auto flex h-10 w-10 items-center justify-center text-slate-700">
               <MarketIcon size={22} />
             </span>
-            <div className="mt-2 text-xs font-medium text-slate-700">Market</div>
+            <div className="mt-2 text-xs font-medium text-slate-700">{t('Market')}</div>
           </Link>
 
           <Link
@@ -123,7 +125,7 @@ export default function Home() {
             <span className="mx-auto flex h-10 w-10 items-center justify-center text-slate-700">
               <CasesIcon size={22} />
             </span>
-            <div className="mt-2 text-xs font-medium text-slate-700">Cases</div>
+            <div className="mt-2 text-xs font-medium text-slate-700">{t('Cases')}</div>
           </Link>
 
           <Link
@@ -133,7 +135,7 @@ export default function Home() {
             <span className="mx-auto flex h-10 w-10 items-center justify-center text-slate-700">
               <LuckyIcon size={22} />
             </span>
-            <div className="mt-2 text-xs font-medium text-slate-700">Lucky</div>
+            <div className="mt-2 text-xs font-medium text-slate-700">{t('Lucky')}</div>
           </Link>
 
         </div>
@@ -141,13 +143,13 @@ export default function Home() {
         {/* Featured */}
         <section className="mb-6">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Featured</h2>
+            <h2 className="text-lg font-semibold">{t('Featured')}</h2>
 
             <Link
               href="/market"
               className="text-sm text-slate-500"
             >
-              View all
+              {t('View all')}
             </Link>
           </div>
 
@@ -162,12 +164,12 @@ export default function Home() {
                   <h3 className="font-semibold">Diamond Ring</h3>
 
                   <p className="mt-1 text-sm text-slate-500">
-                    Telegram Gifts
+                    {t('Telegram Gifts')}
                   </p>
                 </div>
 
                 <div className="text-right">
-                  <p className="text-xs text-slate-500">Price</p>
+                  <p className="text-xs text-slate-500">{t('Price')}</p>
                   <p className="font-semibold"><GramIcon size={15} className="mr-1 text-blue-700" />24.5 GRAM</p>
                 </div>
               </div>
@@ -176,7 +178,7 @@ export default function Home() {
                 href="/market"
                 className="mt-4 block w-full rounded-2xl bg-blue-700 py-3 text-center font-semibold text-white transition hover:bg-blue-800"
               >
-                Buy now
+                {t('Buy now')}
               </Link>
             </div>
           </div>
@@ -185,13 +187,13 @@ export default function Home() {
         {/* Trending */}
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Trending gifts</h2>
+            <h2 className="text-lg font-semibold">{t('Trending gifts')}</h2>
 
             <Link
               href="/market"
               className="text-sm text-slate-500"
             >
-              See all
+              {t('See all')}
             </Link>
           </div>
 
@@ -211,7 +213,7 @@ export default function Home() {
                   </h3>
 
                   <p className="mt-1 truncate text-xs text-slate-500">
-                    {gift.collection}
+                    {t(gift.collection)}
                   </p>
 
                   <div className="mt-3 flex items-center justify-between">
@@ -224,7 +226,7 @@ export default function Home() {
                       href="/market"
                       className="rounded-xl bg-slate-100 px-3 py-2 text-xs transition hover:bg-slate-200"
                     >
-                      Buy
+                      {t('Buy')}
                     </Link>
                   </div>
                 </div>

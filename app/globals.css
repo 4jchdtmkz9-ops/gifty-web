@@ -318,6 +318,30 @@ html[data-theme='dark'] .welcome-gate [class*='border-blue-100'] {
   border-color: var(--orbit-border) !important;
 }
 
+html[data-theme='dark'] .language-picker-dialog {
+  border-color: var(--orbit-border) !important;
+  background-color: var(--orbit-surface) !important;
+  color: var(--foreground) !important;
+}
+
+html[data-theme='dark'] .language-choice-option {
+  border-color: var(--orbit-border) !important;
+  background-color: var(--orbit-surface-raised) !important;
+}
+
+html[data-theme='dark'] .language-choice-option[data-selected='true'] {
+  border-color: #3979ee !important;
+  background-color: #172a46 !important;
+}
+
+html[data-theme='dark'] .language-choice-option [class*='text-slate-800'] {
+  color: #e3eaf5 !important;
+}
+
+html[data-theme='dark'] .language-choice-option [class*='text-slate-500'] {
+  color: #9dadc2 !important;
+}
+
 html[data-theme='dark'] main [class*='shadow-'] {
   box-shadow: 0 8px 24px rgb(0 0 0 / 24%) !important;
 }

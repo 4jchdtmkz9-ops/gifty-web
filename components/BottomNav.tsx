@@ -6,6 +6,7 @@ import HomeIcon from './HomeIcon';
 import MarketIcon from './MarketIcon';
 import TelegramAvatar from './TelegramAvatar';
 import { useOrbitTheme } from './OrbitThemeContext';
+import { useOrbitLanguage } from './OrbitLanguageContext';
 
 type NavTab = 'home' | 'market' | 'cases' | 'profile';
 
@@ -18,10 +19,11 @@ const tabs: { id: NavTab; label: string; href: string }[] = [
 
 export default function BottomNav({ active }: { active: NavTab | null }) {
   const { theme, toggleTheme } = useOrbitTheme();
+  const { t } = useOrbitLanguage();
 
   return (
     <nav
-      aria-label="Main navigation"
+      aria-label={t('Main navigation')}
       className="fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-[432px] -translate-x-1/2 items-center justify-around rounded-full border border-white/85 bg-white/75 px-2 py-2 shadow-[0_12px_36px_rgba(30,64,120,0.16),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-2xl"
     >
       {tabs.map((tab) => {
@@ -42,15 +44,15 @@ export default function BottomNav({ active }: { active: NavTab | null }) {
             {tab.id === 'market' && <MarketIcon />}
             {tab.id === 'cases' && <CasesIcon />}
             {tab.id === 'profile' && <TelegramAvatar size={22} />}
-            <span className="text-[10px] font-medium leading-none">{tab.label}</span>
+            <span className="text-[10px] font-medium leading-none">{t(tab.label)}</span>
           </Link>
         );
       })}
       <button
         type="button"
         onClick={toggleTheme}
-        aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
-        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+        aria-label={t(theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme')}
+        title={t(theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme')}
         className="flex min-w-[54px] flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 text-slate-500 transition-colors hover:bg-white/60"
       >
         {theme === 'dark' ? (
@@ -63,7 +65,7 @@ export default function BottomNav({ active }: { active: NavTab | null }) {
             <path d="M20.2 15.4A8.4 8.4 0 0 1 8.6 3.8a8.5 8.5 0 1 0 11.6 11.6Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         )}
-        <span className="text-[10px] font-medium leading-none">{theme === 'dark' ? 'Light' : 'Dark'}</span>
+        <span className="text-[10px] font-medium leading-none">{t(theme === 'dark' ? 'Light' : 'Dark')}</span>
       </button>
     </nav>
   );

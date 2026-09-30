@@ -7,24 +7,26 @@ import TonBalanceBadge from '../../components/TonBalanceBadge';
 import GramIcon from '../../components/GramIcon';
 import OrbitWordmark from '../../components/OrbitWordmark';
 import { cryptanCase } from '../../lib/caseData';
+import { useOrbitLanguage } from '../../components/OrbitLanguageContext';
 
 export default function CasesPage() {
+  const { t } = useOrbitLanguage();
   return (
     <main className="min-h-screen bg-[#f5f8ff] text-slate-900">
       <div className="mx-auto min-h-screen max-w-[480px] px-4 pb-28">
         <header className="flex items-start justify-between gap-3 py-5">
           <div className="min-w-0">
             <OrbitWordmark />
-            <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-blue-950">Cases</h1>
-            <p className="mt-1 text-xs text-slate-500">Pick a case and see what’s inside.</p>
+            <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-blue-950">{t('Cases')}</h1>
+            <p className="mt-1 text-xs text-slate-500">{t('Pick a case and see what’s inside.')}</p>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-2">
             <TonBalanceBadge />
-            <span className="rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-[10px] font-semibold text-yellow-800">DEMO</span>
+            <span className="rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-[10px] font-semibold text-yellow-800">{t('DEMO')}</span>
           </div>
         </header>
 
-        <section aria-label="Available cases" className="grid grid-cols-2 gap-3">
+        <section aria-label={t('Available cases')} className="grid grid-cols-2 gap-3">
           <Link
             href={`/cases/${cryptanCase.id}`}
             className="group overflow-hidden rounded-[24px] border border-blue-100 bg-white shadow-[0_8px_24px_rgba(21,87,213,0.08)] transition active:scale-[0.98]"
@@ -35,17 +37,17 @@ export default function CasesPage() {
             </div>
             <div className="p-3">
               <h2 className="truncate text-sm font-bold text-blue-950">{cryptanCase.name}</h2>
-              <p className="mt-1 truncate text-[10px] text-slate-500">Crypto gifts · 5 possible NFTs</p>
+              <p className="mt-1 truncate text-[10px] text-slate-500">{t('Crypto gifts · 5 possible NFTs')}</p>
               <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700">
-                View case <span aria-hidden="true">→</span>
+                {t('View case')} <span aria-hidden="true">→</span>
               </span>
             </div>
           </Link>
 
           <div className="flex min-h-[220px] flex-col items-center justify-center rounded-[24px] border border-dashed border-blue-200 bg-white/60 px-3 text-center">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-xl text-blue-600" aria-hidden="true">+</span>
-            <p className="mt-3 text-xs font-semibold text-slate-600">More cases soon</p>
-            <p className="mt-1 text-[10px] leading-4 text-slate-400">New collectible drops are on the way.</p>
+            <p className="mt-3 text-xs font-semibold text-slate-600">{t('More cases soon')}</p>
+            <p className="mt-1 text-[10px] leading-4 text-slate-400">{t('New collectible drops are on the way.')}</p>
           </div>
         </section>
 

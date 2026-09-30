@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TonConnectUIProvider, useIsConnectionRestored, useTonAddress } from '@tonconnect/ui-react';
 import { THEME } from '@tonconnect/ui';
 import { syncTelegramProfile } from '../lib/api';
 import { waitForTelegramInitData } from '../lib/telegram';
 import MiniAppWelcomeGate from '../components/MiniAppWelcomeGate';
 import { OrbitThemeContext, type OrbitTheme } from '../components/OrbitThemeContext';
+import { OrbitLanguageContext, type OrbitLanguage, translate } from '../components/OrbitLanguageContext';
 
 function WalletDatabaseSync() {
   const connectionRestored = useIsConnectionRestored();
@@ -46,12 +47,25 @@ export default function Providers({
 }) {
   const [theme, setTheme] = useState<OrbitTheme>('dark');
   const [themeReady, setThemeReady] = useState(false);
+  const [language, setLanguageState] = useState<OrbitLanguage>('en');
+  const [languageReady, setLanguageReady] = useState(false);
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem('orbit-theme');
     if (storedTheme === 'dark' || storedTheme === 'light') setTheme(storedTheme);
     setThemeReady(true);
+
+    const storedLanguage = window.localStorage.getItem('orbit-language');
+    if (storedLanguage === 'en' || storedLanguage === 'uk' || storedLanguage === 'ru') {
+      setLanguageState(storedLanguage);
+    }
+    setLanguageReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!languageReady) return;
+    document.documentElement.lang = language;
+  }, [language, languageReady]);
 
   useEffect(() => {
     if (!themeReady) return;
@@ -68,13 +82,24 @@ export default function Providers({
   }, [theme, themeReady]);
 
   const toggleTheme = () => setTheme((current) => current === 'dark' ? 'light' : 'dark');
+  const setLanguage = useCallback((nextLanguage: OrbitLanguage) => {
+    setLanguageState(nextLanguage);
+    window.localStorage.setItem('orbit-language', nextLanguage);
+    document.documentElement.lang = nextLanguage;
+  }, []);
+  const t = useCallback((key: string) => translate(language, key), [language]);
+  const languageContext = useMemo(() => ({ language, setLanguage, t }), [language, setLanguage, t]);
 
   return (
     <OrbitThemeContext.Provider value={{ theme, toggleTheme }}>
-      <TonConnectUIProvider manifestUrl={TON_CONNECT_MANIFEST_URL} uiPreferences={{ theme: theme === 'dark' ? THEME.DARK : THEME.LIGHT, borderRadius: 'm' }}>
-        <WalletDatabaseSync />
-        <MiniAppWelcomeGate>{children}</MiniAppWelcomeGate>
-      </TonConnectUIProvider>
+      <OrbitLanguageContext.Provider value={languageContext}>
+        <MiniAppWelcomeGate>
+          <TonConnectUIProvider manifestUrl={TON_CONNECT_MANIFEST_URL} language={language === 'uk' ? 'en' : language} uiPreferences={{ theme: theme === 'dark' ? THEME.DARK : THEME.LIGHT, borderRadius: 'm' }}>
+            <WalletDatabaseSync />
+            {children}
+          </TonConnectUIProvider>
+        </MiniAppWelcomeGate>
+      </OrbitLanguageContext.Provider>
     </OrbitThemeContext.Provider>
   );
 }

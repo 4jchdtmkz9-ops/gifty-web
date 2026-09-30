@@ -23,6 +23,8 @@ import BottomNav from "../../components/BottomNav";
 import OrbitWordmark from "../../components/OrbitWordmark";
 import { waitForTelegramInitData } from "../../lib/telegram";
 import { useIsConnectionRestored, useTonAddress } from "@tonconnect/ui-react";
+import { useOrbitLanguage, type OrbitLanguage } from "../../components/OrbitLanguageContext";
+import LanguageChoiceList from "../../components/LanguageChoiceList";
 
 type Gift = {
   id: string;
@@ -59,6 +61,7 @@ function formatTon(amount: string | number) {
 }
 
 export default function ProfilePage() {
+  const { language, setLanguage, t } = useOrbitLanguage();
   const walletAddress = useTonAddress();
   const connectionRestored = useIsConnectionRestored();
   const [tab, setTab] = useState<Tab>("owned");
@@ -74,12 +77,15 @@ export default function ProfilePage() {
   const [busy, setBusy] = useState("");
   const [priceEditor, setPriceEditor] = useState<{ gift: Gift; editing: boolean } | null>(null);
   const [priceInput, setPriceInput] = useState("");
+  const [languageOpen, setLanguageOpen] = useState(false);
+  const [pendingLanguage, setPendingLanguage] = useState<OrbitLanguage | null>(null);
+  const [languageChanging, setLanguageChanging] = useState(false);
 
   const refresh = useCallback(async (options?: { silent?: boolean }) => {
     if (!connectionRestored) return;
 
     if (!await waitForTelegramInitData()) {
-      setError("Open your profile inside the ORBIT Telegram bot to load your account.");
+      setError(t("Open your profile inside the ORBIT Telegram bot to load your account."));
       setLoading(false);
       return;
     }
@@ -102,11 +108,11 @@ export default function ProfilePage() {
       setIncomingOffers(receivedOffers);
       setHistory(activity);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Не вдалося завантажити профіль");
+      setError(cause instanceof Error ? cause.message : t("Could not load profile"));
     } finally {
       setLoading(false);
     }
-  }, [connectionRestored, walletAddress]);
+  }, [connectionRestored, walletAddress, t]);
 
   async function refreshHistoryQuietly() {
     try {
@@ -126,7 +132,7 @@ export default function ProfilePage() {
     try {
       await action();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Не вдалося виконати дію");
+      setError(cause instanceof Error ? cause.message : t("Could not perform action"));
     } finally {
       setBusy("");
     }
@@ -135,6 +141,18 @@ export default function ProfilePage() {
   function openPriceEditor(gift: Gift, editing: boolean) {
     setPriceInput(editing ? String(gift.priceTon) : "");
     setPriceEditor({ gift, editing });
+  }
+
+  function chooseLanguage(nextLanguage: OrbitLanguage) {
+    if (languageChanging) return;
+    setPendingLanguage(nextLanguage);
+    setLanguageChanging(true);
+    window.setTimeout(() => {
+      setLanguage(nextLanguage);
+      setLanguageOpen(false);
+      setPendingLanguage(null);
+      setLanguageChanging(false);
+    }, 220);
   }
 
   async function saveListingPrice() {
@@ -211,9 +229,9 @@ export default function ProfilePage() {
   const visibleHistory = showAllHistory ? history : history.slice(0, 4);
 
   const tabs: { id: Tab; label: string; count: number }[] = [
-    { id: "owned", label: "Owned", count: owned.length },
-    { id: "listed", label: "Listed", count: listed.length },
-    { id: "offers", label: "Offers", count: activeOffers.length + activeIncomingOffers.length },
+    { id: "owned", label: t("Owned"), count: owned.length },
+    { id: "listed", label: t("Listed"), count: listed.length },
+    { id: "offers", label: t("Offers"), count: activeOffers.length + activeIncomingOffers.length },
   ];
 
   return (
@@ -222,9 +240,15 @@ export default function ProfilePage() {
         <header className="flex items-center justify-between py-5">
           <div>
             <OrbitWordmark />
-            <h1 className="text-2xl font-bold">Profile</h1>
+            <h1 className="text-2xl font-bold">{t("Profile")}</h1>
           </div>
-          <button type="button" onClick={() => void refresh()} disabled={loading || Boolean(busy)} aria-label="Refresh profile" className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-lg text-blue-700 shadow-sm disabled:opacity-50">↻</button>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setLanguageOpen(true)} aria-label={t("Language")} title={t("Language")} className="flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-bold text-blue-700 shadow-sm">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-4 w-4"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.7"/><path d="M3.5 12h17M12 3c2.3 2.4 3.4 5.4 3.4 9s-1.1 6.6-3.4 9c-2.3-2.4-3.4-5.4-3.4-9S9.7 5.4 12 3Z" stroke="currentColor" strokeWidth="1.5"/></svg>
+              {language.toUpperCase()}
+            </button>
+            <button type="button" onClick={() => void refresh()} disabled={loading || Boolean(busy)} aria-label={t("Refresh profile")} title={t("Refresh profile")} className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-lg text-blue-700 shadow-sm disabled:opacity-50">↻</button>
+          </div>
         </header>
 
         <section className="rounded-3xl border border-slate-200 bg-white p-5">
@@ -232,24 +256,24 @@ export default function ProfilePage() {
             <TelegramAvatar size={64} />
             <div>
               <h2 className="font-semibold">
-                {[account?.firstName, account?.lastName].filter(Boolean).join(" ") || (account?.username ? `@${account.username}` : "Telegram user")}
+                {[account?.firstName, account?.lastName].filter(Boolean).join(" ") || (account?.username ? `@${account.username}` : t("Telegram user"))}
               </h2>
               <p className="mt-1 text-xs text-slate-500">
-                {account?.username ? `@${account.username} · ` : ""}Telegram account
+                {account?.username ? `@${account.username} · ` : ""}{t("Telegram account")}
               </p>
             </div>
           </div>
           <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
             <div className="min-w-0">
-              <p className="text-xs font-medium text-slate-700"><GramIcon size={13} className="mr-1 text-blue-700" />GRAM wallet</p>
+              <p className="text-xs font-medium text-slate-700"><GramIcon size={13} className="mr-1 text-blue-700" />{t("GRAM wallet")}</p>
               <p className="mt-1 truncate text-[11px] text-slate-500">
                 {account?.wallets[0]?.address
                   ? `${account.wallets[0].address.slice(0, 7)}…${account.wallets[0].address.slice(-5)}`
-                  : "No wallet connected"}
+                  : t("No wallet connected")}
               </p>
             </div>
             <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold ${account?.wallets[0]?.isConnected ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-500"}`}>
-              {account?.wallets[0]?.isConnected ? "Connected" : "Not connected"}
+              {t(account?.wallets[0]?.isConnected ? "Connected" : "Not connected")}
             </span>
           </div>
         </section>
@@ -263,18 +287,18 @@ export default function ProfilePage() {
           ))}
         </div>
 
-        {error && <div role="alert" className="mt-4 rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-700"><p>{error}</p><button type="button" onClick={() => void refresh()} className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-900">Try again</button></div>}
-        {loading ? <p className="mt-8 text-center text-sm text-slate-500">Loading profile…</p> : (
+        {error && <div role="alert" className="mt-4 rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-700"><p>{error}</p><button type="button" onClick={() => void refresh()} className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-900">{t("Try again")}</button></div>}
+        {loading ? <p className="mt-8 text-center text-sm text-slate-500">{t("Loading profile…")}</p> : (
           <>
             {tab === "owned" && (
               <section className="mt-5">
-                <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">My gifts</h2><span className="text-xs text-slate-500">{owned.length} items</span></div>
-                {owned.length === 0 ? <EmptyState icon="🎁" title="No gifts yet" detail="Gifts you own will appear here." /> : (
+                <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{t("My gifts")}</h2><span className="text-xs text-slate-500">{owned.length} {t("items")}</span></div>
+                {owned.length === 0 ? <EmptyState icon="🎁" title={t("No gifts yet")} detail={t("Gifts you own will appear here.")} /> : (
                   <div className="grid grid-cols-2 gap-3">
                     {owned.map((gift) => <article key={gift.id} className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
                       <div className="flex h-36 items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 text-6xl">{gift.emoji || "🎁"}</div>
                       <div className="p-3"><h3 className="truncate text-sm font-semibold">{gift.name}</h3><p className="mt-1 truncate text-xs text-slate-500">{gift.collection}</p>
-                        <button type="button" disabled={Boolean(busy)} onClick={() => openPriceEditor(gift, false)} className="mt-3 w-full rounded-xl bg-blue-700 py-2 text-xs font-semibold text-white disabled:opacity-50">Sell</button>
+                        <button type="button" disabled={Boolean(busy)} onClick={() => openPriceEditor(gift, false)} className="mt-3 w-full rounded-xl bg-blue-700 py-2 text-xs font-semibold text-white disabled:opacity-50">{t("Sell")}</button>
                       </div>
                     </article>)}
                   </div>
@@ -284,19 +308,19 @@ export default function ProfilePage() {
 
             {tab === "listed" && (
               <section className="mt-5">
-                <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">Listed for sale</h2><span className="text-xs text-slate-500">{listed.length} items</span></div>
-                {listed.length === 0 ? <EmptyState icon="🏷️" title="No active listings" detail="Gifts you list for sale will appear here." /> : listed.map((gift) => <article key={gift.id} className="mb-3 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3">
+                <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{t("Listed for sale")}</h2><span className="text-xs text-slate-500">{listed.length} {t("items")}</span></div>
+                {listed.length === 0 ? <EmptyState icon="🏷️" title={t("No active listings")} detail={t("Gifts you list for sale will appear here.")} /> : listed.map((gift) => <article key={gift.id} className="mb-3 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3">
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-3xl">{gift.emoji || "🎁"}</div>
-                  <div className="min-w-0 flex-1"><h3 className="truncate text-sm font-semibold">{gift.name}</h3><p className="mt-1 truncate text-xs text-slate-500">{gift.collection}</p><p className="mt-2 text-sm font-semibold"><GramIcon size={14} className="mr-1 text-blue-700" />{formatTon(gift.priceTon)} GRAM</p>{gift.status === "RESERVED" && <p className="mt-1 text-[11px] text-amber-700">Reserved for an accepted offer</p>}</div>
-                  <div className="flex flex-col gap-2"><button type="button" disabled={Boolean(busy) || gift.status === "RESERVED"} onClick={() => openPriceEditor(gift, true)} className="rounded-xl bg-slate-100 px-3 py-2 text-xs disabled:opacity-50">Edit</button><button type="button" disabled={Boolean(busy) || gift.status === "RESERVED"} onClick={() => void removeListing(gift)} className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600 disabled:opacity-50">{busy === `unlist:${gift.id}` ? "…" : "Unlist"}</button></div>
+                  <div className="min-w-0 flex-1"><h3 className="truncate text-sm font-semibold">{gift.name}</h3><p className="mt-1 truncate text-xs text-slate-500">{gift.collection}</p><p className="mt-2 text-sm font-semibold"><GramIcon size={14} className="mr-1 text-blue-700" />{formatTon(gift.priceTon)} GRAM</p>{gift.status === "RESERVED" && <p className="mt-1 text-[11px] text-amber-700">{t("Reserved for an accepted offer")}</p>}</div>
+                  <div className="flex flex-col gap-2"><button type="button" disabled={Boolean(busy) || gift.status === "RESERVED"} onClick={() => openPriceEditor(gift, true)} className="rounded-xl bg-slate-100 px-3 py-2 text-xs disabled:opacity-50">{t("Edit")}</button><button type="button" disabled={Boolean(busy) || gift.status === "RESERVED"} onClick={() => void removeListing(gift)} className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600 disabled:opacity-50">{busy === `unlist:${gift.id}` ? "…" : t("Unlist")}</button></div>
                 </article>)}
               </section>
             )}
 
             {tab === "offers" && (
               <section className="mt-5 space-y-8">
-                <OfferList title="My offers" emptyTitle="No active offers" emptyDetail="Offers you make on gifts will appear here." offers={activeOffers} busy={busy} actionLabel="Cancel offer" actionKey="cancel" onAction={withdrawOffer} />
-                <OfferList title="Incoming offers" emptyTitle="No active incoming offers" emptyDetail="Offers for your gifts will appear here." offers={activeIncomingOffers} busy={busy} actionLabel="Accept" actionKey="accept" onAction={acceptIncomingOffer} onReject={rejectIncomingOffer} onRelease={releaseAcceptedOffer} incoming />
+                <OfferList title={t("My offers")} emptyTitle={t("No active offers")} emptyDetail={t("Offers you make on gifts will appear here.")} offers={activeOffers} busy={busy} actionLabel={t("Cancel offer")} actionKey="cancel" onAction={withdrawOffer} />
+                <OfferList title={t("Incoming offers")} emptyTitle={t("No active incoming offers")} emptyDetail={t("Offers for your gifts will appear here.")} offers={activeIncomingOffers} busy={busy} actionLabel={t("Accept")} actionKey="accept" onAction={acceptIncomingOffer} onReject={rejectIncomingOffer} onRelease={releaseAcceptedOffer} incoming />
               </section>
             )}
           </>
@@ -304,20 +328,20 @@ export default function ProfilePage() {
 
         {!loading && <section className="mt-9">
           <div className="mb-3 flex items-center justify-between">
-            <button type="button" aria-expanded={showAllHistory} disabled={history.length <= 4} onClick={() => setShowAllHistory((showing) => !showing)} className="font-semibold disabled:cursor-default">History</button>
-            <span className="text-xs text-slate-500">{history.length} activities</span>
+            <button type="button" aria-expanded={showAllHistory} disabled={history.length <= 4} onClick={() => setShowAllHistory((showing) => !showing)} className="font-semibold disabled:cursor-default">{t("History")}</button>
+            <span className="text-xs text-slate-500">{history.length} {t("activities")}</span>
           </div>
-          {history.length === 0 ? <EmptyState icon="🕘" title="No activity yet" detail="Completed actions and past offers will appear here." /> : (
+          {history.length === 0 ? <EmptyState icon="🕘" title={t("No activity yet")} detail={t("Completed actions and past offers will appear here.")} /> : (
             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
               {visibleHistory.map((item, index) => <div key={item.id} className={`flex items-center gap-3 p-4 ${index < visibleHistory.length - 1 ? "border-b border-slate-100" : ""}`}>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-xl">{item.gift?.emoji || (item.kind === "OFFER" ? "💬" : "💎")}</div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{historyTitle(item)}</p>
-                  <p className="mt-1 truncate text-xs text-slate-500">{item.gift?.name || "Gift"} · {new Date(item.createdAt).toLocaleString()}</p>
+                  <p className="truncate text-sm font-medium">{historyTitle(item, t)}</p>
+                  <p className="mt-1 truncate text-xs text-slate-500">{item.gift?.name || t("Gift")} · {new Date(item.createdAt).toLocaleString(language)}</p>
                 </div>
                 <div className="text-right">
                   {item.amountTon != null && <p className="text-sm font-semibold"><GramIcon size={14} className="mr-1 text-blue-700" />{formatTon(item.amountTon)} GRAM</p>}
-                  <p className="mt-1 text-[10px] uppercase text-slate-500">{item.status}</p>
+                  <p className="mt-1 text-[10px] uppercase text-slate-500">{offerStatusLabel(item.status, t)}</p>
                 </div>
               </div>)}
             </div>
@@ -327,31 +351,53 @@ export default function ProfilePage() {
         {priceEditor && (
           <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/35 p-4 sm:items-center" onClick={() => !busy && setPriceEditor(null)}>
             <form role="dialog" aria-modal="true" aria-labelledby="price-editor-title" onSubmit={(event) => { event.preventDefault(); void saveListingPrice(); }} onClick={(event) => event.stopPropagation()} className="w-full max-w-[440px] rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl">
-              <h2 id="price-editor-title" className="text-lg font-semibold">{priceEditor.editing ? "Edit listing price" : "List gift for sale"}</h2>
+              <h2 id="price-editor-title" className="text-lg font-semibold">{t(priceEditor.editing ? "Edit listing price" : "List gift for sale")}</h2>
               <p className="mt-1 text-sm text-slate-500">{priceEditor.gift.name}</p>
-              <label htmlFor="listing-price" className="mt-5 block text-xs text-slate-500"><GramIcon size={13} className="mr-1 text-blue-700" />Price in GRAM</label>
-              <input id="listing-price" inputMode="decimal" type="number" min="0.000000001" step="0.000000001" required value={priceInput} onChange={(event) => setPriceInput(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-slate-300" placeholder="e.g. 2.5" />
+              <label htmlFor="listing-price" className="mt-5 block text-xs text-slate-500"><GramIcon size={13} className="mr-1 text-blue-700" />{t("Price in GRAM")}</label>
+              <input id="listing-price" inputMode="decimal" type="number" min="0.000000001" step="0.000000001" required value={priceInput} onChange={(event) => setPriceInput(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-slate-300" placeholder={t("Example: 2.5")} />
               <div className="mt-5 grid grid-cols-2 gap-3">
-                <button type="button" disabled={Boolean(busy)} onClick={() => setPriceEditor(null)} className="rounded-xl bg-slate-100 py-3 text-sm disabled:opacity-50">Cancel</button>
-                <button type="submit" disabled={Boolean(busy)} className="rounded-xl bg-blue-700 py-3 text-sm font-semibold text-white disabled:opacity-50">{busy ? "Saving…" : priceEditor.editing ? "Save price" : "List for sale"}</button>
+                <button type="button" disabled={Boolean(busy)} onClick={() => setPriceEditor(null)} className="rounded-xl bg-slate-100 py-3 text-sm disabled:opacity-50">{t("Cancel")}</button>
+                <button type="submit" disabled={Boolean(busy)} className="rounded-xl bg-blue-700 py-3 text-sm font-semibold text-white disabled:opacity-50">{busy ? t("Saving…") : t(priceEditor.editing ? "Save price" : "List for sale")}</button>
               </div>
             </form>
           </div>
         )}
         <BottomNav active="profile" />
       </div>
+      {languageOpen && (
+        <div className="fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/45 px-4 pb-[calc(12px+env(safe-area-inset-bottom))] backdrop-blur-sm sm:items-center" onClick={() => !languageChanging && setLanguageOpen(false)}>
+          <section role="dialog" aria-modal="true" aria-labelledby="language-dialog-title" onClick={(event) => event.stopPropagation()} className="language-picker-dialog w-full max-w-[440px] rounded-[28px] border border-slate-200 bg-white p-5 shadow-2xl">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div><p className="text-[10px] font-bold tracking-[0.18em] text-blue-700">ORBIT</p><h2 id="language-dialog-title" className="mt-1 text-lg font-bold">{t("Choose your language")}</h2><p className="mt-1 text-xs text-slate-500">{t("Your language is saved on this device.")}</p></div>
+              <button type="button" disabled={languageChanging} aria-label={t("Close")} onClick={() => setLanguageOpen(false)} className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 disabled:opacity-50">×</button>
+            </div>
+            <LanguageChoiceList selected={pendingLanguage ?? language} current={language} onSelect={chooseLanguage} compact />
+          </section>
+        </div>
+      )}
     </main>
   );
 }
 
-function historyTitle(item: HistoryItem) {
+function historyTitle(item: HistoryItem, t: (key: string) => string) {
   if (item.kind === "OFFER") {
-    if (item.status === "ACCEPTED") return "Offer accepted · awaiting payment";
-    if (item.status === "CANCELLED") return "Offer cancelled";
-    if (item.status === "REJECTED") return "Offer declined";
+    if (item.status === "ACCEPTED") return t("Offer accepted · awaiting payment");
+    if (item.status === "CANCELLED") return t("Offer cancelled");
+    if (item.status === "REJECTED") return t("Offer declined");
   }
-  if (item.event === "BUY") return "Gift purchased";
-  return item.event.replaceAll("_", " ").toLowerCase();
+  if (item.event === "BUY") return t("Gift purchased");
+  const eventLabels: Record<string, string> = { PENDING: "Pending", ACCEPTED: "Accepted", CANCELLED: "Cancelled", REJECTED: "Rejected", BUY: "Gift purchased", SELL: "Gift listed for sale", LIST: "Gift listed for sale", UNLIST: "Listing removed" };
+  return t(eventLabels[item.event] ?? item.event.replaceAll("_", " ").toLowerCase());
+}
+
+function offerStatusLabel(status: string, t: (key: string) => string) {
+  const labels: Record<string, string> = {
+    PENDING: "Pending",
+    ACCEPTED: "Accepted",
+    CANCELLED: "Cancelled",
+    REJECTED: "Rejected",
+  };
+  return t(labels[status] ?? status);
 }
 
 function EmptyState({ icon, title, detail }: { icon: string; title: string; detail: string }) {
@@ -364,17 +410,18 @@ function OfferList({ title, emptyTitle, emptyDetail, offers, busy, actionLabel, 
   onReject?: (offer: Offer) => Promise<void>;
   onRelease?: (offer: Offer) => Promise<void>;
 }) {
+  const { t } = useOrbitLanguage();
   return <div>
-    <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{title}</h2><span className="text-xs text-slate-500">{offers.length} offers</span></div>
+    <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{title}</h2><span className="text-xs text-slate-500">{offers.length} {t("offers")}</span></div>
     {offers.length === 0 ? <EmptyState icon={incoming ? "📥" : "📭"} title={emptyTitle} detail={emptyDetail} /> : offers.map((offer) => <article key={offer.id} className="mb-3 rounded-2xl border border-slate-200 bg-white p-4">
-      <div className="flex items-center gap-3"><div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-3xl">{offer.gift?.emoji || "🎁"}</div><div className="min-w-0 flex-1"><h3 className="truncate text-sm font-semibold">{offer.gift?.name || "Gift"}</h3><p className="mt-1 text-xs text-slate-500">{incoming ? (offer.buyer?.username ? `From @${offer.buyer.username}` : "Incoming offer") : "Your offer"}</p><p className="mt-1 font-semibold"><GramIcon size={14} className="mr-1 text-blue-700" />{formatTon(offer.amountTon)} GRAM</p></div><span className="rounded-xl bg-slate-50 px-2 py-2 text-[10px] text-slate-600">{offer.status}</span></div>
+      <div className="flex items-center gap-3"><div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-3xl">{offer.gift?.emoji || "🎁"}</div><div className="min-w-0 flex-1"><h3 className="truncate text-sm font-semibold">{offer.gift?.name || t("Gift")}</h3><p className="mt-1 text-xs text-slate-500">{incoming ? (offer.buyer?.username ? t("From @{username}").replace("{username}", offer.buyer.username) : t("Incoming offer")) : t("Your offer")}</p><p className="mt-1 font-semibold"><GramIcon size={14} className="mr-1 text-blue-700" />{formatTon(offer.amountTon)} GRAM</p></div><span className="rounded-xl bg-slate-50 px-2 py-2 text-[10px] text-slate-600">{offerStatusLabel(offer.status, t)}</span></div>
       {offer.status === "PENDING" && <div className={incoming ? "mt-3 grid grid-cols-2 gap-2" : "mt-3"}>
-        <button type="button" disabled={Boolean(busy)} onClick={() => void onAction(offer)} className={`w-full rounded-xl py-2 text-xs disabled:opacity-50 ${actionKey === "accept" ? "bg-blue-700 font-semibold text-white" : "bg-slate-100 text-slate-700"}`}>{busy === `${actionKey}:${offer.id}` ? "Please wait…" : actionLabel}</button>
-        {incoming && onReject && <button type="button" disabled={Boolean(busy)} onClick={() => void onReject(offer)} className="w-full rounded-xl bg-slate-100 py-2 text-xs disabled:opacity-50">{busy === `reject:${offer.id}` ? "Please wait…" : "Decline"}</button>}
+        <button type="button" disabled={Boolean(busy)} onClick={() => void onAction(offer)} className={`w-full rounded-xl py-2 text-xs disabled:opacity-50 ${actionKey === "accept" ? "bg-blue-700 font-semibold text-white" : "bg-slate-100 text-slate-700"}`}>{busy === `${actionKey}:${offer.id}` ? t("Please wait…") : actionLabel}</button>
+        {incoming && onReject && <button type="button" disabled={Boolean(busy)} onClick={() => void onReject(offer)} className="w-full rounded-xl bg-slate-100 py-2 text-xs disabled:opacity-50">{busy === `reject:${offer.id}` ? t("Please wait…") : t("Decline")}</button>}
       </div>}
       {incoming && offer.status === "ACCEPTED" && onRelease && <div className="mt-3 rounded-xl bg-amber-50 p-3">
-        <p className="text-xs leading-5 text-amber-900">This offer only reserves the gift in ORBIT. Payment and NFT transfer are not automated yet. Release it if the deal will not continue.</p>
-        <button type="button" disabled={Boolean(busy)} onClick={() => void onRelease(offer)} className="mt-2 w-full rounded-xl bg-white py-2 text-xs font-medium text-slate-700 shadow-sm disabled:opacity-50">{busy === `release:${offer.id}` ? "Please wait…" : "Release reservation"}</button>
+        <p className="text-xs leading-5 text-amber-900">{t("This offer only reserves the gift in ORBIT. Payment and NFT transfer are not automated yet. Release it if the deal will not continue.")}</p>
+        <button type="button" disabled={Boolean(busy)} onClick={() => void onRelease(offer)} className="mt-2 w-full rounded-xl bg-white py-2 text-xs font-medium text-slate-700 shadow-sm disabled:opacity-50">{busy === `release:${offer.id}` ? t("Please wait…") : t("Release reservation")}</button>
       </div>}
     </article>)}
   </div>;

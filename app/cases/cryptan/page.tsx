@@ -8,6 +8,7 @@ import CaseRewardCard from '../../../components/CaseRewardCard';
 import GramIcon from '../../../components/GramIcon';
 import OrbitWordmark from '../../../components/OrbitWordmark';
 import { cryptanCase, cryptanRewards, type CaseReward } from '../../../lib/caseData';
+import { useOrbitLanguage } from '../../../components/OrbitLanguageContext';
 
 const DEMO_PURCHASE_KEY = 'orbit-demo-case-cryptan-purchased';
 const WINNING_INDEX = 18;
@@ -26,6 +27,7 @@ function randomReward() {
 }
 
 export default function CryptanCasePage() {
+  const { t } = useOrbitLanguage();
   const [purchased, setPurchased] = useState(false);
   const [opening, setOpening] = useState(false);
   const [notice, setNotice] = useState('');
@@ -40,7 +42,7 @@ export default function CryptanCasePage() {
   function demoPurchase() {
     window.sessionStorage.setItem(DEMO_PURCHASE_KEY, '1');
     setPurchased(true);
-    setNotice('Demo purchase complete — no GRAM was charged.');
+    setNotice(t('Demo purchase complete — no GRAM was charged.'));
   }
 
   function openCase() {
@@ -94,12 +96,12 @@ export default function CryptanCasePage() {
     <main className="min-h-screen bg-[#f5f8ff] text-slate-900">
       <div className="mx-auto min-h-screen max-w-[480px] px-4 pb-28">
         <header className="flex items-center gap-3 py-5">
-          <Link href="/cases" aria-label="Back to cases" className="flex h-10 w-10 items-center justify-center rounded-full border border-blue-100 bg-white text-lg text-blue-800 shadow-sm">←</Link>
+          <Link href="/cases" aria-label={t('Back to cases')} className="flex h-10 w-10 items-center justify-center rounded-full border border-blue-100 bg-white text-lg text-blue-800 shadow-sm">←</Link>
           <div>
-            <OrbitWordmark suffix="CASE" />
+            <OrbitWordmark suffix={t('CASE')} />
             <h1 className="text-xl font-bold leading-tight text-blue-950">{cryptanCase.name}</h1>
           </div>
-          <span className="ml-auto rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-[10px] font-semibold text-yellow-800">DEMO</span>
+          <span className="ml-auto rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-[10px] font-semibold text-yellow-800">{t('DEMO')}</span>
         </header>
 
         <section className="overflow-hidden rounded-[28px] border border-blue-100 bg-white shadow-[0_12px_32px_rgba(21,87,213,0.09)]">
@@ -128,7 +130,7 @@ export default function CryptanCasePage() {
                 disabled={opening}
                 className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60"
               >
-                {opening ? 'Opening…' : 'Open'}
+                {t(opening ? 'Opening…' : 'Open')}
               </button>
             </div>
           )}
@@ -137,14 +139,14 @@ export default function CryptanCasePage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-bold text-blue-950">Криптан</h2>
-                <p className="mt-0.5 text-xs text-slate-500">5 collectible Telegram gifts</p>
+                <p className="mt-0.5 text-xs text-slate-500">{t('5 collectible Telegram gifts')}</p>
               </div>
               <span className="rounded-full bg-blue-50 px-3 py-1.5 text-sm font-bold text-blue-800"><GramIcon size={15} className="mr-1" />30 GRAM</span>
             </div>
 
             <div className="mt-4 rounded-2xl border border-yellow-200 bg-yellow-50/80 px-3 py-2.5">
-              <p className="text-[11px] font-bold text-yellow-900">Demo only</p>
-              <p className="mt-0.5 text-[10px] leading-4 text-yellow-800">No real GRAM is charged and no NFT is transferred in this preview.</p>
+              <p className="text-[11px] font-bold text-yellow-900">{t('Demo only')}</p>
+              <p className="mt-0.5 text-[10px] leading-4 text-yellow-800">{t('No real GRAM is charged and no NFT is transferred in this preview.')}</p>
             </div>
 
             {notice && <p role="status" className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">{notice}</p>}
@@ -155,7 +157,7 @@ export default function CryptanCasePage() {
                 onClick={demoPurchase}
                 className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(21,87,213,0.2)] transition active:scale-[0.99]"
               >
-                Buy case · <GramIcon size={14} className="mx-1" />30 GRAM
+                {t('Buy case ·')} <GramIcon size={14} className="mx-1" />30 GRAM
               </button>
             )}
           </div>
@@ -164,10 +166,10 @@ export default function CryptanCasePage() {
         <section className="mt-6">
           <div className="mb-3 flex items-end justify-between">
             <div>
-              <p className="text-[10px] font-bold tracking-[0.16em] text-blue-700">POSSIBLE NFTS</p>
-              <h2 className="mt-1 text-base font-bold text-blue-950">What you can win</h2>
+              <p className="text-[10px] font-bold tracking-[0.16em] text-blue-700">{t('POSSIBLE NFTS')}</p>
+              <h2 className="mt-1 text-base font-bold text-blue-950">{t('What you can win')}</h2>
             </div>
-            <span className="text-[10px] text-slate-500"><GramIcon size={11} className="mr-0.5 text-blue-700" />Prices in GRAM</span>
+            <span className="text-[10px] text-slate-500"><GramIcon size={11} className="mr-0.5 text-blue-700" />{t('Prices in GRAM')}</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {cryptanRewards.map((reward) => <CaseRewardCard key={reward.id} reward={reward} />)}
@@ -180,11 +182,11 @@ export default function CryptanCasePage() {
       {wonReward && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-blue-950/45 px-5 backdrop-blur-sm">
           <div className="w-full max-w-[340px] rounded-[28px] border border-blue-100 bg-white p-5 text-center shadow-2xl">
-            <p className="text-[10px] font-bold tracking-[0.2em] text-blue-700">DEMO RESULT</p>
-            <h2 className="mt-1 text-xl font-bold text-blue-950">You got {wonReward.name}!</h2>
+            <p className="text-[10px] font-bold tracking-[0.2em] text-blue-700">{t('DEMO RESULT')}</p>
+            <h2 className="mt-1 text-xl font-bold text-blue-950">{t('You got {name}!').replace('{name}', wonReward.name)}</h2>
             <div className="mx-auto mt-4 max-w-[210px]"><CaseRewardCard reward={wonReward} /></div>
-            <p className="mt-3 text-[10px] leading-4 text-slate-500">Preview only. No payment was made and this NFT was not added to your profile.</p>
-            <button type="button" onClick={() => setWonReward(null)} className="mt-4 min-h-12 w-full rounded-2xl bg-blue-700 text-sm font-semibold text-white">Continue</button>
+            <p className="mt-3 text-[10px] leading-4 text-slate-500">{t('Preview only. No payment was made and this NFT was not added to your profile.')}</p>
+            <button type="button" onClick={() => setWonReward(null)} className="mt-4 min-h-12 w-full rounded-2xl bg-blue-700 text-sm font-semibold text-white">{t('Continue')}</button>
           </div>
         </div>
       )}
