@@ -160,11 +160,11 @@ select {
   background: linear-gradient(90deg, #fff 0%, #fff7cb 72%, #f4bf28 100%);
   box-shadow: 0 0 10px 4px rgb(244 191 40 / 55%);
   transform-origin: left center;
-  animation: arena-flying-beam 3.8s cubic-bezier(.12,.68,.1,1) both;
+  animation: arena-flying-beam 3.8s cubic-bezier(.12,.68,.1,1) 1 both;
 }
 
 .arena-bet-board.is-flying .arena-bet-tile {
-  animation: arena-tile-pulse .6s ease-in-out infinite alternate;
+  animation: arena-tile-pulse .7s ease-in-out 5 alternate both;
 }
 
 .arena-result-backdrop {
@@ -243,9 +243,12 @@ select {
 
 @media (prefers-reduced-motion: reduce) {
   .arena-spin-stage.is-spinning > div:nth-child(2),
+  .arena-roulette-beam,
+  .arena-bet-board.is-flying .arena-bet-tile,
   .arena-win-card,
   .arena-trophy,
-  .arena-countdown-number { animation-duration: .01ms; }
+  .arena-countdown-number { animation-duration: .01ms; animation-iteration-count: 1; }
+  .arena-bet-board { transition-duration: .01ms; }
 }
 
 .case-roulette-stage::before {

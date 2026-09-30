@@ -143,7 +143,6 @@ export default function ArenaPage() {
   const [error, setError] = useState('');
   const activeRoomRef = useRef<PvpRoom | null>(null);
   const refreshBusy = useRef(false);
-  const revealedRoom = useRef<string | null>(null);
   const setRoom = useCallback((room: PvpRoom | null) => { activeRoomRef.current = room; setActiveRoom(room); }, []);
 
   useEffect(() => {
@@ -209,11 +208,10 @@ export default function ArenaPage() {
   }, [activeRoom?.status, activeRoom?.countdownEndsAt]);
 
   useEffect(() => {
-    if (activeRoom?.status !== 'COMPLETED' || revealedRoom.current === activeRoom.id) return;
-    revealedRoom.current = activeRoom.id;
+    if (activeRoom?.status !== 'COMPLETED') return;
     setRollPhase('flying');
     const zoomTimer = window.setTimeout(() => setRollPhase('zooming'), 3800);
-    const resultTimer = window.setTimeout(() => setRollPhase('result'), 5000);
+    const resultTimer = window.setTimeout(() => setRollPhase('result'), 5200);
     return () => { window.clearTimeout(zoomTimer); window.clearTimeout(resultTimer); };
   }, [activeRoom?.id, activeRoom?.status]);
 
