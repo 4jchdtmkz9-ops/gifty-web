@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TonConnectUIProvider, useIsConnectionRestored, useTonAddress } from '@tonconnect/ui-react';
 import { THEME } from '@tonconnect/ui';
-import { syncTelegramProfile } from '../lib/api';
+import { disconnectWallet, syncTelegramProfile } from '../lib/api';
 import { waitForTelegramInitData } from '../lib/telegram';
 import MiniAppWelcomeGate from '../components/MiniAppWelcomeGate';
 import { OrbitThemeContext, type OrbitTheme } from '../components/OrbitThemeContext';
@@ -12,6 +12,7 @@ import { OrbitLanguageContext, type OrbitLanguage, translate } from '../componen
 function WalletDatabaseSync() {
   const connectionRestored = useIsConnectionRestored();
   const walletAddress = useTonAddress();
+  const previousWalletAddress = useRef('');
 
   useEffect(() => {
     if (!connectionRestored) return;
@@ -22,6 +23,12 @@ function WalletDatabaseSync() {
       if (cancelled || !initData) return;
 
       try {
+        if (!walletAddress && previousWalletAddress.current) {
+          previousWalletAddress.current = '';
+          await disconnectWallet();
+          return;
+        }
+        if (walletAddress) previousWalletAddress.current = walletAddress;
         await syncTelegramProfile(walletAddress || undefined);
       } catch (error) {
         if (!cancelled) console.error('Could not sync Telegram profile and wallet:', error);

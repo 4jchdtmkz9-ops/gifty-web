@@ -154,6 +154,23 @@ export async function connectWallet(
   return response.json();
 }
 
+export async function disconnectWallet() {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Telegram initData is missing');
+
+  const response = await fetch(`${API_URL}/users/wallet/disconnect`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initData }),
+  });
+
+  if (!response.ok) {
+    throw new Error(await responseError(response, 'Wallet disconnection failed'));
+  }
+
+  return response.json() as Promise<{ disconnected: boolean }>;
+}
+
 export async function getTonBalance(address: string) {
   const response = await fetch(
     `${API_URL}/ton/balance?address=${encodeURIComponent(address)}`,

@@ -113,6 +113,44 @@ function tileClipPath(tile: WeightedTile) {
   return `polygon(${points.join(', ')})`;
 }
 
+function isInsideTile(point: ArenaPoint, polygon: ArenaPolygon) {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const current = polygon[i];
+    const previous = polygon[j];
+    const crosses = (current.y > point.y) !== (previous.y > point.y)
+      && point.x < ((previous.x - current.x) * (point.y - current.y)) / (previous.y - current.y) + current.x;
+    if (crosses) inside = !inside;
+  }
+  return inside;
+}
+
+function pointToSegmentDistance(point: ArenaPoint, start: ArenaPoint, end: ArenaPoint) {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const lengthSquared = dx * dx + dy * dy;
+  const projection = lengthSquared ? Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared)) : 0;
+  return Math.hypot(point.x - (start.x + projection * dx), point.y - (start.y + projection * dy));
+}
+
+function randomPointInTile(tile: WeightedTile): ArenaPoint {
+  const bestCandidates: { point: ArenaPoint; clearance: number }[] = [];
+  let maxClearance = 0;
+  for (let attempt = 0; attempt < 240; attempt++) {
+    const point = {
+      x: tile.x + Math.random() * tile.width,
+      y: tile.y + Math.random() * tile.height,
+    };
+    if (!isInsideTile(point, tile.polygon)) continue;
+    const clearance = Math.min(...tile.polygon.map((edgeStart, index) => pointToSegmentDistance(point, edgeStart, tile.polygon[(index + 1) % tile.polygon.length])));
+    if (clearance > maxClearance) maxClearance = clearance;
+    bestCandidates.push({ point, clearance });
+  }
+  const safeCandidates = bestCandidates.filter(({ clearance }) => clearance >= maxClearance * 0.72);
+  return (safeCandidates.length ? safeCandidates[Math.floor(Math.random() * safeCandidates.length)] : bestCandidates[Math.floor(Math.random() * bestCandidates.length)])?.point
+    ?? tile.polygon.reduce((center, point) => ({ x: center.x + point.x / tile.polygon.length, y: center.y + point.y / tile.polygon.length }), { x: 0, y: 0 });
+}
+
 function foldArenaAxis(value: number) {
   const wrapped = ((value % 200) + 200) % 200;
   return wrapped <= 100 ? wrapped : 200 - wrapped;
@@ -130,12 +168,9 @@ function chooseBouncingDestination(start: number, target: number) {
 }
 
 function makeArenaMotion(tile: WeightedTile): ArenaMotion {
-  const insetX = Math.min(tile.width * 0.28, 4);
-  const insetY = Math.min(tile.height * 0.28, 4);
-  const target = {
-    x: tile.x + insetX + Math.random() * Math.max(tile.width - insetX * 2, 0),
-    y: tile.y + insetY + Math.random() * Math.max(tile.height - insetY * 2, 0),
-  };
+  // The landing point must be inside the winner's actual clipped polygon,
+  // not merely inside its rectangular bounding box.
+  const target = randomPointInTile(tile);
   const start = { x: 8 + Math.random() * 84, y: 8 + Math.random() * 84 };
   const endX = chooseBouncingDestination(start.x, target.x);
   const endY = chooseBouncingDestination(start.y, target.y);
@@ -202,7 +237,7 @@ function SquareRoom({ room, rollingSeconds, onShare, copied, onJoin, busy, stake
       <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
         <div className="flex min-w-0 items-center gap-2.5">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[11px] font-extrabold text-blue-700">01</span>
-          <div className="min-w-0"><p className="text-[9px] font-bold uppercase tracking-[.17em] text-slate-400">{t('ROOM 01 · CLASSIC')}</p><h2 className="truncate text-sm font-bold text-blue-950">{t('Portals Arena')}</h2></div>
+          <div className="min-w-0"><p className="text-[9px] font-bold uppercase tracking-[.17em] text-blue-600">{t('ROOM 01 · CLASSIC')}</p><h2 className="truncate text-base font-extrabold tracking-tight text-blue-950">ORBIT <span className="font-semibold text-slate-500">{t('Arena')}</span></h2></div>
         </div>
         <div className="flex items-center gap-2">{room && <button onClick={onShare} className="shrink-0 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-[10px] font-bold text-blue-700">{copied ? t('Link copied') : t('Share room')} ↗</button>}</div>
       </div>
@@ -227,6 +262,28 @@ function SquareRoom({ room, rollingSeconds, onShare, copied, onJoin, busy, stake
           }) : <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center"><p className="text-sm font-semibold text-blue-950">{t('Arena square is open')}</p><p className="mt-1 text-[11px] text-slate-500">{t('Choose your stake to enter')}</p></div>}
           {ballMotion && (rollPhase === 'flying' || rollPhase === 'zooming') && <div ref={ballRef} className="arena-bouncing-orb" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.5"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/><circle cx="12" cy="12" r="1.8" className="arena-orb-core"/></svg></div>}
         </div>
+
+        {participants.length > 0 && <section className="arena-player-list mt-4 overflow-hidden rounded-[20px] border border-slate-200 bg-white" aria-label={t('PLAYERS')}>
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+            <h3 className="text-xs font-bold text-slate-800">{t('PLAYERS')}</h3>
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold tabular-nums text-blue-700">{participants.length}</span>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {participants.map((player) => {
+              const chance = totalStake > 0 ? Number(player.stakeGram) / totalStake * 100 : 0;
+              return <div key={player.id} className="flex items-center gap-3 px-4 py-3">
+                {player.user.photoUrl
+                  ? <img src={player.user.photoUrl} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-blue-50" />
+                  : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-700">{nameOf(player.user).replace(/^@/, '').slice(0, 1).toUpperCase()}</span>}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold text-slate-800">{nameOf(player.user)}</p>
+                  <p className="mt-0.5 text-[11px] font-medium text-slate-500">{chance < 0.01 ? '<0.01%' : `${chance.toFixed(chance < 1 ? 2 : 1)}%`}</p>
+                </div>
+                <span className="inline-flex shrink-0 items-center gap-1 text-sm font-bold tabular-nums text-slate-800"><GramIcon size={17} className="text-blue-600" />{formatGram(player.stakeGram)} <span className="text-[10px] font-semibold text-slate-500">GRAM</span></span>
+              </div>;
+            })}
+          </div>
+        </section>}
 
         {(!room || room.isPublic) && <div className="mt-3 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 pl-3">
           <GramIcon size={18} className="shrink-0 text-blue-600" />
