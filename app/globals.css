@@ -85,6 +85,35 @@ select {
   box-shadow: 0 0 0 7px rgb(244 191 40 / 12%), 0 8px 22px rgb(244 191 40 / 15%);
 }
 
+.arena-static-board {
+  position: relative;
+  isolation: isolate;
+}
+
+.arena-static-board::before {
+  position: absolute;
+  z-index: -1;
+  content: '';
+  inset: -7px;
+  border-radius: 24px;
+  background: radial-gradient(ellipse at center, rgb(21 87 213 / 8%), transparent 72%);
+}
+
+.arena-player-square.is-winner {
+  border-color: #e7b51c;
+  box-shadow: 0 0 0 2px rgb(244 191 40 / 24%), 0 5px 18px rgb(244 191 40 / 18%);
+}
+
+.arena-countdown-number {
+  box-shadow: 0 0 0 5px rgb(21 87 213 / 8%);
+  animation: arena-countdown-pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes arena-countdown-pulse {
+  from { transform: scale(.96); }
+  to { transform: scale(1.04); }
+}
+
 @keyframes orbit-arena-spin {
   0% { transform: translateX(8%); }
   72% { transform: translateX(-58%); }
@@ -106,7 +135,8 @@ select {
 @media (prefers-reduced-motion: reduce) {
   .arena-spin-stage.is-spinning > div:nth-child(2),
   .arena-win-card,
-  .arena-trophy { animation-duration: .01ms; }
+  .arena-trophy,
+  .arena-countdown-number { animation-duration: .01ms; }
 }
 
 .case-roulette-stage::before {
@@ -411,4 +441,16 @@ html[data-theme='dark'] main .arena-spin-stage {
 
 html[data-theme='dark'] main .arena-win-card {
   background: linear-gradient(100deg, #302b1b, #1b293d 50%, #1b293d) !important;
+}
+
+html[data-theme='dark'] main .arena-room-shell {
+  border-color: var(--orbit-border) !important;
+}
+
+html[data-theme='dark'] main .arena-player-square {
+  border-color: var(--orbit-border) !important;
+}
+
+html[data-theme='dark'] main .arena-player-square.is-winner {
+  border-color: #d5aa2e !important;
 }

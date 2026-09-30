@@ -4,7 +4,8 @@ const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://gifty-api-75hj.onre
 
 export type PvpPlayer = { id: string; telegramId?: string; username: string | null; firstName: string | null; photoUrl?: string | null };
 export type PvpRoom = {
-  id: string; code: string; stakeGram: string; status: 'WAITING' | 'COMPLETED'; creatorId: string;
+  id: string; code: string; stakeGram: string; status: 'WAITING' | 'COUNTDOWN' | 'COMPLETED'; creatorId: string;
+  isPublic?: boolean; countdownEndsAt?: string | null;
   winnerId: string | null; participants: Array<{ id: string; userId: string; user: PvpPlayer }>;
   invitations: Array<{ id: string; status: string; recipient: PvpPlayer }>;
   creator: PvpPlayer; winner: PvpPlayer | null;
@@ -29,6 +30,12 @@ export async function searchPvpUsers(query: string, initData: string) {
 }
 export async function createPvpRoom(stakeGram: string, inviteeIds: string[], initData: string) {
   return pvpRequest<PvpRoom>('rooms', initData, { stakeGram, inviteeIds });
+}
+export async function joinPublicArena(stakeGram: string, initData: string) {
+  return pvpRequest<PvpRoom>('public-join', initData, { stakeGram });
+}
+export async function getPublicArenaRooms(initData: string) {
+  return pvpRequest<PvpRoom[]>('public-rooms', initData);
 }
 export async function getPvpRoom(code: string, initData: string) {
   return pvpRequest<PvpRoom>(`rooms?code=${encodeURIComponent(code)}`, initData);
