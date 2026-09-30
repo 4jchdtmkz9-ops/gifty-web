@@ -93,7 +93,7 @@ select {
 .arena-bet-board {
   isolation: isolate;
   transform-origin: var(--zoom-x, 50%) var(--zoom-y, 50%);
-  transition: transform 1.25s cubic-bezier(.15,.8,.18,1), filter .5s ease;
+  transition: transform .68s cubic-bezier(.16,.82,.22,1), filter .35s ease;
 }
 
 .arena-bet-board.is-zooming {

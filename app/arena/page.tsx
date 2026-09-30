@@ -31,15 +31,63 @@ function formatGram(value: string | number) {
 }
 
 type RollPhase = 'idle' | 'flying' | 'zooming' | 'result';
-type WeightedTile = { id: string; player: PvpRoom['participants'][number]; x: number; y: number; width: number; height: number };
+type ArenaPolygon = ArenaPoint[];
+type WeightedTile = { id: string; player: PvpRoom['participants'][number]; x: number; y: number; width: number; height: number; polygon: ArenaPolygon };
 type ArenaPoint = { x: number; y: number };
 type ArenaMotion = { start: ArenaPoint; target: ArenaPoint; frames: Keyframe[] };
+
+function polygonArea(polygon: ArenaPolygon) {
+  return Math.abs(polygon.reduce((sum, point, index) => {
+    const next = polygon[(index + 1) % polygon.length];
+    return sum + point.x * next.y - next.x * point.y;
+  }, 0)) / 2;
+}
+
+function clipPolygon(polygon: ArenaPolygon, nx: number, ny: number, threshold: number, keepBelow: boolean): ArenaPolygon {
+  const output: ArenaPolygon = [];
+  for (let i = 0; i < polygon.length; i++) {
+    const current = polygon[i];
+    const next = polygon[(i + 1) % polygon.length];
+    const currentValue = current.x * nx + current.y * ny - threshold;
+    const nextValue = next.x * nx + next.y * ny - threshold;
+    const currentInside = keepBelow ? currentValue <= 1e-8 : currentValue >= -1e-8;
+    const nextInside = keepBelow ? nextValue <= 1e-8 : nextValue >= -1e-8;
+    if (currentInside) output.push(current);
+    if (currentInside !== nextInside) {
+      const ratio = currentValue / (currentValue - nextValue);
+      output.push({ x: current.x + (next.x - current.x) * ratio, y: current.y + (next.y - current.y) * ratio });
+    }
+  }
+  return output;
+}
+
+function splitPolygon(polygon: ArenaPolygon, ratio: number, angle: number): [ArenaPolygon, ArenaPolygon] {
+  const nx = Math.cos(angle);
+  const ny = Math.sin(angle);
+  const projections = polygon.map(({ x, y }) => x * nx + y * ny);
+  let low = Math.min(...projections);
+  let high = Math.max(...projections);
+  const targetArea = polygonArea(polygon) * ratio;
+  for (let i = 0; i < 28; i++) {
+    const middle = (low + high) / 2;
+    if (polygonArea(clipPolygon(polygon, nx, ny, middle, true)) < targetArea) low = middle;
+    else high = middle;
+  }
+  const cut = (low + high) / 2;
+  return [clipPolygon(polygon, nx, ny, cut, true), clipPolygon(polygon, nx, ny, cut, false)];
+}
 
 function makeWeightedTiles(players: PvpRoom['participants']): WeightedTile[] {
   if (!players.length) return [];
   const amount = (player: PvpRoom['participants'][number]) => Math.max(0, Number(player.stakeGram));
-  const split = (items: typeof players, x: number, y: number, width: number, height: number): WeightedTile[] => {
-    if (items.length === 1) return [{ id: items[0].id, player: items[0], x, y, width, height }];
+  let seed = players.reduce((value, player) => [...player.id].reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0, value), 2166136261);
+  const nextRandom = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 0x100000000; };
+  const split = (items: typeof players, polygon: ArenaPolygon, depth: number): WeightedTile[] => {
+    const xs = polygon.map(({ x }) => x);
+    const ys = polygon.map(({ y }) => y);
+    const x = Math.min(...xs); const y = Math.min(...ys);
+    const width = Math.max(...xs) - x; const height = Math.max(...ys) - y;
+    if (items.length === 1) return [{ id: items[0].id, player: items[0], x, y, width, height, polygon }];
     const total = items.reduce((sum, player) => sum + amount(player), 0) || items.length;
     let running = 0;
     let splitAt = 1;
@@ -53,14 +101,16 @@ function makeWeightedTiles(players: PvpRoom['participants']): WeightedTile[] {
     const rest = items.slice(splitAt);
     const firstTotal = first.reduce((sum, player) => sum + (amount(player) || 1), 0);
     const ratio = firstTotal / total;
-    if (width >= height) {
-      const firstWidth = width * ratio;
-      return [...split(first, x, y, firstWidth, height), ...split(rest, x + firstWidth, y, width - firstWidth, height)];
-    }
-    const firstHeight = height * ratio;
-    return [...split(first, x, y, width, firstHeight), ...split(rest, x, y + firstHeight, width, height - firstHeight)];
+    const angles = [0, Math.PI / 2, Math.PI / 4, -Math.PI / 4, Math.PI / 3, -Math.PI / 3];
+    const [firstPolygon, restPolygon] = splitPolygon(polygon, ratio, angles[Math.floor(nextRandom() * angles.length)]);
+    return [...split(first, firstPolygon, depth + 1), ...split(rest, restPolygon, depth + 2)];
   };
-  return split(players, 0, 0, 100, 100);
+  return split(players, [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }, { x: 0, y: 100 }], 0);
+}
+
+function tileClipPath(tile: WeightedTile) {
+  const points = tile.polygon.map(({ x, y }) => `${((x - tile.x) / tile.width) * 100}% ${((y - tile.y) / tile.height) * 100}%`);
+  return `polygon(${points.join(', ')})`;
 }
 
 function foldArenaAxis(value: number) {
@@ -138,7 +188,7 @@ function SquareRoom({ room, rollingSeconds, onShare, copied, onJoin, busy, stake
       ball.style.top = `${ballMotion.target.y}%`;
       return;
     }
-    const animation = ball.animate(ballMotion.frames, { duration: 3800, easing: 'linear', fill: 'forwards' });
+    const animation = ball.animate(ballMotion.frames, { duration: 5200, easing: 'linear', fill: 'forwards' });
     animation.onfinish = () => {
       ball.style.left = `${ballMotion.target.x}%`;
       ball.style.top = `${ballMotion.target.y}%`;
@@ -168,7 +218,7 @@ function SquareRoom({ room, rollingSeconds, onShare, copied, onJoin, busy, stake
             const chance = totalStake > 0 ? Number(player.stakeGram) / totalStake * 100 : 0;
             const palette = ['#1557d5', '#f4bf28', '#e8505b', '#e7efff', '#163362'];
             const darkText = index === 1 || index === 3;
-            return <div key={id} className={`arena-bet-tile ${isWinner ? 'is-winner' : ''}`} style={{ left: `${x}%`, top: `${y}%`, width: `${width}%`, height: `${height}%`, backgroundColor: palette[index % palette.length], color: darkText ? '#14294b' : '#fff', animationDelay: `${index * 90}ms` }}>
+            return <div key={id} className={`arena-bet-tile ${isWinner ? 'is-winner' : ''}`} style={{ left: `${x}%`, top: `${y}%`, width: `${width}%`, height: `${height}%`, clipPath: tileClipPath({ id, player, x, y, width, height, polygon: tiles[index].polygon }), backgroundColor: palette[index % palette.length], color: darkText ? '#14294b' : '#fff', animationDelay: `${index * 90}ms` }}>
               {player.user.photoUrl && <img src={player.user.photoUrl} alt="" className="arena-bet-avatar" />}
               <span className="arena-bet-name">{nameOf(player.user)}</span>
               <span className="arena-bet-amount">{formatGram(player.stakeGram)} GRAM · {chance < 0.01 ? '<0.01%' : `${chance.toFixed(chance < 1 ? 2 : 1)}%`}</span>
@@ -186,7 +236,7 @@ function SquareRoom({ room, rollingSeconds, onShare, copied, onJoin, busy, stake
         {(!room || room.isPublic) && <p className="mt-2 text-center text-[10px] text-slate-500">{t('Your square size and win chance match your stake.')} · {t('DEMO · NO PAYMENT')}</p>}
         {room?.isPublic === false && !room.viewerIsParticipant && room.status === 'WAITING' && <button onClick={onJoin} disabled={busy} className="mt-3 w-full rounded-xl bg-blue-700 py-3 text-xs font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : t('Join private room')} · {formatGram(room.stakeGram)} GRAM</button>}
 
-        {room?.status === 'WAITING' && <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-slate-50 py-2.5 text-center"><span className="h-2 w-2 animate-pulse rounded-full bg-blue-500"/><p className="text-[10px] font-semibold text-slate-600">{participants.length < 2 ? t('Waiting for one more player') : t('Waiting for players')}</p></div>}
+        {(!room || room.status === 'WAITING') && <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-slate-50 py-2.5 text-center"><span className="h-2 w-2 animate-pulse rounded-full bg-blue-500"/><p className="text-[10px] font-semibold text-slate-600">{!room ? t('Waiting for players') : participants.length < 2 ? t('Waiting for one more player') : t('Waiting for players')}</p></div>}
         {room?.status === 'COUNTDOWN' && rollingSeconds !== null && <div className="arena-countdown-wrap mt-3 flex items-center justify-between rounded-2xl border border-blue-100 bg-blue-50/70 px-4 py-3"><div><p className="text-[9px] font-bold uppercase tracking-[.16em] text-blue-500">{t('ROUND STARTS IN')}</p><p className="mt-1 text-xs font-bold text-blue-950">{t('Players are locked in')}</p></div><div className="arena-countdown-number flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-blue-600 bg-white text-2xl font-black tabular-nums text-blue-700">{rollingSeconds}</div></div>}
         {isCompleted && <p className="mt-3 text-center text-[10px] font-semibold text-slate-500">{t('Round complete')} · {t('Winner')}: {nameOf(room.winner)}</p>}
       </div>
@@ -243,7 +293,8 @@ export default function ArenaPage() {
           const openTable = rooms.find((room) => room.isPublic && (room.status === 'WAITING' || room.status === 'COUNTDOWN'));
           if (current.status === 'COMPLETED' && rollPhase === 'idle' && openTable && openTable.id !== current.id) setRoom(openTable);
           else if (updated) setRoom(updated);
-          else if (current.status !== 'COMPLETED') setRoom(await getPvpRoom(current.code, initData));
+          else if (current.status === 'COMPLETED') setRoom(null);
+          else setRoom(await getPvpRoom(current.code, initData));
         } else if (current) {
           setRoom(await getPvpRoom(current.code, initData));
         } else {
@@ -256,8 +307,7 @@ export default function ArenaPage() {
               const openTable = rooms.find((room) => room.isPublic && (room.status === 'WAITING' || room.status === 'COUNTDOWN'));
               if (openTable) setRoom(openTable);
               else {
-                const completed = rooms.find((room) => room.viewerIsParticipant && room.status === 'COMPLETED');
-                if (completed) { setRoom(completed); if (completed.viewerStakeGram) setStake(completed.viewerStakeGram); }
+                setRoom(null);
               }
             }
           }
@@ -280,10 +330,15 @@ export default function ArenaPage() {
   useEffect(() => {
     if (activeRoom?.status !== 'COMPLETED') return;
     setRollPhase('flying');
-    const zoomTimer = window.setTimeout(() => setRollPhase('zooming'), 3800);
-    const resultTimer = window.setTimeout(() => setRollPhase('result'), 5200);
-    return () => { window.clearTimeout(zoomTimer); window.clearTimeout(resultTimer); };
-  }, [activeRoom?.id, activeRoom?.status]);
+    const zoomTimer = window.setTimeout(() => setRollPhase('zooming'), 4300);
+    const resultTimer = window.setTimeout(() => setRollPhase('result'), 5500);
+    const resetTimer = window.setTimeout(() => {
+      setRollPhase('idle');
+      setRoom(null);
+      window.history.replaceState(null, '', '/arena');
+    }, 8200);
+    return () => { window.clearTimeout(zoomTimer); window.clearTimeout(resultTimer); window.clearTimeout(resetTimer); };
+  }, [activeRoom?.id, activeRoom?.status, setRoom]);
 
   useEffect(() => {
     if (!privateRoomOpen || !initData || query.trim().replace(/^@/, '').length < 2) { setSearchResults([]); return; }
