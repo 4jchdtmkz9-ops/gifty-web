@@ -2,6 +2,54 @@ import { getTelegramInitData } from './telegram';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://gifty-api-75hj.onrender.com').replace(/\/+$/, '');
 
+export type PvpPlayer = { id: string; telegramId?: string; username: string | null; firstName: string | null; photoUrl?: string | null };
+export type PvpRoom = {
+  id: string; code: string; stakeGram: string; status: 'WAITING' | 'COMPLETED'; creatorId: string;
+  winnerId: string | null; participants: Array<{ id: string; userId: string; user: PvpPlayer }>;
+  invitations: Array<{ id: string; status: string; recipient: PvpPlayer }>;
+  creator: PvpPlayer; winner: PvpPlayer | null;
+  notificationStats?: { sent: number; failed: number };
+  viewerIsCreator?: boolean;
+  viewerIsParticipant?: boolean;
+};
+
+async function pvpRequest<T>(path: string, initData: string, body?: Record<string, unknown>): Promise<T> {
+  const response = await fetch(`${API_URL}/pvp/${path}`, {
+    method: body ? 'POST' : 'GET',
+    headers: body ? { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': initData } : { 'X-Telegram-Init-Data': initData },
+    body: body ? JSON.stringify({ ...body, initData }) : undefined,
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'Arena request failed'));
+  return response.json() as Promise<T>;
+}
+
+export async function searchPvpUsers(query: string, initData: string) {
+  return pvpRequest<PvpPlayer[]>(`users/search?q=${encodeURIComponent(query)}`, initData);
+}
+export async function createPvpRoom(stakeGram: string, inviteeIds: string[], initData: string) {
+  return pvpRequest<PvpRoom>('rooms', initData, { stakeGram, inviteeIds });
+}
+export async function getPvpRoom(code: string, initData: string) {
+  return pvpRequest<PvpRoom>(`rooms?code=${encodeURIComponent(code)}`, initData);
+}
+export async function joinPvpRoom(code: string, initData: string) {
+  return pvpRequest<PvpRoom>('rooms/join', initData, { code });
+}
+export async function startPvpRound(code: string, initData: string) {
+  return pvpRequest<PvpRoom>('rooms/start', initData, { code });
+}
+export async function getMyPvpRooms(initData: string) {
+  return pvpRequest<PvpRoom[]>('rooms/mine', initData);
+}
+export type PvpInvitation = { id: string; sender: PvpPlayer; room: { code: string; stakeGram: string; createdAt: string; _count: { participants: number } } };
+export async function getPvpInvitations(initData: string) {
+  return pvpRequest<PvpInvitation[]>('invitations', initData);
+}
+export async function answerPvpInvitation(invitationId: string, accept: boolean, initData: string) {
+  return pvpRequest<PvpRoom>('invitations/answer', initData, { invitationId, accept });
+}
+
 async function responseError(response: Response, fallback: string) {
   const text = await response.text();
   try {

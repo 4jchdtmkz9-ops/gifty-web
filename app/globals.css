@@ -65,6 +65,50 @@ select {
   pointer-events: none;
 }
 
+.arena-spin-stage {
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 50% 90%, rgb(21 87 213 / 9%), transparent 58%),
+    linear-gradient(110deg, #f3f7ff 0%, #fff 48%, #fff9e9 100%);
+}
+
+.arena-spin-stage.is-spinning > div:nth-child(2) {
+  animation: orbit-arena-spin 3.15s cubic-bezier(.12,.66,.08,1) both;
+}
+
+.arena-win-card {
+  animation: orbit-arena-win .45s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.arena-trophy {
+  animation: orbit-arena-trophy .7s cubic-bezier(.2,.8,.2,1) both;
+  box-shadow: 0 0 0 7px rgb(244 191 40 / 12%), 0 8px 22px rgb(244 191 40 / 15%);
+}
+
+@keyframes orbit-arena-spin {
+  0% { transform: translateX(8%); }
+  72% { transform: translateX(-58%); }
+  90% { transform: translateX(-49%); }
+  100% { transform: translateX(-52%); }
+}
+
+@keyframes orbit-arena-win {
+  from { opacity: 0; transform: translateY(10px) scale(.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes orbit-arena-trophy {
+  0% { transform: scale(.55) rotate(-18deg); }
+  70% { transform: scale(1.14) rotate(5deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arena-spin-stage.is-spinning > div:nth-child(2),
+  .arena-win-card,
+  .arena-trophy { animation-duration: .01ms; }
+}
+
 .case-roulette-stage::before {
   inset: 18% -18%;
   border: 1px solid rgb(21 87 213 / 13%);
@@ -104,6 +148,21 @@ html[data-theme='dark'] main {
   background-color: var(--background) !important;
   color: var(--foreground) !important;
   background-image: none !important;
+}
+
+html[data-theme='dark'] .arena-spin-stage {
+  background:
+    radial-gradient(ellipse at 50% 90%, rgb(57 121 238 / 15%), transparent 58%),
+    linear-gradient(110deg, #17243a 0%, #151f30 50%, #27251f 100%);
+}
+
+html[data-theme='dark'] .arena-win-card {
+  border-color: #655427;
+  background: linear-gradient(100deg, #302b1b, #1b293d 50%, #1b293d);
+}
+
+html[data-theme='dark'] .arena-spin-stage [class*='bg-white'] {
+  background-color: #1b293d !important;
 }
 
 html[data-theme='dark'] main [class*='bg-gradient'] {
@@ -344,4 +403,12 @@ html[data-theme='dark'] .language-choice-option [class*='text-slate-500'] {
 
 html[data-theme='dark'] main [class*='shadow-'] {
   box-shadow: 0 8px 24px rgb(0 0 0 / 24%) !important;
+}
+
+html[data-theme='dark'] main .arena-spin-stage {
+  background: linear-gradient(110deg, #17243a 0%, #151f30 50%, #27251f 100%) !important;
+}
+
+html[data-theme='dark'] main .arena-win-card {
+  background: linear-gradient(100deg, #302b1b, #1b293d 50%, #1b293d) !important;
 }
