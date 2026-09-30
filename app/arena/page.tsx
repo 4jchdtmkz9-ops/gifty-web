@@ -32,6 +32,8 @@ function formatGram(value: string | number) {
 
 type RollPhase = 'idle' | 'flying' | 'zooming' | 'result';
 type WeightedTile = { id: string; player: PvpRoom['participants'][number]; x: number; y: number; width: number; height: number };
+type ArenaPoint = { x: number; y: number };
+type ArenaMotion = { start: ArenaPoint; target: ArenaPoint; frames: Keyframe[] };
 
 function makeWeightedTiles(players: PvpRoom['participants']): WeightedTile[] {
   if (!players.length) return [];
@@ -61,6 +63,45 @@ function makeWeightedTiles(players: PvpRoom['participants']): WeightedTile[] {
   return split(players, 0, 0, 100, 100);
 }
 
+function foldArenaAxis(value: number) {
+  const wrapped = ((value % 200) + 200) % 200;
+  return wrapped <= 100 ? wrapped : 200 - wrapped;
+}
+
+function chooseBouncingDestination(start: number, target: number) {
+  const possible: number[] = [];
+  for (let cell = -8; cell <= 8; cell++) {
+    for (const point of [target + cell * 200, 200 - target + cell * 200]) {
+      const crossings = Math.abs(Math.floor(point / 100) - Math.floor(start / 100));
+      if (crossings >= 4 && crossings <= 9) possible.push(point);
+    }
+  }
+  return possible[Math.floor(Math.random() * possible.length)] ?? target + (target >= start ? 600 : -600);
+}
+
+function makeArenaMotion(tile: WeightedTile): ArenaMotion {
+  const insetX = Math.min(tile.width * 0.28, 4);
+  const insetY = Math.min(tile.height * 0.28, 4);
+  const target = {
+    x: tile.x + insetX + Math.random() * Math.max(tile.width - insetX * 2, 0),
+    y: tile.y + insetY + Math.random() * Math.max(tile.height - insetY * 2, 0),
+  };
+  const start = { x: 8 + Math.random() * 84, y: 8 + Math.random() * 84 };
+  const endX = chooseBouncingDestination(start.x, target.x);
+  const endY = chooseBouncingDestination(start.y, target.y);
+  const frameCount = 72;
+  const frames = Array.from({ length: frameCount }, (_, index): Keyframe => {
+    const progress = index / (frameCount - 1);
+    const eased = 1 - Math.pow(1 - progress, 3.1);
+    return {
+      left: `${foldArenaAxis(start.x + (endX - start.x) * eased)}%`,
+      top: `${foldArenaAxis(start.y + (endY - start.y) * eased)}%`,
+      offset: progress,
+    };
+  });
+  return { start, target, frames };
+}
+
 function SquareRoom({ room, rollingSeconds, onShare, copied, onJoin, busy, stake, setStake, onEnter, rollPhase, t }: {
   room: PvpRoom | null; rollingSeconds: number | null; onShare: () => void; copied: boolean;
   onJoin: () => void;
@@ -72,9 +113,38 @@ function SquareRoom({ room, rollingSeconds, onShare, copied, onJoin, busy, stake
   const totalStake = participants.reduce((sum, player) => sum + Number(player.stakeGram), 0);
   const winnerTile = tiles.find(({ player }) => player.userId === room?.winnerId);
   const pot = room ? Number(room.stakeGram) * (room.isPublic ? 1 : Math.max(1, participants.length)) : 0;
-  const beamAngle = winnerTile ? `${Math.atan2(winnerTile.y + winnerTile.height / 2 - 50, winnerTile.x + winnerTile.width / 2 - 50) * 180 / Math.PI}deg` : '0deg';
-  const zoomStyle = winnerTile ? { '--zoom-x': `${winnerTile.x + winnerTile.width / 2}%`, '--zoom-y': `${winnerTile.y + winnerTile.height / 2}%` } as CSSProperties : undefined;
+  const [ballMotion, setBallMotion] = useState<ArenaMotion | null>(null);
+  const ballRef = useRef<HTMLDivElement | null>(null);
+  const zoomPoint = ballMotion?.target ?? (winnerTile ? { x: winnerTile.x + winnerTile.width / 2, y: winnerTile.y + winnerTile.height / 2 } : null);
+  const zoomStyle = zoomPoint ? { '--zoom-x': `${zoomPoint.x}%`, '--zoom-y': `${zoomPoint.y}%` } as CSSProperties : undefined;
   const isCompleted = room?.status === 'COMPLETED';
+
+  useEffect(() => {
+    if (rollPhase === 'idle' || !winnerTile) {
+      if (ballMotion) setBallMotion(null);
+      return;
+    }
+    if (rollPhase !== 'flying' || ballMotion) return;
+    setBallMotion(makeArenaMotion(winnerTile));
+  }, [ballMotion, rollPhase, room?.id, winnerTile?.id, winnerTile?.x, winnerTile?.y, winnerTile?.width, winnerTile?.height]);
+
+  useEffect(() => {
+    const ball = ballRef.current;
+    if (!ballMotion || !ball) return;
+    ball.style.left = `${ballMotion.start.x}%`;
+    ball.style.top = `${ballMotion.start.y}%`;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      ball.style.left = `${ballMotion.target.x}%`;
+      ball.style.top = `${ballMotion.target.y}%`;
+      return;
+    }
+    const animation = ball.animate(ballMotion.frames, { duration: 3800, easing: 'linear', fill: 'forwards' });
+    animation.onfinish = () => {
+      ball.style.left = `${ballMotion.target.x}%`;
+      ball.style.top = `${ballMotion.target.y}%`;
+    };
+    return () => animation.cancel();
+  }, [ballMotion]);
 
   return (
     <section className="arena-room-shell overflow-hidden rounded-[28px] border border-blue-100 bg-white shadow-[0_12px_34px_rgba(21,87,213,.09)]">
@@ -94,7 +164,7 @@ function SquareRoom({ room, rollingSeconds, onShare, copied, onJoin, busy, stake
 
         <div className={`arena-bet-board relative aspect-square overflow-hidden rounded-[22px] border border-blue-100 bg-[#f5f8ff] ${rollPhase === 'flying' ? 'is-flying' : ''} ${rollPhase === 'zooming' ? 'is-zooming' : ''}`} style={zoomStyle} aria-label={t('Arena player squares')}>
           {tiles.length ? tiles.map(({ id, player, x, y, width, height }, index) => {
-            const isWinner = isCompleted && room?.winnerId === player.userId;
+            const isWinner = isCompleted && room?.winnerId === player.userId && (rollPhase === 'zooming' || rollPhase === 'result');
             const chance = totalStake > 0 ? Number(player.stakeGram) / totalStake * 100 : 0;
             const palette = ['#1557d5', '#f4bf28', '#e8505b', '#e7efff', '#163362'];
             const darkText = index === 1 || index === 3;
@@ -104,7 +174,7 @@ function SquareRoom({ room, rollingSeconds, onShare, copied, onJoin, busy, stake
               <span className="arena-bet-amount">{formatGram(player.stakeGram)} GRAM · {chance < 0.01 ? '<0.01%' : `${chance.toFixed(chance < 1 ? 2 : 1)}%`}</span>
             </div>;
           }) : <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center"><p className="text-sm font-semibold text-blue-950">{t('Arena square is open')}</p><p className="mt-1 text-[11px] text-slate-500">{t('Choose your stake to enter')}</p></div>}
-          {rollPhase === 'flying' && <div className="arena-roulette-beam" style={{ '--beam-angle': beamAngle } as CSSProperties} aria-hidden="true" />}
+          {ballMotion && (rollPhase === 'flying' || rollPhase === 'zooming') && <div ref={ballRef} className="arena-bouncing-orb" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.5"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/><circle cx="12" cy="12" r="1.8" className="arena-orb-core"/></svg></div>}
         </div>
 
         {(!room || room.isPublic) && <div className="mt-3 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 pl-3">
