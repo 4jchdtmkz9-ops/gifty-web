@@ -553,6 +553,24 @@ html[data-theme='dark'] main .arena-stake-control input {
   background-color: transparent;
 }
 
+html[data-theme='dark'] main .arena-stake-control:focus-within {
+  border-color: #3979ee !important;
+}
+
+.arena-stake-control:focus-within {
+  border-color: #3979ee;
+  box-shadow: 0 0 0 2px rgb(57 121 238 / 14%);
+}
+
+.arena-stake-control input::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+body.numeric-input-focused nav[aria-label='Main navigation'] {
+  display: none !important;
+}
+
 html[data-theme='dark'] nav[aria-label='Main navigation'] {
   border-color: rgb(255 255 255 / 12%) !important;
   background-color: rgb(21 31 48 / 88%) !important;

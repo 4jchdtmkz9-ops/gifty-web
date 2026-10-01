@@ -82,6 +82,7 @@ export default function Providers({
     };
 
     const unfreezePage = () => {
+      document.body.classList.remove('numeric-input-focused');
       if (!locked || !priorBodyStyles) return;
       document.body.style.position = priorBodyStyles.position;
       document.body.style.top = priorBodyStyles.top;
@@ -93,10 +94,15 @@ export default function Providers({
       window.scrollTo(0, savedScrollY);
     };
 
-    const isStaticNumericInput = (target: EventTarget | null) =>
+    const isStaticNumericInput = (target: EventTarget | null): target is HTMLInputElement =>
       target instanceof HTMLInputElement && target.hasAttribute('data-static-keyboard');
     const onFocusIn = (event: FocusEvent) => {
-      if (isStaticNumericInput(event.target)) freezePage();
+      if (!isStaticNumericInput(event.target)) return;
+      document.body.classList.add('numeric-input-focused');
+      event.target.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
+      window.requestAnimationFrame(() => {
+        if (isStaticNumericInput(document.activeElement)) freezePage();
+      });
     };
     const onFocusOut = () => {
       window.setTimeout(() => {
