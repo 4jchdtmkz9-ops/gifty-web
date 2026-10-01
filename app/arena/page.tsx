@@ -5,6 +5,7 @@ import BottomNav from '../../components/BottomNav';
 import GramIcon from '../../components/GramIcon';
 import OrbitWordmark from '../../components/OrbitWordmark';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
+import TelegramTgsSticker from '../../components/TelegramTgsSticker';
 import { useOrbitLanguage } from '../../components/OrbitLanguageContext';
 import { getTelegramInitData } from '../../lib/telegram';
 import {
@@ -32,6 +33,13 @@ function formatGram(value: string | number) {
 }
 
 type RollPhase = 'idle' | 'flying' | 'zooming' | 'result';
+const winnerStickers = [
+  '/stickers/arena-win-3.json',
+  '/stickers/arena-win-4.json',
+  '/stickers/arena-win-5.json',
+  '/stickers/arena-win-6.json',
+  '/stickers/arena-win-7.json',
+];
 type ArenaPolygon = ArenaPoint[];
 type WeightedTile = { id: string; player: PvpRoom['participants'][number]; x: number; y: number; width: number; height: number; polygon: ArenaPolygon };
 type ArenaPoint = { x: number; y: number };
@@ -451,6 +459,7 @@ export default function ArenaPage() {
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [rollPhase, setRollPhase] = useState<RollPhase>('idle');
+  const [winnerStickerIndex, setWinnerStickerIndex] = useState(0);
   const [error, setError] = useState('');
   const activeRoomRef = useRef<PvpRoom | null>(null);
   const refreshBusy = useRef(false);
@@ -522,7 +531,10 @@ export default function ArenaPage() {
     if (activeRoom?.status !== 'COMPLETED') return;
     setRollPhase('flying');
     const zoomTimer = window.setTimeout(() => setRollPhase('zooming'), 7_750);
-    const resultTimer = window.setTimeout(() => setRollPhase('result'), 8_750);
+    const resultTimer = window.setTimeout(() => {
+      setWinnerStickerIndex(Math.floor(Math.random() * winnerStickers.length));
+      setRollPhase('result');
+    }, 8_750);
     const resetTimer = window.setTimeout(() => {
       setRollPhase('idle');
       setRoom(null);
@@ -644,6 +656,14 @@ export default function ArenaPage() {
         {rollPhase === 'result' && activeRoom?.status === 'COMPLETED' && <div className="arena-result-backdrop fixed inset-0 z-50 flex items-center justify-center p-5" role="dialog" aria-modal="true" aria-labelledby="arena-result-title">
           <section className="arena-result-modal w-full max-w-[340px] rounded-[28px] border border-yellow-300 bg-white p-6 text-center shadow-2xl">
             <p className="text-[10px] font-bold uppercase tracking-[.2em] text-yellow-700">{t('ARENA WINNER')}</p>
+            <div className="mx-auto mt-3 flex h-[104px] w-[104px] items-center justify-center rounded-[30px] border border-blue-100 bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.98),rgba(232,241,255,0.9)_68%,rgba(255,244,211,0.9))] shadow-[0_12px_30px_rgba(28,73,145,0.14)]">
+              <TelegramTgsSticker
+                size={92}
+                src={winnerStickers[winnerStickerIndex]}
+                className="flex items-center justify-center"
+                fallback={<span className="text-5xl" aria-hidden="true">🏆</span>}
+              />
+            </div>
             {activeRoom.winner?.photoUrl && <img src={activeRoom.winner.photoUrl} alt="" className="mx-auto mt-4 h-20 w-20 rounded-full border-4 border-yellow-300 object-cover" />}
             <h2 id="arena-result-title" className="mt-3 text-2xl font-black text-blue-950">{nameOf(activeRoom.winner)}</h2>
             <p className="mt-3 inline-flex items-center text-lg font-extrabold text-blue-900"><GramIcon size={20} className="mr-2 text-blue-600" />{formatGram(activeRoom.isPublic ? activeRoom.stakeGram : Number(activeRoom.stakeGram) * activeRoom.participants.length)} GRAM</p>
