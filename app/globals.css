@@ -6,6 +6,7 @@
   --brand-blue: #1557d5;
   --brand-yellow: #f4bf28;
   --brand-red: #e8505b;
+  --arena-board-bg: #edf3fc;
 }
 
 @theme inline {
@@ -94,7 +95,7 @@ select {
   isolation: isolate;
   border: 0;
   border-radius: 28px;
-  background: #111827;
+  background: var(--arena-board-bg);
   transform-origin: var(--zoom-x, 50%) var(--zoom-y, 50%);
   transition: transform .68s cubic-bezier(.16,.82,.22,1), filter .35s ease;
 }
@@ -341,6 +342,7 @@ html[data-theme='dark'] {
   --orbit-surface: #151f30;
   --orbit-surface-raised: #1b293d;
   --orbit-border: #2a394e;
+  --arena-board-bg: #111827;
 }
 
 html[data-theme='dark'] body {
