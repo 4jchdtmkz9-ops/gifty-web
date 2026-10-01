@@ -129,7 +129,12 @@ export default function Home() {
             className="rounded-2xl border border-blue-100 bg-white p-4 text-center shadow-[0_4px_14px_rgba(21,87,213,0.05)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_8px_20px_rgba(21,87,213,0.1)]"
           >
             <span className="mx-auto flex h-10 w-10 items-center justify-center text-slate-700">
-              <ArenaIcon size={22} />
+              <TelegramTgsSticker
+                src="/stickers/arena-club.json"
+                size={34}
+                className="home-action-sticker"
+                fallback={<ArenaIcon size={26} />}
+              />
             </span>
             <div className="mt-2 text-xs font-medium text-slate-700">{t('Arena')}</div>
           </Link>
@@ -139,7 +144,12 @@ export default function Home() {
             className="rounded-2xl border border-blue-100 bg-white p-4 text-center shadow-[0_4px_14px_rgba(21,87,213,0.05)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_8px_20px_rgba(21,87,213,0.1)]"
           >
             <span className="mx-auto flex h-10 w-10 items-center justify-center text-slate-700">
-              <LuckyIcon size={22} />
+              <TelegramTgsSticker
+                src="/stickers/lucky-red-poly.json"
+                size={34}
+                className="home-action-sticker"
+                fallback={<LuckyIcon size={26} />}
+              />
             </span>
             <div className="mt-2 text-xs font-medium text-slate-700">{t('Lucky')}</div>
           </Link>
