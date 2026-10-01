@@ -238,6 +238,16 @@ select {
 .nav-sticker-gift { animation-delay: -.6s; }
 .nav-sticker-pvp { animation: nav-sticker-gamepad 3.2s ease-in-out infinite; }
 .nav-sticker-market { animation: nav-sticker-float 2.7s ease-in-out infinite; }
+.nav-sticker-case {
+  display: inline-flex;
+  width: 23px;
+  height: 23px;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  transform-origin: 50% 76%;
+  animation: nav-sticker-briefcase 3.2s ease-in-out infinite;
+}
 .market-home-sticker {
   display: inline-flex;
   width: 34px;
@@ -268,6 +278,18 @@ select {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   35% { transform: translateY(-1px) rotate(-5deg); }
   70% { transform: translateY(0) rotate(4deg); }
+}
+
+@keyframes nav-sticker-briefcase {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  12% { transform: translateY(-1px) rotate(-7deg) scale(1.02); }
+  25% { transform: translateY(-2px) rotate(6deg) scale(1.03); }
+  38% { transform: translateY(0) rotate(-4deg) scale(1); }
+  51% { transform: translateY(-1px) rotate(2deg) scale(1.01); }
+  63% { transform: translateY(0) rotate(0deg) scale(1); }
+  70% { transform: translateY(-2px) scale(1.05, .96); }
+  78% { transform: translateY(0) scale(.98, 1.02); }
+  86% { transform: translateY(0) scale(1); }
 }
 
 .arena-result-backdrop {
@@ -338,7 +360,7 @@ select {
   .arena-trophy,
   .arena-countdown-number { animation-duration: .01ms; animation-iteration-count: 1; }
   .arena-bet-board { transition-duration: .01ms; }
-  .nav-sticker-float, .nav-sticker-art { animation-duration: .01ms; animation-iteration-count: 1; }
+  .nav-sticker-float, .nav-sticker-art, .nav-sticker-case { animation-duration: .01ms; animation-iteration-count: 1; }
 }
 
 .case-roulette-stage::before {

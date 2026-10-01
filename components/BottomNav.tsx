@@ -48,7 +48,7 @@ export default function BottomNav({ active }: { active: NavTab | null }) {
                 fallback={<MarketIcon />}
               />
             )}
-            {tab.id === 'cases' && <span aria-hidden="true" className="flex h-[23px] w-[23px] items-center justify-center text-[21px] leading-none">🧳</span>}
+            {tab.id === 'cases' && <span aria-hidden="true" className="nav-sticker-case text-[21px] leading-none">💼</span>}
             {tab.id === 'pvp' && <NavStickerIcon kind="pvp" />}
             {tab.id === 'profile' && <TelegramAvatar size={22} />}
             <span className="text-[10px] font-medium leading-none">{t(tab.label)}</span>
