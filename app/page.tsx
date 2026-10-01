@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import BottomNav from '../components/BottomNav';
 import MarketIcon from '../components/MarketIcon';
+import TelegramTgsSticker from '../components/TelegramTgsSticker';
 import LuckyIcon from '../components/LuckyIcon';
 import ArenaIcon from '../components/ArenaIcon';
 import { formatTonBalance } from '../lib/formatTon';
@@ -113,7 +114,12 @@ export default function Home() {
             className="rounded-2xl border border-blue-100 bg-white p-4 text-center shadow-[0_4px_14px_rgba(21,87,213,0.05)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_8px_20px_rgba(21,87,213,0.1)]"
           >
             <span className="mx-auto flex h-10 w-10 items-center justify-center text-slate-700">
-              <MarketIcon size={22} />
+              <TelegramTgsSticker
+                src="/stickers/market.json"
+                size={34}
+                className="market-home-sticker"
+                fallback={<MarketIcon size={26} />}
+              />
             </span>
             <div className="mt-2 text-xs font-medium text-slate-700">{t('Market')}</div>
           </Link>

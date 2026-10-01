@@ -4,6 +4,7 @@ import Link from 'next/link';
 import HomeIcon from './HomeIcon';
 import MarketIcon from './MarketIcon';
 import NavStickerIcon from './NavStickerIcon';
+import TelegramTgsSticker from './TelegramTgsSticker';
 import TelegramAvatar from './TelegramAvatar';
 import { useOrbitTheme } from './OrbitThemeContext';
 import { useOrbitLanguage } from './OrbitLanguageContext';
@@ -42,7 +43,13 @@ export default function BottomNav({ active }: { active: NavTab | null }) {
             }`}
           >
             {tab.id === 'home' && <span className="nav-sticker-float"><HomeIcon /></span>}
-            {tab.id === 'market' && <span className="nav-sticker-float"><MarketIcon /></span>}
+            {tab.id === 'market' && (
+              <TelegramTgsSticker
+                src="/stickers/market.json"
+                className="nav-sticker-art nav-sticker-market"
+                fallback={<MarketIcon />}
+              />
+            )}
             {tab.id === 'cases' && <NavStickerIcon kind="gift" />}
             {tab.id === 'pvp' && <NavStickerIcon kind="pvp" />}
             {tab.id === 'profile' && <TelegramAvatar size={22} />}

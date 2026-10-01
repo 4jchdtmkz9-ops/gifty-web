@@ -206,6 +206,17 @@ select {
 
 .nav-sticker-gift { animation-delay: -.6s; }
 .nav-sticker-pvp { animation: nav-sticker-gamepad 3.2s ease-in-out infinite; }
+.nav-sticker-market { animation: nav-sticker-float 2.7s ease-in-out infinite; }
+.market-home-sticker {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  animation: nav-sticker-float 2.7s ease-in-out infinite;
+  transform-origin: 50% 70%;
+}
 
 @keyframes nav-sticker-float {
   0%, 100% { transform: translateY(0) rotate(0deg); }
