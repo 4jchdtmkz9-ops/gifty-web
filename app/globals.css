@@ -92,6 +92,9 @@ select {
 
 .arena-bet-board {
   isolation: isolate;
+  border: 0;
+  border-radius: 28px;
+  background: #111827;
   transform-origin: var(--zoom-x, 50%) var(--zoom-y, 50%);
   transition: transform .68s cubic-bezier(.16,.82,.22,1), filter .35s ease;
 }
@@ -106,7 +109,7 @@ select {
   position: absolute;
   display: block;
   overflow: hidden;
-  border: 2px solid rgb(255 255 255 / 88%);
+  border: 0;
   padding: clamp(2px, 1.5vw, 12px);
   text-align: center;
   transition: filter .45s ease, box-shadow .45s ease, transform .5s ease;

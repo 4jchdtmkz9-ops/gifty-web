@@ -33,6 +33,7 @@ export default function CryptanCasePage() {
   const [notice, setNotice] = useState('');
   const [wonReward, setWonReward] = useState<CaseReward | null>(null);
   const [rollItems, setRollItems] = useState<CaseReward[]>(cryptanRewards);
+  const [markerPosition, setMarkerPosition] = useState(50);
   const rouletteRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -55,6 +56,8 @@ export default function CryptanCasePage() {
       ...Array.from({ length: 5 }, randomReward),
     ];
     setRollItems(items);
+    const nextMarkerPosition = 20 + Math.random() * 60;
+    setMarkerPosition(nextMarkerPosition);
     setWonReward(null);
     setNotice('');
     setOpening(true);
@@ -68,9 +71,9 @@ export default function CryptanCasePage() {
       }
 
       const startLeft = viewport.scrollLeft;
-      const targetLeft = winningCard.offsetLeft + winningCard.offsetWidth / 2 - viewport.clientWidth / 2;
+      const targetLeft = winningCard.offsetLeft + winningCard.offsetWidth / 2 - viewport.clientWidth * (nextMarkerPosition / 100);
       const startTime = performance.now();
-      const duration = 4200;
+      const duration = 7200;
 
       const animate = (now: number) => {
         const progress = Math.min(1, (now - startTime) / duration);
@@ -115,7 +118,7 @@ export default function CryptanCasePage() {
                     </div>
                   ))}
                 </div>
-                {opening && <span className="pointer-events-none absolute inset-y-0 left-1/2 z-20 w-1 -translate-x-1/2 bg-yellow-400 shadow-[0_0_12px_rgba(244,191,40,0.9)]" />}
+                {opening && <span className="pointer-events-none absolute inset-y-0 z-20 w-1 -translate-x-1/2 bg-yellow-400 shadow-[0_0_12px_rgba(244,191,40,0.9)]" style={{ left: `${markerPosition}%` }} />}
               </div>
             ) : (
               <Image src={cryptanCase.image} alt="Кейс Криптан" fill sizes="(max-width: 480px) 100vw, 448px" className="object-contain p-2" priority />
