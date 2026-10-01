@@ -354,12 +354,18 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
 
   return (
     <section className="arena-room-shell overflow-hidden rounded-[28px] border border-blue-100 bg-white shadow-[0_12px_34px_rgba(21,87,213,.09)]">
-      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[11px] font-extrabold text-blue-700">01</span>
-          <div className="min-w-0"><p className="text-[9px] font-bold uppercase tracking-[.17em] text-blue-600">{t('ROOM 01 · CLASSIC')}</p><h2 className="truncate text-base font-extrabold tracking-tight text-blue-950">ORBIT <span className="font-semibold text-slate-500">{t('Arena')}</span></h2></div>
+      <div className="flex items-center justify-between gap-3 border-b border-blue-100/80 bg-gradient-to-r from-blue-50/80 via-white to-white px-4 py-3.5">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[15px] bg-blue-700 text-xs font-black text-white shadow-[0_5px_14px_rgba(21,87,213,.24)]">01</span>
+          <div className="min-w-0">
+            <p className="flex items-center gap-1.5 text-[8px] font-extrabold uppercase tracking-[.16em] text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,.12)]" />{t('CURRENT ROOM')}</p>
+            <h2 className="mt-0.5 truncate text-[15px] font-extrabold tracking-tight text-blue-950">ORBIT <span className="font-semibold text-slate-500">{t('Arena')}</span></h2>
+          </div>
         </div>
-        <div className="flex items-center gap-2">{room && <button onClick={onShare} className="shrink-0 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-[10px] font-bold text-blue-700">{t('Share room')} ↗</button>}</div>
+        {room && <button onClick={onShare} className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-blue-200/80 bg-white/90 px-3 py-2 text-[10px] font-bold text-blue-700 shadow-sm transition hover:bg-blue-50 active:scale-[.97]">
+          <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5"><path d="M11.5 3.75h4.75V8.5M16 4l-7.1 7.1M14.25 10.5v4.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V7.25a1.5 1.5 0 0 1 1.5-1.5H9.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          {t('Share room')}
+        </button>}
       </div>
 
       <div className="p-4">
