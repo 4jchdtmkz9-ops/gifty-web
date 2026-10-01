@@ -25,6 +25,8 @@ import { waitForTelegramInitData } from "../../lib/telegram";
 import { useIsConnectionRestored, useTonAddress } from "@tonconnect/ui-react";
 import { useOrbitLanguage, type OrbitLanguage } from "../../components/OrbitLanguageContext";
 import LanguageChoiceList from "../../components/LanguageChoiceList";
+import ThemeToggle from "../../components/ThemeToggle";
+import { useOrbitTheme } from "../../components/OrbitThemeContext";
 
 type Gift = {
   id: string;
@@ -62,6 +64,7 @@ function formatTon(amount: string | number) {
 
 export default function ProfilePage() {
   const { language, setLanguage, t } = useOrbitLanguage();
+  const { theme, toggleTheme } = useOrbitTheme();
   const walletAddress = useTonAddress();
   const connectionRestored = useIsConnectionRestored();
   const [tab, setTab] = useState<Tab>("owned");
@@ -247,6 +250,7 @@ export default function ProfilePage() {
               <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-4 w-4"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.7"/><path d="M3.5 12h17M12 3c2.3 2.4 3.4 5.4 3.4 9s-1.1 6.6-3.4 9c-2.3-2.4-3.4-5.4-3.4-9S9.7 5.4 12 3Z" stroke="currentColor" strokeWidth="1.5"/></svg>
               {language.toUpperCase()}
             </button>
+            <ThemeToggle theme={theme} toggleTheme={toggleTheme} label={t(theme === "dark" ? "Light" : "Dark")} />
             <button type="button" onClick={() => void refresh()} disabled={loading || Boolean(busy)} aria-label={t("Refresh profile")} title={t("Refresh profile")} className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-lg text-blue-700 shadow-sm disabled:opacity-50">↻</button>
           </div>
         </header>

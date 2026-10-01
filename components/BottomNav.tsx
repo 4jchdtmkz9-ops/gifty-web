@@ -6,8 +6,6 @@ import MarketIcon from './MarketIcon';
 import NavStickerIcon from './NavStickerIcon';
 import TelegramTgsSticker from './TelegramTgsSticker';
 import TelegramAvatar from './TelegramAvatar';
-import ThemeToggle from './ThemeToggle';
-import { useOrbitTheme } from './OrbitThemeContext';
 import { useOrbitLanguage } from './OrbitLanguageContext';
 
 type NavTab = 'home' | 'market' | 'cases' | 'pvp' | 'profile';
@@ -21,7 +19,6 @@ const tabs: { id: NavTab; label: string; href: string }[] = [
 ];
 
 export default function BottomNav({ active }: { active: NavTab | null }) {
-  const { theme, toggleTheme } = useOrbitTheme();
   const { t } = useOrbitLanguage();
 
   return (
@@ -58,7 +55,6 @@ export default function BottomNav({ active }: { active: NavTab | null }) {
           </Link>
         );
       })}
-      <ThemeToggle theme={theme} toggleTheme={toggleTheme} label={t(theme === 'dark' ? 'Light' : 'Dark')} />
     </nav>
   );
 }
