@@ -548,6 +548,11 @@ html[data-theme='dark'] main select {
   color: var(--foreground);
 }
 
+html[data-theme='dark'] main .arena-stake-control input {
+  border-color: transparent;
+  background-color: transparent;
+}
+
 html[data-theme='dark'] nav[aria-label='Main navigation'] {
   border-color: rgb(255 255 255 / 12%) !important;
   background-color: rgb(21 31 48 / 88%) !important;

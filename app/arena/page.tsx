@@ -411,7 +411,7 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
           </div>
         </section>}
 
-        {(!room || room.isPublic) && <div className="mt-3 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 pl-3">
+        {(!room || room.isPublic) && <div className="arena-stake-control mt-3 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 pl-3">
           <GramIcon size={18} className="shrink-0 text-blue-600" />
           <input aria-label={t('Your stake')} data-static-keyboard type="number" min="0" step="any" inputMode="decimal" enterKeyHint="done" value={stake} onChange={(event) => setStake(event.target.value)} className="min-w-0 flex-1 border-0 bg-transparent py-2 text-base font-bold text-slate-800 outline-none" placeholder="1" />
           <span className="text-[10px] font-bold text-blue-700">GRAM</span>
