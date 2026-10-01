@@ -188,8 +188,8 @@ function unfoldedTarget(target: number, margin: number, span: number, cell: numb
 }
 
 function makeArenaMotion(tile: WeightedTile): ArenaMotion {
-  const { point: target, clearance } = safestRandomPoint(tile);
-  const diameter = Math.max(2.2, Math.min(7, clearance * 1.25));
+  const safePoint = safestRandomPoint(tile);
+  const diameter = Math.max(1.5, Math.min(6, safePoint.bestClearance * 1.15));
   const margin = diameter / 2;
   const span = 100 - margin * 2;
   const duration = 10_500;
@@ -197,42 +197,93 @@ function makeArenaMotion(tile: WeightedTile): ArenaMotion {
   const spinFrames = 36;
   const flightFrames = 252;
   const center = { x: 50, y: 50 };
-  const startX = center.x - margin;
-  const startY = center.y - margin;
-  let endX = target.x - margin;
-  let endY = target.y - margin;
-
-  // Select a random unfolded path that lands in the server-selected winning
-  // sector. In the arena itself, direction changes only at the outside walls.
-  for (let attempt = 0; attempt < 500; attempt++) {
-    const cellX = Math.floor(Math.random() * 17) - 8;
-    const cellY = Math.floor(Math.random() * 17) - 8;
-    const candidateX = unfoldedTarget(target.x, margin, span, cellX);
-    const candidateY = unfoldedTarget(target.y, margin, span, cellY);
-    const distance = Math.hypot(candidateX - startX, candidateY - startY);
-    if (distance > 700 && distance < 2200) { endX = candidateX; endY = candidateY; break; }
-  }
-
-  const directionDegrees = positiveModulo(Math.atan2(endY - startY, endX - startX) * 180 / Math.PI, 360);
   const start = center;
   const frames: Keyframe[] = [{ left: `${center.x}%`, top: `${center.y}%`, offset: 0 }];
   for (let frame = 1; frame <= spinFrames; frame++) {
     frames.push({ left: `${center.x}%`, top: `${center.y}%`, offset: (frame / spinFrames) * spinDuration / duration });
   }
-  for (let frame = 1; frame <= flightFrames; frame++) {
-    const progress = frame / flightFrames;
-    let distanceProgress: number;
-    if (progress < 0.1) distanceProgress = 0.35 * Math.pow(progress / 0.1, 1.25);
-    else if (progress < 0.76) distanceProgress = 0.35 + ((progress - 0.1) / 0.66) * 0.55;
-    else {
-      const slowdown = (progress - 0.76) / 0.24;
-      distanceProgress = 0.9 + 0.1 * (1 - Math.pow(1 - slowdown, 3));
+
+  const path = new Float32Array(flightFrames * 2);
+  let chosenAngle = Math.random() * Math.PI * 2;
+  let stoppedAt: ArenaPoint = safePoint.point;
+  let foundNaturalStop = false;
+
+  // Let the puck rebound freely from the outside walls, with a random change
+  // in its rebound angle. Keep the first path that settles in the chosen sector.
+  for (let attempt = 0; attempt < 8_000; attempt++) {
+    let x = center.x;
+    let y = center.y;
+    let angle = Math.random() * Math.PI * 2;
+    const launchAngle = angle;
+    for (let frame = 0; frame < flightFrames; frame++) {
+      const progress = (frame + 1) / flightFrames;
+      let speed: number;
+      if (progress < 0.06) speed = 1 + 17 * (progress / 0.06);
+      else if (progress < 0.65) speed = 18 - ((progress - 0.06) / 0.59) * 11;
+      else if (progress < 0.82) speed = 7 - ((progress - 0.65) / 0.17) * 4.8;
+      else speed = 2.2 * Math.pow((1 - progress) / 0.18, 1.6);
+
+      let nextX = x + Math.cos(angle) * speed;
+      let nextY = y + Math.sin(angle) * speed;
+      if (nextX < margin || nextX > 100 - margin) {
+        const inward = nextX < margin ? 1 : -1;
+        nextX = Math.max(margin, Math.min(100 - margin, nextX));
+        angle = Math.PI - angle + (Math.random() - 0.5) * 1.1;
+        if (Math.cos(angle) * inward < 0) angle = Math.PI - angle;
+      }
+      if (nextY < margin || nextY > 100 - margin) {
+        const inward = nextY < margin ? 1 : -1;
+        nextY = Math.max(margin, Math.min(100 - margin, nextY));
+        angle = -angle + (Math.random() - 0.5) * 1.1;
+        if (Math.sin(angle) * inward < 0) angle = -angle;
+      }
+      x = nextX;
+      y = nextY;
+      path[frame * 2] = x;
+      path[frame * 2 + 1] = y;
     }
-    const x = margin + foldAtWalls(startX + (endX - startX) * distanceProgress, span);
-    const y = margin + foldAtWalls(startY + (endY - startY) * distanceProgress, span);
-    frames.push({ left: `${x}%`, top: `${y}%`, offset: spinDuration / duration + progress * (1 - spinDuration / duration) });
+
+    const endPoint = { x, y };
+    if (isInsideTile(endPoint, tile.polygon) && pointClearance(endPoint, tile.polygon) >= margin * 1.05) {
+      chosenAngle = launchAngle;
+      stoppedAt = endPoint;
+      foundNaturalStop = true;
+      break;
+    }
   }
-  return { start, target, diameter, duration, directionDegrees, frames };
+
+  if (foundNaturalStop) {
+    for (let frame = 0; frame < flightFrames; frame++) {
+      frames.push({
+        left: `${path[frame * 2]}%`,
+        top: `${path[frame * 2 + 1]}%`,
+        offset: spinDuration / duration + ((frame + 1) / flightFrames) * (1 - spinDuration / duration),
+      });
+    }
+  } else {
+    // For exceptionally small sectors, use a random reflected route to a safe
+    // point there rather than letting the visible stop disagree with the winner.
+    const cellX = Math.floor(Math.random() * 17) - 8;
+    const cellY = Math.floor(Math.random() * 17) - 8;
+    const startX = center.x - margin;
+    const startY = center.y - margin;
+    const endX = unfoldedTarget(safePoint.point.x, margin, span, cellX);
+    const endY = unfoldedTarget(safePoint.point.y, margin, span, cellY);
+    const dx = endX - startX;
+    const dy = endY - startY;
+    chosenAngle = Math.atan2(dy, dx);
+    for (let frame = 0; frame < flightFrames; frame++) {
+      const progress = (frame + 1) / flightFrames;
+      const eased = 1 - Math.pow(1 - progress, 2.3);
+      const x = margin + foldAtWalls(startX + dx * eased, span);
+      const y = margin + foldAtWalls(startY + dy * eased, span);
+      frames.push({ left: `${x}%`, top: `${y}%`, offset: spinDuration / duration + progress * (1 - spinDuration / duration) });
+    }
+    stoppedAt = safePoint.point;
+  }
+
+  const directionDegrees = positiveModulo(chosenAngle * 180 / Math.PI, 360);
+  return { start, target: stoppedAt, diameter, duration, directionDegrees, frames };
 }
 
 const sectorColors = ['#1557d5', '#e8505b', '#f4bf28', '#12a875', '#8252d6', '#df4385', '#078fa9', '#ed792f'];
@@ -287,9 +338,9 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
     }
     const arrow = ball.querySelector<HTMLElement>('.arena-launch-arrow');
     const arrowAnimation = arrow?.animate([
-      { transform: 'translate(-50%, -50%) rotate(0deg) translateY(-27px)', opacity: 1 },
-      { transform: `translate(-50%, -50%) rotate(${ballMotion.directionDegrees + 900}deg) translateY(-27px)`, opacity: 1, offset: 0.82 },
-      { transform: `translate(-50%, -50%) rotate(${ballMotion.directionDegrees + 1080}deg) translateY(-27px)`, opacity: 0 },
+      { transform: 'translate(-50%, -50%) rotate(0deg)', opacity: 1 },
+      { transform: `translate(-50%, -50%) rotate(${ballMotion.directionDegrees + 900}deg)`, opacity: 1, offset: 0.82 },
+      { transform: `translate(-50%, -50%) rotate(${ballMotion.directionDegrees + 1080}deg)`, opacity: 0 },
     ], { duration: 1150, easing: 'cubic-bezier(.18,.72,.22,1)', fill: 'forwards' });
     const animation = ball.animate(ballMotion.frames, { duration: ballMotion.duration, easing: 'linear', fill: 'forwards' });
     animation.onfinish = () => {
@@ -337,7 +388,7 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
               <span className="arena-bet-amount">{formatGram(player.stakeGram)} GRAM · {chance < 0.01 ? '<0.01%' : `${chance.toFixed(chance < 1 ? 2 : 1)}%`}</span>
             </div>;
           }) : <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center"><p className="text-sm font-semibold text-blue-950">{t('Arena square is open')}</p><p className="mt-1 text-[11px] text-slate-500">{t('Choose your stake to enter')}</p></div>}
-          {ballMotion && (rollPhase === 'flying' || rollPhase === 'zooming') && <div ref={ballRef} className="arena-bouncing-orb" style={{ width: `${ballMotion.diameter}%` }} aria-hidden="true"><span className="arena-launch-arrow">→</span><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.5"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/><circle cx="12" cy="12" r="1.8" className="arena-orb-core"/></svg></div>}
+          {ballMotion && (rollPhase === 'flying' || rollPhase === 'zooming') && <div ref={ballRef} className="arena-bouncing-orb" style={{ width: `${ballMotion.diameter}%` }} aria-hidden="true"><span className="arena-launch-arrow"><svg viewBox="0 0 68 68" fill="none"><path d="M34 34 62 34M53 25l9 9-9 9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg></span><svg className="arena-orb-token" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.5" className="arena-orb-face"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/><circle cx="12" cy="12" r="1.8" className="arena-orb-core"/></svg></div>}
         </div>
 
         {participants.length > 0 && <section className="arena-player-list mt-4 overflow-hidden rounded-[20px] border border-slate-200 bg-white" aria-label={t('PLAYERS')}>

@@ -198,16 +198,33 @@ select {
 
 .arena-launch-arrow {
   position: absolute;
-  z-index: 2;
+  z-index: 0;
   top: 50%;
   left: 50%;
   color: #fff;
-  font-size: 25px;
-  font-weight: 900;
-  line-height: 1;
-  text-shadow: 0 1px 5px rgb(21 87 213 / 85%);
+  width: 68px;
+  height: 68px;
+  filter: drop-shadow(0 1px 3px rgb(21 55 110 / 90%));
   pointer-events: none;
   will-change: transform, opacity;
+}
+
+.arena-bouncing-orb .arena-launch-arrow svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+}
+
+.arena-bouncing-orb .arena-orb-token {
+  position: relative;
+  z-index: 1;
+}
+
+.arena-bouncing-orb .arena-orb-face {
+  fill: rgb(255 255 255 / 88%);
+  stroke: #fff;
+  stroke-width: 1;
 }
 
 .nav-sticker-float,
