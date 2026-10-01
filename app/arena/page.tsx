@@ -42,6 +42,11 @@ const winnerStickers = [
   '/stickers/arena-win-6.json',
   '/stickers/arena-win-7.json',
 ];
+const bigWinStickers = [
+  '/stickers/arena-big-win-1.json',
+  '/stickers/arena-big-win-2.json',
+  '/stickers/arena-big-win-3.json',
+];
 type ArenaPolygon = ArenaPoint[];
 type WeightedTile = { id: string; player: PvpRoom['participants'][number]; x: number; y: number; width: number; height: number; polygon: ArenaPolygon };
 type ArenaPoint = { x: number; y: number };
@@ -480,11 +485,12 @@ export default function ArenaPage() {
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [rollPhase, setRollPhase] = useState<RollPhase>('idle');
-  const [winnerStickerIndex, setWinnerStickerIndex] = useState(0);
+  const [winnerSticker, setWinnerSticker] = useState(winnerStickers[0]);
   const [error, setError] = useState('');
   const activeRoomRef = useRef<PvpRoom | null>(null);
   const refreshBusy = useRef(false);
   const setRoom = useCallback((room: PvpRoom | null) => { activeRoomRef.current = room; setActiveRoom(room); }, []);
+  const winnerPrize = activeRoom ? Number(activeRoom.stakeGram) * (activeRoom.isPublic ? 1 : activeRoom.participants.length) : 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -563,7 +569,8 @@ export default function ArenaPage() {
     setRollPhase('flying');
     const zoomTimer = window.setTimeout(() => setRollPhase('zooming'), 7_750);
     const resultTimer = window.setTimeout(() => {
-      setWinnerStickerIndex(Math.floor(Math.random() * winnerStickers.length));
+      const stickers = winnerPrize > 50 ? bigWinStickers : winnerStickers;
+      setWinnerSticker(stickers[Math.floor(Math.random() * stickers.length)]);
       setRollPhase('result');
     }, 8_750);
     const resetTimer = window.setTimeout(() => {
@@ -572,7 +579,7 @@ export default function ArenaPage() {
       window.history.replaceState(null, '', '/arena');
     }, 12_050);
     return () => { window.clearTimeout(zoomTimer); window.clearTimeout(resultTimer); window.clearTimeout(resetTimer); };
-  }, [activeRoom?.id, activeRoom?.status, setRoom]);
+  }, [activeRoom?.id, activeRoom?.status, winnerPrize, setRoom]);
 
   useEffect(() => {
     if (!privateRoomOpen || !initData || query.trim().replace(/^@/, '').length < 2) { setSearchResults([]); return; }
@@ -683,7 +690,11 @@ export default function ArenaPage() {
 
           {activeRoom?.isPublic === false && activeRoom.status === 'WAITING' && activeRoom.viewerIsCreator && <section className="mt-3 rounded-2xl border border-blue-100 bg-white p-3"><p className="mb-2 text-center text-[10px] text-slate-500">{t('Waiting for invited players to accept.')}</p><button disabled={busy || activeRoom.participants.length < 2} onClick={() => void startPrivateRound()} className="w-full rounded-xl bg-blue-700 py-2.5 text-xs font-bold text-white disabled:bg-slate-300">{t('Start demo round')}</button></section>}
 
-          <div className="mt-3 text-center"><button onClick={() => setPrivateRoomOpen((open) => !open)} className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-slate-500"><span aria-hidden="true">↗</span>{t('Custom room by link')}</button></div>
+          <button type="button" onClick={() => setPrivateRoomOpen((open) => !open)} aria-expanded={privateRoomOpen} className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50/90 via-white to-white px-3 py-2.5 text-left shadow-[0_5px_18px_rgba(21,87,213,.06)] transition hover:border-blue-200 active:scale-[.99]">
+            <TelegramTgsSticker size={42} src="/stickers/arena-custom-room.json" className="shrink-0" fallback={<span className="flex h-full w-full items-center justify-center text-xl" aria-hidden="true">↗</span>} />
+            <span className="min-w-0 flex-1"><span className="block text-[11px] font-extrabold text-blue-950">{t('Custom room by link')}</span><span className="mt-0.5 block text-[9px] leading-snug text-slate-500">{t('Invite selected friends. They will receive a private room link.')}</span></span>
+            <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className={`h-4 w-4 shrink-0 text-blue-500 transition-transform ${privateRoomOpen ? 'rotate-180' : ''}`}><path d="m5 7.5 5 5 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
           {privateRoomOpen && <section className="mt-2 rounded-2xl border border-slate-200 bg-white p-3">
             <h2 className="text-xs font-bold text-blue-950">{t('Create a private room')}</h2><p className="mt-1 text-[10px] text-slate-500">{t('Invite selected friends. They will receive a private room link.')}</p>
             <div className="relative mt-3"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t('Search username…')} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-800 outline-none focus:border-blue-400"/>{searchResults.length > 0 && <div className="absolute inset-x-0 top-[calc(100%+4px)] z-20 max-h-40 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl">{searchResults.map((player) => <button key={player.id} onClick={() => { togglePlayer(player); setQuery(''); setSearchResults([]); }} className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs hover:bg-blue-50"><span>{nameOf(player)}</span><span className="text-blue-600">{selectedPlayers.some(({ id }) => id === player.id) ? '✓' : '+'}</span></button>)}</div>}</div>
@@ -697,7 +708,7 @@ export default function ArenaPage() {
             <div className="mx-auto mt-3 flex h-[104px] w-[104px] items-center justify-center rounded-[30px] border border-blue-100 bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.98),rgba(232,241,255,0.9)_68%,rgba(255,244,211,0.9))] shadow-[0_12px_30px_rgba(28,73,145,0.14)]">
               <TelegramTgsSticker
                 size={92}
-                src={winnerStickers[winnerStickerIndex]}
+                src={winnerSticker}
                 className="flex items-center justify-center"
                 fallback={<span className="text-5xl" aria-hidden="true">🏆</span>}
               />
