@@ -192,7 +192,7 @@ function makeArenaMotion(tile: WeightedTile): ArenaMotion {
   const diameter = Math.max(1.5, Math.min(6, safePoint.bestClearance * 1.15));
   const margin = diameter / 2;
   const span = 100 - margin * 2;
-  const duration = 10_500;
+  const duration = 8_500;
   const spinDuration = 1_150;
   const spinFrames = 36;
   const flightFrames = 252;
@@ -513,13 +513,13 @@ export default function ArenaPage() {
   useEffect(() => {
     if (activeRoom?.status !== 'COMPLETED') return;
     setRollPhase('flying');
-    const zoomTimer = window.setTimeout(() => setRollPhase('zooming'), 10_500);
-    const resultTimer = window.setTimeout(() => setRollPhase('result'), 11_500);
+    const zoomTimer = window.setTimeout(() => setRollPhase('zooming'), 8_500);
+    const resultTimer = window.setTimeout(() => setRollPhase('result'), 9_500);
     const resetTimer = window.setTimeout(() => {
       setRollPhase('idle');
       setRoom(null);
       window.history.replaceState(null, '', '/arena');
-    }, 14_800);
+    }, 12_800);
     return () => { window.clearTimeout(zoomTimer); window.clearTimeout(resultTimer); window.clearTimeout(resetTimer); };
   }, [activeRoom?.id, activeRoom?.status, setRoom]);
 
