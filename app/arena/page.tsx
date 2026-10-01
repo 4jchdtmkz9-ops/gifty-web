@@ -193,7 +193,7 @@ function makeArenaMotion(tile: WeightedTile): ArenaMotion {
   const margin = diameter / 2;
   const span = 100 - margin * 2;
   const duration = 8_500;
-  const spinDuration = 1_150;
+  const spinDuration = 1_550;
   const spinFrames = 36;
   const flightFrames = 252;
   const center = { x: 50, y: 50 };
@@ -341,7 +341,7 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
       { transform: 'translate(-50%, -50%) rotate(0deg)', opacity: 1 },
       { transform: `translate(-50%, -50%) rotate(${ballMotion.directionDegrees + 900}deg)`, opacity: 1, offset: 0.82 },
       { transform: `translate(-50%, -50%) rotate(${ballMotion.directionDegrees + 1080}deg)`, opacity: 0 },
-    ], { duration: 1150, easing: 'cubic-bezier(.18,.72,.22,1)', fill: 'forwards' });
+    ], { duration: 1550, easing: 'cubic-bezier(.18,.72,.22,1)', fill: 'forwards' });
     const animation = ball.animate(ballMotion.frames, { duration: ballMotion.duration, easing: 'linear', fill: 'forwards' });
     animation.onfinish = () => {
       ball.style.left = `${ballMotion.target.x}%`;
