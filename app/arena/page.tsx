@@ -192,8 +192,8 @@ function makeArenaMotion(tile: WeightedTile): ArenaMotion {
   const diameter = Math.max(1.8, Math.min(7, safePoint.bestClearance * 1.35));
   const margin = diameter / 2;
   const span = 100 - margin * 2;
-  const duration = 7_450;
-  const spinDuration = 2_500;
+  const duration = 7_750;
+  const spinDuration = 2_800;
   const spinFrames = 36;
   const flightFrames = 252;
   const center = { x: 50, y: 50 };
@@ -340,9 +340,10 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
     const arrow = ball.querySelector<HTMLElement>('.arena-launch-arrow');
     const arrowAnimation = arrow?.animate([
       { transform: 'translate(-50%, -50%) rotate(0deg)', opacity: 1 },
-      { transform: `translate(-50%, -50%) rotate(${ballMotion.directionDegrees + 900}deg)`, opacity: 1, offset: 0.82 },
+      { transform: `translate(-50%, -50%) rotate(${ballMotion.directionDegrees + 1080}deg)`, opacity: 1, offset: 2500 / 2800 },
+      { transform: `translate(-50%, -50%) rotate(${ballMotion.directionDegrees + 1080}deg)`, opacity: 1, offset: 2700 / 2800 },
       { transform: `translate(-50%, -50%) rotate(${ballMotion.directionDegrees + 1080}deg)`, opacity: 0 },
-    ], { duration: 2500, easing: 'cubic-bezier(.18,.72,.22,1)', fill: 'forwards' });
+    ], { duration: 2800, easing: 'cubic-bezier(.18,.72,.22,1)', fill: 'forwards' });
     const animation = ball.animate(ballMotion.frames, { duration: ballMotion.duration, easing: 'linear', fill: 'forwards' });
     animation.onfinish = () => {
       ball.style.left = `${ballMotion.target.x}%`;
@@ -414,9 +415,9 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
 
         {(!room || room.isPublic) && <div className="arena-stake-control mt-3 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 pl-3">
           <GramIcon size={18} className="shrink-0 text-blue-600" />
-          <input aria-label={t('Your stake')} data-static-keyboard type="number" min="0" step="any" inputMode="decimal" enterKeyHint="done" value={stake} onChange={(event) => setStake(event.target.value)} className="min-w-0 flex-1 border-0 bg-transparent py-2 text-base font-bold text-slate-800 outline-none" placeholder="1" />
+          <input aria-label={t('Your stake')} data-static-keyboard data-keep-visible-with-keyboard type="number" min="0" step="any" inputMode="decimal" enterKeyHint="done" value={stake} onChange={(event) => setStake(event.target.value)} className="min-w-0 flex-1 border-0 bg-transparent py-2 text-base font-bold text-slate-800 outline-none" placeholder="1" />
           <span className="text-[10px] font-bold text-blue-700">GRAM</span>
-          <button disabled={busy || !stake || Number(stake) <= 0 || rollPhase !== 'idle' || (room?.status === 'COUNTDOWN' && room.viewerIsParticipant)} onClick={onEnter} className="shrink-0 rounded-xl bg-blue-700 px-4 py-3 text-[10px] font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : t('Join')}</button>
+          <button disabled={busy || !stake || Number(stake) <= 0 || rollPhase !== 'idle'} onClick={onEnter} className="shrink-0 rounded-xl bg-blue-700 px-4 py-3 text-[10px] font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : t('Join')}</button>
         </div>}
         {(!room || room.isPublic) && <p className="mt-2 text-center text-[10px] text-slate-500">{t('Your square size and win chance match your stake.')} · {t('DEMO · NO PAYMENT')}</p>}
         {room?.isPublic === false && !room.viewerIsParticipant && room.status === 'WAITING' && <button onClick={onJoin} disabled={busy} className="mt-3 w-full rounded-xl bg-blue-700 py-3 text-xs font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : t('Join private room')} · {formatGram(room.stakeGram)} GRAM</button>}
@@ -514,13 +515,13 @@ export default function ArenaPage() {
   useEffect(() => {
     if (activeRoom?.status !== 'COMPLETED') return;
     setRollPhase('flying');
-    const zoomTimer = window.setTimeout(() => setRollPhase('zooming'), 7_450);
-    const resultTimer = window.setTimeout(() => setRollPhase('result'), 8_450);
+    const zoomTimer = window.setTimeout(() => setRollPhase('zooming'), 7_750);
+    const resultTimer = window.setTimeout(() => setRollPhase('result'), 8_750);
     const resetTimer = window.setTimeout(() => {
       setRollPhase('idle');
       setRoom(null);
       window.history.replaceState(null, '', '/arena');
-    }, 11_750);
+    }, 12_050);
     return () => { window.clearTimeout(zoomTimer); window.clearTimeout(resultTimer); window.clearTimeout(resetTimer); };
   }, [activeRoom?.id, activeRoom?.status, setRoom]);
 
@@ -534,10 +535,11 @@ export default function ArenaPage() {
   const countdown = activeRoom?.countdownEndsAt ? Math.max(0, Math.ceil((Date.parse(activeRoom.countdownEndsAt) - now) / 1000)) : null;
   const joinPublic = async (value: string) => {
     if (!initData) return;
+    const addingDuringCountdown = activeRoom?.isPublic === true && activeRoom.status === 'COUNTDOWN' && activeRoom.viewerIsParticipant;
     setBusy(true); setError('');
     try {
       const room = await joinPublicArena(value, initData);
-      setRoom(room); setStake(room.viewerStakeGram ?? value); setRollPhase('idle');
+      setRoom(room); setStake(addingDuringCountdown ? value : room.viewerStakeGram ?? value); setRollPhase('idle');
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(room.code)}`);
     } catch (cause) { setError(cause instanceof Error ? cause.message : t('Could not join room')); }
     finally { setBusy(false); }
@@ -545,10 +547,11 @@ export default function ArenaPage() {
 
   const joinExactRoom = async (room: PvpRoom) => {
     if (!initData) return;
+    const addingDuringCountdown = room.isPublic && activeRoom?.isPublic === true && activeRoom.status === 'COUNTDOWN' && activeRoom.viewerIsParticipant;
     setBusy(true); setError('');
     try {
       const joined = room.isPublic ? await joinPublicArena(stake, initData) : await joinPvpRoom(room.code, initData);
-      setRoom(joined); setStake(joined.viewerStakeGram ?? (joined.isPublic ? stake : joined.stakeGram)); setRollPhase('idle');
+      setRoom(joined); setStake(addingDuringCountdown ? stake : joined.viewerStakeGram ?? (joined.isPublic ? stake : joined.stakeGram)); setRollPhase('idle');
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(joined.code)}`);
     } catch (cause) { setError(cause instanceof Error ? cause.message : t('Could not join room')); }
     finally { setBusy(false); }

@@ -62,6 +62,7 @@ export default function Providers({
     let savedScrollY = 0;
     let priorBodyStyles: { position: string; top: string; width: string; overflow: string } | null = null;
     let priorRootOverflow = '';
+    let keyboardVisibilityCleanup: (() => void) | null = null;
 
     const freezePage = () => {
       if (locked) return;
@@ -98,7 +99,27 @@ export default function Providers({
       target instanceof HTMLInputElement && target.hasAttribute('data-static-keyboard');
     const onFocusIn = (event: FocusEvent) => {
       if (!isStaticNumericInput(event.target)) return;
+      keyboardVisibilityCleanup?.();
+      keyboardVisibilityCleanup = null;
       document.body.classList.add('numeric-input-focused');
+      if (event.target.hasAttribute('data-keep-visible-with-keyboard')) {
+        const input = event.target;
+        const viewport = window.visualViewport;
+        const keepVisible = () => {
+          if (document.activeElement !== input) return;
+          const viewportTop = viewport?.offsetTop ?? 0;
+          const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight);
+          const rect = input.getBoundingClientRect();
+          const bottomOverflow = rect.bottom - (viewportBottom - 24);
+          if (bottomOverflow > 0) window.scrollBy(0, bottomOverflow);
+          else if (rect.top < viewportTop + 20) window.scrollBy(0, rect.top - viewportTop - 20);
+        };
+        viewport?.addEventListener('resize', keepVisible);
+        window.requestAnimationFrame(keepVisible);
+        window.setTimeout(keepVisible, 180);
+        keyboardVisibilityCleanup = () => viewport?.removeEventListener('resize', keepVisible);
+        return;
+      }
       event.target.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
       window.requestAnimationFrame(() => {
         if (isStaticNumericInput(document.activeElement)) freezePage();
@@ -106,7 +127,11 @@ export default function Providers({
     };
     const onFocusOut = () => {
       window.setTimeout(() => {
-        if (!isStaticNumericInput(document.activeElement)) unfreezePage();
+        if (!isStaticNumericInput(document.activeElement)) {
+          keyboardVisibilityCleanup?.();
+          keyboardVisibilityCleanup = null;
+          unfreezePage();
+        }
       }, 80);
     };
 
