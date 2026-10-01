@@ -58,6 +58,62 @@ export default function Providers({
   const [languageReady, setLanguageReady] = useState(false);
 
   useEffect(() => {
+    let locked = false;
+    let savedScrollY = 0;
+    let priorBodyStyles: { position: string; top: string; width: string; overflow: string } | null = null;
+    let priorRootOverflow = '';
+
+    const freezePage = () => {
+      if (locked) return;
+      locked = true;
+      savedScrollY = window.scrollY;
+      priorBodyStyles = {
+        position: document.body.style.position,
+        top: document.body.style.top,
+        width: document.body.style.width,
+        overflow: document.body.style.overflow,
+      };
+      priorRootOverflow = document.documentElement.style.overflow;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${savedScrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    };
+
+    const unfreezePage = () => {
+      if (!locked || !priorBodyStyles) return;
+      document.body.style.position = priorBodyStyles.position;
+      document.body.style.top = priorBodyStyles.top;
+      document.body.style.width = priorBodyStyles.width;
+      document.body.style.overflow = priorBodyStyles.overflow;
+      document.documentElement.style.overflow = priorRootOverflow;
+      locked = false;
+      priorBodyStyles = null;
+      window.scrollTo(0, savedScrollY);
+    };
+
+    const isStaticNumericInput = (target: EventTarget | null) =>
+      target instanceof HTMLInputElement && target.hasAttribute('data-static-keyboard');
+    const onFocusIn = (event: FocusEvent) => {
+      if (isStaticNumericInput(event.target)) freezePage();
+    };
+    const onFocusOut = () => {
+      window.setTimeout(() => {
+        if (!isStaticNumericInput(document.activeElement)) unfreezePage();
+      }, 80);
+    };
+
+    document.addEventListener('focusin', onFocusIn);
+    document.addEventListener('focusout', onFocusOut);
+    return () => {
+      document.removeEventListener('focusin', onFocusIn);
+      document.removeEventListener('focusout', onFocusOut);
+      unfreezePage();
+    };
+  }, []);
+
+  useEffect(() => {
     const storedTheme = window.localStorage.getItem('orbit-theme');
     if (storedTheme === 'dark' || storedTheme === 'light') setTheme(storedTheme);
     setThemeReady(true);

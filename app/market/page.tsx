@@ -294,8 +294,8 @@ export default function MarketPage() {
                 <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
                   <h3 className="mb-2 text-sm font-semibold text-slate-800">{t('Price range')} <span className="font-normal text-slate-400">(GRAM)</span></h3>
                   <div className="grid grid-cols-2 gap-2">
-                    <label className="text-xs text-slate-500">{t('From')}<input type="number" min="0" step="any" inputMode="decimal" value={minPrice} onChange={(event) => setMinPrice(event.target.value)} placeholder="0" className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-400" /></label>
-                    <label className="text-xs text-slate-500">{t('To')}<input type="number" min="0" step="any" inputMode="decimal" value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)} placeholder={t('No limit')} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-400" /></label>
+                    <label className="text-xs text-slate-500">{t('From')}<input data-static-keyboard type="number" min="0" step="any" inputMode="decimal" enterKeyHint="done" value={minPrice} onChange={(event) => setMinPrice(event.target.value)} placeholder="0" className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-400" /></label>
+                    <label className="text-xs text-slate-500">{t('To')}<input data-static-keyboard type="number" min="0" step="any" inputMode="decimal" enterKeyHint="done" value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)} placeholder={t('No limit')} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-400" /></label>
                   </div>
                 </div>
 
