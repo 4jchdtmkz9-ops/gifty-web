@@ -5,7 +5,7 @@ const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://gifty-api-75hj.onre
 export type PvpPlayer = { id: string; telegramId?: string; username: string | null; firstName: string | null; photoUrl?: string | null };
 export type PvpRoom = {
   id: string; code: string; stakeGram: string; status: 'WAITING' | 'COUNTDOWN' | 'COMPLETED' | 'CANCELLED'; creatorId: string;
-  isPublic?: boolean; countdownEndsAt?: string | null;
+  isPublic?: boolean; countdownEndsAt?: string | null; completedAt?: string | null;
   winnerId: string | null; participants: Array<{ id: string; userId: string; stakeGram: string; user: PvpPlayer }>;
   invitations: Array<{ id: string; status: string; recipient: PvpPlayer }>;
   creator: PvpPlayer; winner: PvpPlayer | null;

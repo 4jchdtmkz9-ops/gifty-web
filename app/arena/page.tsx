@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useTonAddress } from '@tonconnect/ui-react';
 import BottomNav from '../../components/BottomNav';
 import GramIcon from '../../components/GramIcon';
 import OrbitWordmark from '../../components/OrbitWordmark';
@@ -15,6 +16,7 @@ import {
   getPvpRoom,
   getPvpShareLink,
   getPublicArenaRooms,
+  getTonBalance,
   joinPublicArena,
   joinPvpRoom,
   searchPvpUsers,
@@ -308,10 +310,11 @@ function roomPalette(roomCode: string) {
   return colors;
 }
 
-function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setStake, onEnter, rollPhase, t }: {
+function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setStake, onEnter, onEnterAmount, walletBalance, roundCoolingDown, rollPhase, t }: {
   room: PvpRoom | null; rollingSeconds: number | null; onShare: () => void;
   onJoin: () => void;
   busy: boolean; stake: string; setStake: (stake: string) => void; onEnter: () => void;
+  onEnterAmount: (amount: string) => void; walletBalance: string; roundCoolingDown: boolean;
   rollPhase: RollPhase; t: (key: string) => string;
 }) {
   const participants = room?.participants ?? [];
@@ -325,6 +328,9 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
   const zoomPoint = ballMotion?.target ?? (winnerTile ? { x: winnerTile.x + winnerTile.width / 2, y: winnerTile.y + winnerTile.height / 2 } : null);
   const zoomStyle = zoomPoint ? { '--zoom-x': `${zoomPoint.x}%`, '--zoom-y': `${zoomPoint.y}%` } as CSSProperties : undefined;
   const isCompleted = room?.status === 'COMPLETED';
+  const controlsDisabled = busy || rollPhase !== 'idle' || roundCoolingDown || isCompleted;
+  const currentStake = Number(room?.viewerStakeGram ?? 0);
+  const allInAmount = Math.max(0, Number(walletBalance) - (room?.status === 'COUNTDOWN' && room.viewerIsParticipant ? currentStake : 0));
 
   useEffect(() => {
     if (rollPhase === 'idle' || !winnerTile) {
@@ -405,6 +411,25 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
           {ballMotion && (rollPhase === 'flying' || rollPhase === 'zooming') && <div ref={ballRef} className="arena-bouncing-orb" style={{ width: `${ballMotion.diameter}%` }} aria-hidden="true"><span className="arena-launch-arrow"><svg viewBox="0 0 68 68" fill="none"><path d="M34 34 62 34M53 25l9 9-9 9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg></span><svg className="arena-orb-token" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.5" className="arena-orb-face"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/><circle cx="12" cy="12" r="1.8" className="arena-orb-core"/></svg></div>}
         </div>
 
+        {(!room || room.isPublic) && <div className="mt-3" aria-label={t('Quick stakes')}>
+          <div className="grid grid-cols-5 gap-1.5">
+            {[{ label: '0.1', amount: '0.1' }, { label: '1', amount: '1' }, { label: '5', amount: '5' }, { label: '10', amount: '10' }].map(({ label, amount }) =>
+              <button key={amount} type="button" disabled={controlsDisabled} onClick={() => onEnterAmount(amount)} className="inline-flex min-w-0 items-center justify-center gap-1 rounded-xl border border-blue-100 bg-blue-50/70 px-1.5 py-2.5 text-[11px] font-extrabold tabular-nums text-blue-800 transition active:scale-[.97] disabled:opacity-45">
+                <GramIcon size={14} className="shrink-0 text-blue-600" />{label}
+              </button>)}
+            <button type="button" disabled={controlsDisabled || allInAmount <= 0} onClick={() => onEnterAmount(formatGram(allInAmount))} className="inline-flex min-w-0 items-center justify-center gap-1 rounded-xl border border-amber-200 bg-amber-50 px-1 py-2.5 text-[9px] font-extrabold uppercase tracking-tight text-amber-800 transition active:scale-[.97] disabled:opacity-45">
+              <GramIcon size={14} className="shrink-0 text-amber-600" />All in
+            </button>
+          </div>
+        </div>}
+
+        {(!room || room.isPublic) && <div className="arena-stake-control mt-2 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 pl-3">
+          <GramIcon size={18} className="shrink-0 text-blue-600" />
+          <input aria-label={t('Your stake')} data-static-keyboard data-keep-visible-with-keyboard type="number" min="0" step="any" inputMode="decimal" enterKeyHint="done" value={stake} onChange={(event) => setStake(event.target.value)} className="min-w-0 flex-1 border-0 bg-transparent py-2 text-base font-bold text-slate-800 outline-none" placeholder="Enter amount" />
+          <span className="text-[10px] font-bold text-blue-700">GRAM</span>
+          <button disabled={controlsDisabled || !stake.trim() || !Number.isFinite(Number(stake)) || Number(stake) <= 0} onClick={onEnter} className="shrink-0 rounded-xl bg-blue-700 px-4 py-3 text-[10px] font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : t('Join')}</button>
+        </div>}
+
         {participants.length > 0 && <section className="arena-player-list mt-4 overflow-hidden rounded-[20px] border border-slate-200 bg-white" aria-label={t('PLAYERS')}>
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <h3 className="text-xs font-bold text-slate-800">{t('PLAYERS')}</h3>
@@ -427,12 +452,6 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
           </div>
         </section>}
 
-        {(!room || room.isPublic) && <div className="arena-stake-control mt-3 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 pl-3">
-          <GramIcon size={18} className="shrink-0 text-blue-600" />
-          <input aria-label={t('Your stake')} data-static-keyboard data-keep-visible-with-keyboard type="number" min="0" step="any" inputMode="decimal" enterKeyHint="done" value={stake} onChange={(event) => setStake(event.target.value)} className="min-w-0 flex-1 border-0 bg-transparent py-2 text-base font-bold text-slate-800 outline-none" placeholder="1" />
-          <span className="text-[10px] font-bold text-blue-700">GRAM</span>
-          <button disabled={busy || !stake || Number(stake) <= 0 || rollPhase !== 'idle'} onClick={onEnter} className="shrink-0 rounded-xl bg-blue-700 px-4 py-3 text-[10px] font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : t('Join')}</button>
-        </div>}
         {(!room || room.isPublic) && <p className="mt-2 text-center text-[10px] text-slate-500">{t('Your square size and win chance match your stake.')} · {t('DEMO · NO PAYMENT')}</p>}
         {room?.isPublic === false && !room.viewerIsParticipant && room.status === 'WAITING' && <button onClick={onJoin} disabled={busy} className="mt-3 w-full rounded-xl bg-blue-700 py-3 text-xs font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : t('Join private room')} · {formatGram(room.stakeGram)} GRAM</button>}
 
@@ -446,12 +465,14 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
 
 export default function ArenaPage() {
   const { t } = useOrbitLanguage();
+  const walletAddress = useTonAddress();
+  const [walletBalance, setWalletBalance] = useState('0');
   const [initData, setInitData] = useState('');
   const [authReady, setAuthReady] = useState(false);
   const [publicRooms, setPublicRooms] = useState<PvpRoom[]>([]);
   const [activeRoom, setActiveRoom] = useState<PvpRoom | null>(null);
   const [invitations, setInvitations] = useState<PvpInvitation[]>([]);
-  const [stake, setStake] = useState('1');
+  const [stake, setStake] = useState('');
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<PvpPlayer[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<PvpPlayer[]>([]);
@@ -464,6 +485,15 @@ export default function ArenaPage() {
   const activeRoomRef = useRef<PvpRoom | null>(null);
   const refreshBusy = useRef(false);
   const setRoom = useCallback((room: PvpRoom | null) => { activeRoomRef.current = room; setActiveRoom(room); }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!walletAddress) { setWalletBalance('0'); return () => { cancelled = true; }; }
+    getTonBalance(walletAddress)
+      .then((result) => { if (!cancelled) setWalletBalance(String(result.balanceTon ?? '0')); })
+      .catch((cause) => { console.error('Could not read wallet balance for arena All in:', cause); if (!cancelled) setWalletBalance('0'); });
+    return () => { cancelled = true; };
+  }, [walletAddress]);
 
   useEffect(() => {
     const current = getTelegramInitData();
@@ -500,7 +530,7 @@ export default function ArenaPage() {
           setRoom(await getPvpRoom(current.code, initData));
         } else {
           const joined = rooms.find((room) => room.viewerIsParticipant && (room.status === 'WAITING' || room.status === 'COUNTDOWN'));
-          if (joined) { setRoom(joined); if (joined.viewerStakeGram) setStake(joined.viewerStakeGram); }
+          if (joined) setRoom(joined);
           else {
             const inviteCode = new URLSearchParams(window.location.search).get('room');
             if (inviteCode) setRoom(await getPvpRoom(inviteCode, initData));
@@ -552,13 +582,13 @@ export default function ArenaPage() {
   }, [initData, privateRoomOpen, query, t]);
 
   const countdown = activeRoom?.countdownEndsAt ? Math.max(0, Math.ceil((Date.parse(activeRoom.countdownEndsAt) - now) / 1000)) : null;
+  const roundCoolingDown = publicRooms.some((room) => room.status === 'COMPLETED' && room.completedAt && Date.now() - Date.parse(room.completedAt) < 15_000);
   const joinPublic = async (value: string) => {
-    if (!initData) return;
-    const addingDuringCountdown = activeRoom?.isPublic === true && activeRoom.status === 'COUNTDOWN' && activeRoom.viewerIsParticipant;
+    if (!initData || !value.trim() || !Number.isFinite(Number(value)) || Number(value) <= 0) return;
     setBusy(true); setError('');
     try {
       const room = await joinPublicArena(value, initData);
-      setRoom(room); setStake(addingDuringCountdown ? value : room.viewerStakeGram ?? value); setRollPhase('idle');
+      setRoom(room); setStake(''); setRollPhase('idle');
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(room.code)}`);
     } catch (cause) {
       setError(cause instanceof Error && cause.message.includes('previous arena is finishing')
@@ -570,11 +600,10 @@ export default function ArenaPage() {
 
   const joinExactRoom = async (room: PvpRoom) => {
     if (!initData) return;
-    const addingDuringCountdown = room.isPublic && activeRoom?.isPublic === true && activeRoom.status === 'COUNTDOWN' && activeRoom.viewerIsParticipant;
     setBusy(true); setError('');
     try {
       const joined = room.isPublic ? await joinPublicArena(stake, initData) : await joinPvpRoom(room.code, initData);
-      setRoom(joined); setStake(addingDuringCountdown ? stake : joined.viewerStakeGram ?? (joined.isPublic ? stake : joined.stakeGram)); setRollPhase('idle');
+      setRoom(joined); setStake(''); setRollPhase('idle');
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(joined.code)}`);
     } catch (cause) {
       setError(cause instanceof Error && cause.message.includes('previous arena is finishing')
@@ -650,7 +679,7 @@ export default function ArenaPage() {
             </div>
           </div>
 
-          <SquareRoom room={activeRoom} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} onEnter={() => void joinPublic(stake)} rollPhase={rollPhase} t={t} />
+          <SquareRoom room={activeRoom} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount)} walletBalance={walletBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} />
 
           {activeRoom?.isPublic === false && activeRoom.status === 'WAITING' && activeRoom.viewerIsCreator && <section className="mt-3 rounded-2xl border border-blue-100 bg-white p-3"><p className="mb-2 text-center text-[10px] text-slate-500">{t('Waiting for invited players to accept.')}</p><button disabled={busy || activeRoom.participants.length < 2} onClick={() => void startPrivateRound()} className="w-full rounded-xl bg-blue-700 py-2.5 text-xs font-bold text-white disabled:bg-slate-300">{t('Start demo round')}</button></section>}
 
