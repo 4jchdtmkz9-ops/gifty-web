@@ -192,8 +192,8 @@ function makeArenaMotion(tile: WeightedTile): ArenaMotion {
   const diameter = Math.max(1.8, Math.min(7, safePoint.bestClearance * 1.35));
   const margin = diameter / 2;
   const span = 100 - margin * 2;
-  const duration = 6_500;
-  const spinDuration = 1_550;
+  const duration = 7_450;
+  const spinDuration = 2_500;
   const spinFrames = 36;
   const flightFrames = 252;
   const center = { x: 50, y: 50 };
@@ -342,7 +342,7 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
       { transform: 'translate(-50%, -50%) rotate(0deg)', opacity: 1 },
       { transform: `translate(-50%, -50%) rotate(${ballMotion.directionDegrees + 900}deg)`, opacity: 1, offset: 0.82 },
       { transform: `translate(-50%, -50%) rotate(${ballMotion.directionDegrees + 1080}deg)`, opacity: 0 },
-    ], { duration: 1550, easing: 'cubic-bezier(.18,.72,.22,1)', fill: 'forwards' });
+    ], { duration: 2500, easing: 'cubic-bezier(.18,.72,.22,1)', fill: 'forwards' });
     const animation = ball.animate(ballMotion.frames, { duration: ballMotion.duration, easing: 'linear', fill: 'forwards' });
     animation.onfinish = () => {
       ball.style.left = `${ballMotion.target.x}%`;
@@ -514,13 +514,13 @@ export default function ArenaPage() {
   useEffect(() => {
     if (activeRoom?.status !== 'COMPLETED') return;
     setRollPhase('flying');
-    const zoomTimer = window.setTimeout(() => setRollPhase('zooming'), 6_500);
-    const resultTimer = window.setTimeout(() => setRollPhase('result'), 7_500);
+    const zoomTimer = window.setTimeout(() => setRollPhase('zooming'), 7_450);
+    const resultTimer = window.setTimeout(() => setRollPhase('result'), 8_450);
     const resetTimer = window.setTimeout(() => {
       setRollPhase('idle');
       setRoom(null);
       window.history.replaceState(null, '', '/arena');
-    }, 10_800);
+    }, 11_750);
     return () => { window.clearTimeout(zoomTimer); window.clearTimeout(resultTimer); window.clearTimeout(resetTimer); };
   }, [activeRoom?.id, activeRoom?.status, setRoom]);
 
