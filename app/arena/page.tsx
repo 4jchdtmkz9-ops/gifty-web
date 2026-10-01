@@ -369,7 +369,6 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
         <div className={`arena-bet-board relative aspect-square overflow-hidden rounded-[28px] border-0 ${rollPhase === 'flying' ? 'is-flying' : ''} ${rollPhase === 'zooming' ? 'is-zooming' : ''}`} style={zoomStyle} aria-label={t('Arena player squares')}>
           {tiles.length ? tiles.map(({ id, player, x, y, width, height }, index) => {
             const isWinner = isCompleted && room?.winnerId === player.userId && (rollPhase === 'zooming' || rollPhase === 'result');
-            const chance = totalStake > 0 ? Number(player.stakeGram) / totalStake * 100 : 0;
             const center = polygonCenter(tiles[index].polygon);
             const avatarClearance = pointClearance(center, tiles[index].polygon);
             const avatarDiameter = Math.min(12, avatarClearance * 1.5);
@@ -385,7 +384,6 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
               {player.user.photoUrl
                 ? <img src={player.user.photoUrl} alt="" className="arena-bet-avatar" style={avatarStyle} />
                 : <span className="arena-bet-avatar arena-bet-avatar-fallback" style={avatarStyle}>{nameOf(player.user).replace(/^@/, '').slice(0, 1).toUpperCase()}</span>}
-              <span className="arena-bet-amount">{formatGram(player.stakeGram)} GRAM · {chance < 0.01 ? '<0.01%' : `${chance.toFixed(chance < 1 ? 2 : 1)}%`}</span>
             </div>;
           }) : <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center"><p className="text-sm font-semibold text-blue-950">{t('Arena square is open')}</p><p className="mt-1 text-[11px] text-slate-500">{t('Choose your stake to enter')}</p></div>}
           {ballMotion && (rollPhase === 'flying' || rollPhase === 'zooming') && <div ref={ballRef} className="arena-bouncing-orb" style={{ width: `${ballMotion.diameter}%` }} aria-hidden="true"><span className="arena-launch-arrow"><svg viewBox="0 0 68 68" fill="none"><path d="M34 34 62 34M53 25l9 9-9 9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg></span><svg className="arena-orb-token" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.5" className="arena-orb-face"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/><circle cx="12" cy="12" r="1.8" className="arena-orb-core"/></svg></div>}
