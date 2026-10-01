@@ -103,7 +103,6 @@ select {
 .arena-bet-board.is-zooming {
   z-index: 10;
   transform: scale(2.15);
-  filter: saturate(1.16);
 }
 
 .arena-bet-tile {
@@ -161,9 +160,6 @@ select {
 
 .arena-bet-tile.is-winner {
   z-index: 2;
-  outline: 4px solid #f4bf28;
-  outline-offset: -5px;
-  box-shadow: inset 0 0 0 999px rgb(255 255 255 / 11%);
 }
 
 .arena-bouncing-orb {
