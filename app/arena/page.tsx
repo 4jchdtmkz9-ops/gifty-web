@@ -490,9 +490,10 @@ export default function ArenaPage() {
         const current = activeRoomRef.current;
         if (current?.isPublic) {
           const updated = rooms.find(({ id }) => id === current.id);
-          const openTable = rooms.find((room) => room.isPublic && (room.status === 'WAITING' || room.status === 'COUNTDOWN'));
-          if (current.status === 'COMPLETED' && rollPhase === 'idle' && openTable && openTable.id !== current.id) setRoom(openTable);
-          else if (updated) setRoom(updated);
+          // Keep the completed room on screen for its winner animation. Jumping
+          // to another public table here can hide the result and look like a
+          // second round started before the first one finished.
+          if (updated) setRoom(updated);
           else if (current.status === 'COMPLETED') setRoom(null);
           else setRoom(await getPvpRoom(current.code, initData));
         } else if (current) {
@@ -519,7 +520,7 @@ export default function ArenaPage() {
     void refresh();
     const interval = window.setInterval(() => { void refresh(); }, 1500);
     return () => { cancelled = true; window.clearInterval(interval); };
-  }, [initData, rollPhase, setRoom, t]);
+  }, [initData, setRoom, t]);
 
   useEffect(() => {
     if (activeRoom?.status !== 'COUNTDOWN') return;
@@ -559,7 +560,11 @@ export default function ArenaPage() {
       const room = await joinPublicArena(value, initData);
       setRoom(room); setStake(addingDuringCountdown ? value : room.viewerStakeGram ?? value); setRollPhase('idle');
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(room.code)}`);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : t('Could not join room')); }
+    } catch (cause) {
+      setError(cause instanceof Error && cause.message.includes('previous arena is finishing')
+        ? t('The current arena round is finishing. The next room will open shortly.')
+        : cause instanceof Error ? cause.message : t('Could not join room'));
+    }
     finally { setBusy(false); }
   };
 
@@ -571,7 +576,11 @@ export default function ArenaPage() {
       const joined = room.isPublic ? await joinPublicArena(stake, initData) : await joinPvpRoom(room.code, initData);
       setRoom(joined); setStake(addingDuringCountdown ? stake : joined.viewerStakeGram ?? (joined.isPublic ? stake : joined.stakeGram)); setRollPhase('idle');
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(joined.code)}`);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : t('Could not join room')); }
+    } catch (cause) {
+      setError(cause instanceof Error && cause.message.includes('previous arena is finishing')
+        ? t('The current arena round is finishing. The next room will open shortly.')
+        : cause instanceof Error ? cause.message : t('Could not join room'));
+    }
     finally { setBusy(false); }
   };
 
