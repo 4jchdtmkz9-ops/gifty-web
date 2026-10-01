@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import LanguageChoiceList from './LanguageChoiceList';
 import { useOrbitLanguage, type OrbitLanguage } from './OrbitLanguageContext';
@@ -14,17 +15,34 @@ export default function MiniAppWelcomeGate({
   children: React.ReactNode;
 }) {
   const { setLanguage, t } = useOrbitLanguage();
+  const router = useRouter();
   const [stage, setStage] = useState<'welcome' | 'language' | 'app'>('welcome');
   const [ready, setReady] = useState(false);
   const [pendingLanguage, setPendingLanguage] = useState<OrbitLanguage | null>(null);
   const [selecting, setSelecting] = useState(false);
 
   useEffect(() => {
+    const search = new URLSearchParams(window.location.search);
+    const telegramInitData = window.Telegram?.WebApp?.initDataUnsafe as { start_param?: string } | undefined;
+    const telegramStartParam = search.get('tgWebAppStartParam')
+      ?? telegramInitData?.start_param;
+    const arenaCode = telegramStartParam?.match(/^arena_(.+)$/)?.[1];
+    if (arenaCode) window.sessionStorage.setItem('orbit-pending-arena-room', arenaCode);
+
     const hasStarted = window.sessionStorage.getItem(STARTED_KEY) === '1';
     const hasLanguage = ['en', 'uk', 'ru'].includes(window.localStorage.getItem(LANGUAGE_KEY) ?? '');
-    setStage(hasStarted ? (hasLanguage ? 'app' : 'language') : 'welcome');
+    setStage(hasStarted || arenaCode ? (hasLanguage ? 'app' : 'language') : 'welcome');
     setReady(true);
   }, []);
+
+  useEffect(() => {
+    if (stage !== 'app') return;
+    const arenaCode = window.sessionStorage.getItem('orbit-pending-arena-room');
+    if (!arenaCode) return;
+    window.sessionStorage.removeItem('orbit-pending-arena-room');
+    const target = `/arena?room=${encodeURIComponent(arenaCode)}`;
+    if (`${window.location.pathname}${window.location.search}` !== target) router.replace(target);
+  }, [stage, router]);
 
   function startApp() {
     window.sessionStorage.setItem(STARTED_KEY, '1');

@@ -41,6 +41,9 @@ export async function getPublicArenaRooms(initData: string) {
 export async function getPvpRoom(code: string, initData: string) {
   return pvpRequest<PvpRoom>(`rooms?code=${encodeURIComponent(code)}`, initData);
 }
+export async function getPvpShareLink(code: string, initData: string) {
+  return pvpRequest<{ url: string }>(`share-link?code=${encodeURIComponent(code)}`, initData);
+}
 export async function joinPvpRoom(code: string, initData: string) {
   return pvpRequest<PvpRoom>('rooms/join', initData, { code });
 }

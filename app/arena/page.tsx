@@ -12,6 +12,7 @@ import {
   createPvpRoom,
   getPvpInvitations,
   getPvpRoom,
+  getPvpShareLink,
   getPublicArenaRooms,
   joinPublicArena,
   joinPvpRoom,
@@ -34,7 +35,7 @@ type RollPhase = 'idle' | 'flying' | 'zooming' | 'result';
 type ArenaPolygon = ArenaPoint[];
 type WeightedTile = { id: string; player: PvpRoom['participants'][number]; x: number; y: number; width: number; height: number; polygon: ArenaPolygon };
 type ArenaPoint = { x: number; y: number };
-type ArenaMotion = { start: ArenaPoint; target: ArenaPoint; frames: Keyframe[] };
+type ArenaMotion = { start: ArenaPoint; target: ArenaPoint; diameter: number; frames: Keyframe[] };
 
 function polygonArea(polygon: ArenaPolygon) {
   return Math.abs(polygon.reduce((sum, point, index) => {
@@ -133,59 +134,93 @@ function pointToSegmentDistance(point: ArenaPoint, start: ArenaPoint, end: Arena
   return Math.hypot(point.x - (start.x + projection * dx), point.y - (start.y + projection * dy));
 }
 
-function randomPointInTile(tile: WeightedTile): ArenaPoint {
-  const bestCandidates: { point: ArenaPoint; clearance: number }[] = [];
-  let maxClearance = 0;
-  for (let attempt = 0; attempt < 240; attempt++) {
+function pointClearance(point: ArenaPoint, polygon: ArenaPolygon) {
+  return Math.min(...polygon.map((edgeStart, index) => pointToSegmentDistance(point, edgeStart, polygon[(index + 1) % polygon.length])));
+}
+
+function polygonCenter(polygon: ArenaPolygon): ArenaPoint {
+  let twiceArea = 0;
+  let x = 0;
+  let y = 0;
+  polygon.forEach((point, index) => {
+    const next = polygon[(index + 1) % polygon.length];
+    const cross = point.x * next.y - next.x * point.y;
+    twiceArea += cross;
+    x += (point.x + next.x) * cross;
+    y += (point.y + next.y) * cross;
+  });
+  if (Math.abs(twiceArea) < 1e-8) {
+    return polygon.reduce((center, point) => ({ x: center.x + point.x / polygon.length, y: center.y + point.y / polygon.length }), { x: 0, y: 0 });
+  }
+  return { x: x / (3 * twiceArea), y: y / (3 * twiceArea) };
+}
+
+function safestRandomPoint(tile: WeightedTile) {
+  const candidates: { point: ArenaPoint; clearance: number }[] = [];
+  let bestClearance = 0;
+  for (let attempt = 0; attempt < 900; attempt++) {
     const point = {
       x: tile.x + Math.random() * tile.width,
       y: tile.y + Math.random() * tile.height,
     };
     if (!isInsideTile(point, tile.polygon)) continue;
-    const clearance = Math.min(...tile.polygon.map((edgeStart, index) => pointToSegmentDistance(point, edgeStart, tile.polygon[(index + 1) % tile.polygon.length])));
-    if (clearance > maxClearance) maxClearance = clearance;
-    bestCandidates.push({ point, clearance });
+    const clearance = pointClearance(point, tile.polygon);
+    bestClearance = Math.max(bestClearance, clearance);
+    candidates.push({ point, clearance });
   }
-  const safeCandidates = bestCandidates.filter(({ clearance }) => clearance >= maxClearance * 0.72);
-  return (safeCandidates.length ? safeCandidates[Math.floor(Math.random() * safeCandidates.length)] : bestCandidates[Math.floor(Math.random() * bestCandidates.length)])?.point
-    ?? tile.polygon.reduce((center, point) => ({ x: center.x + point.x / tile.polygon.length, y: center.y + point.y / tile.polygon.length }), { x: 0, y: 0 });
+  const safe = candidates.filter(({ clearance }) => clearance >= bestClearance * 0.9);
+  const selected = safe.length ? safe[Math.floor(Math.random() * safe.length)] : { point: polygonCenter(tile.polygon), clearance: 0 };
+  return { ...selected, bestClearance };
 }
 
-function foldArenaAxis(value: number) {
-  const wrapped = ((value % 200) + 200) % 200;
-  return wrapped <= 100 ? wrapped : 200 - wrapped;
-}
-
-function chooseBouncingDestination(start: number, target: number) {
-  const possible: number[] = [];
-  for (let cell = -8; cell <= 8; cell++) {
-    for (const point of [target + cell * 200, 200 - target + cell * 200]) {
-      const crossings = Math.abs(Math.floor(point / 100) - Math.floor(start / 100));
-      if (crossings >= 4 && crossings <= 9) possible.push(point);
-    }
-  }
-  return possible[Math.floor(Math.random() * possible.length)] ?? target + (target >= start ? 600 : -600);
+function reflectWithVariation(angle: number, axis: 'x' | 'y') {
+  const reflected = axis === 'x' ? Math.PI - angle : -angle;
+  return reflected + (Math.random() - 0.5) * 1.05;
 }
 
 function makeArenaMotion(tile: WeightedTile): ArenaMotion {
-  // The landing point must be inside the winner's actual clipped polygon,
-  // not merely inside its rectangular bounding box.
-  const target = randomPointInTile(tile);
-  const start = { x: 8 + Math.random() * 84, y: 8 + Math.random() * 84 };
-  const endX = chooseBouncingDestination(start.x, target.x);
-  const endY = chooseBouncingDestination(start.y, target.y);
-  const frameCount = 72;
-  const frames = Array.from({ length: frameCount }, (_, index): Keyframe => {
-    const progress = index / (frameCount - 1);
-    // Fast launch, then a gradual and readable slowdown.
-    const eased = 1 - Math.pow(1 - progress, 3.2);
-    return {
-      left: `${foldArenaAxis(start.x + (endX - start.x) * eased)}%`,
-      top: `${foldArenaAxis(start.y + (endY - start.y) * eased)}%`,
-      offset: progress,
-    };
-  });
-  return { start, target, frames };
+  const { point: target, clearance } = safestRandomPoint(tile);
+  const diameter = Math.max(1.5, Math.min(9.5, clearance * 1.45));
+  const wallMargin = diameter / 2;
+  const start = { x: 10 + Math.random() * 80, y: 10 + Math.random() * 80 };
+  let position = { ...start };
+  let angle = Math.random() * Math.PI * 2;
+  const frameCount = 112;
+  const bounceFrames = 91;
+  const frames: Keyframe[] = [{ left: `${start.x}%`, top: `${start.y}%`, offset: 0 }];
+
+  // Chaotic billiard path: each impact changes the heading, with speed
+  // tapering until the final guided drift into the server-selected sector.
+  for (let frame = 1; frame <= bounceFrames; frame++) {
+    const progress = frame / bounceFrames;
+    const speed = 22 * (1 - progress * 0.76);
+    position.x += Math.cos(angle) * speed;
+    position.y += Math.sin(angle) * speed;
+    if (position.x < wallMargin || position.x > 100 - wallMargin) {
+      position.x = Math.max(wallMargin, Math.min(100 - wallMargin, position.x));
+      angle = reflectWithVariation(angle, 'x');
+    }
+    if (position.y < wallMargin || position.y > 100 - wallMargin) {
+      position.y = Math.max(wallMargin, Math.min(100 - wallMargin, position.y));
+      angle = reflectWithVariation(angle, 'y');
+    }
+    frames.push({ left: `${position.x}%`, top: `${position.y}%`, offset: (frame / bounceFrames) * 0.84 });
+  }
+
+  const driftStart = { ...position };
+  for (let frame = bounceFrames + 1; frame < frameCount; frame++) {
+    const progress = (frame - bounceFrames) / (frameCount - 1 - bounceFrames);
+    const eased = 1 - Math.pow(1 - progress, 2.4);
+    const arc = Math.sin(Math.PI * progress) * Math.min(2.5, clearance * 0.12);
+    const dx = target.x - driftStart.x;
+    const dy = target.y - driftStart.y;
+    const length = Math.max(0.001, Math.hypot(dx, dy));
+    const x = driftStart.x + dx * eased - (dy / length) * arc;
+    const y = driftStart.y + dy * eased + (dx / length) * arc;
+    frames.push({ left: `${x}%`, top: `${y}%`, offset: 0.84 + progress * 0.16 });
+  }
+
+  return { start, target, diameter, frames };
 }
 
 function SquareRoom({ room, rollingSeconds, onShare, copied, onJoin, busy, stake, setStake, onEnter, rollPhase, t }: {
@@ -224,7 +259,7 @@ function SquareRoom({ room, rollingSeconds, onShare, copied, onJoin, busy, stake
       ball.style.top = `${ballMotion.target.y}%`;
       return;
     }
-    const animation = ball.animate(ballMotion.frames, { duration: 7000, easing: 'linear', fill: 'forwards' });
+    const animation = ball.animate(ballMotion.frames, { duration: 8200, easing: 'linear', fill: 'forwards' });
     animation.onfinish = () => {
       ball.style.left = `${ballMotion.target.x}%`;
       ball.style.top = `${ballMotion.target.y}%`;
@@ -252,15 +287,26 @@ function SquareRoom({ room, rollingSeconds, onShare, copied, onJoin, busy, stake
           {tiles.length ? tiles.map(({ id, player, x, y, width, height }, index) => {
             const isWinner = isCompleted && room?.winnerId === player.userId && (rollPhase === 'zooming' || rollPhase === 'result');
             const chance = totalStake > 0 ? Number(player.stakeGram) / totalStake * 100 : 0;
+            const center = polygonCenter(tiles[index].polygon);
+            const avatarClearance = pointClearance(center, tiles[index].polygon);
+            const avatarDiameter = Math.min(12, avatarClearance * 1.5);
+            const avatarStyle = {
+              left: `${((center.x - x) / Math.max(width, 0.1)) * 100}%`,
+              top: `${((center.y - y) / Math.max(height, 0.1)) * 100}%`,
+              width: `${(avatarDiameter / Math.max(width, 0.1)) * 100}%`,
+              height: `${(avatarDiameter / Math.max(height, 0.1)) * 100}%`,
+            };
             const palette = ['#1557d5', '#f4bf28', '#e8505b', '#e7efff', '#163362'];
             const darkText = index === 1 || index === 3;
             return <div key={id} className={`arena-bet-tile ${isWinner ? 'is-winner' : ''}`} style={{ left: `${x}%`, top: `${y}%`, width: `${width}%`, height: `${height}%`, clipPath: tileClipPath({ id, player, x, y, width, height, polygon: tiles[index].polygon }), backgroundColor: palette[index % palette.length], color: darkText ? '#14294b' : '#fff', animationDelay: `${index * 90}ms` }}>
-              {player.user.photoUrl && <img src={player.user.photoUrl} alt="" className="arena-bet-avatar" />}
+              {player.user.photoUrl
+                ? <img src={player.user.photoUrl} alt="" className="arena-bet-avatar" style={avatarStyle} />
+                : <span className="arena-bet-avatar arena-bet-avatar-fallback" style={avatarStyle}>{nameOf(player.user).replace(/^@/, '').slice(0, 1).toUpperCase()}</span>}
               <span className="arena-bet-name">{nameOf(player.user)}</span>
               <span className="arena-bet-amount">{formatGram(player.stakeGram)} GRAM · {chance < 0.01 ? '<0.01%' : `${chance.toFixed(chance < 1 ? 2 : 1)}%`}</span>
             </div>;
           }) : <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center"><p className="text-sm font-semibold text-blue-950">{t('Arena square is open')}</p><p className="mt-1 text-[11px] text-slate-500">{t('Choose your stake to enter')}</p></div>}
-          {ballMotion && (rollPhase === 'flying' || rollPhase === 'zooming') && <div ref={ballRef} className="arena-bouncing-orb" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.5"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/><circle cx="12" cy="12" r="1.8" className="arena-orb-core"/></svg></div>}
+          {ballMotion && (rollPhase === 'flying' || rollPhase === 'zooming') && <div ref={ballRef} className="arena-bouncing-orb" style={{ width: `${ballMotion.diameter}%` }} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.5"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/><circle cx="12" cy="12" r="1.8" className="arena-orb-core"/></svg></div>}
         </div>
 
         {participants.length > 0 && <section className="arena-player-list mt-4 overflow-hidden rounded-[20px] border border-slate-200 bg-white" aria-label={t('PLAYERS')}>
@@ -388,13 +434,13 @@ export default function ArenaPage() {
   useEffect(() => {
     if (activeRoom?.status !== 'COMPLETED') return;
     setRollPhase('flying');
-    const zoomTimer = window.setTimeout(() => setRollPhase('zooming'), 6100);
-    const resultTimer = window.setTimeout(() => setRollPhase('result'), 7200);
+    const zoomTimer = window.setTimeout(() => setRollPhase('zooming'), 7500);
+    const resultTimer = window.setTimeout(() => setRollPhase('result'), 8500);
     const resetTimer = window.setTimeout(() => {
       setRollPhase('idle');
       setRoom(null);
       window.history.replaceState(null, '', '/arena');
-    }, 9900);
+    }, 11800);
     return () => { window.clearTimeout(zoomTimer); window.clearTimeout(resultTimer); window.clearTimeout(resetTimer); };
   }, [activeRoom?.id, activeRoom?.status, setRoom]);
 
@@ -459,11 +505,11 @@ export default function ArenaPage() {
   };
 
   const shareRoom = async (room = activeRoom) => {
-    if (!room) return;
-    const link = `${window.location.origin}/arena?room=${room.code}`;
+    if (!room || !initData) return;
     try {
-      if (navigator.share) await navigator.share({ title: 'ORBIT Arena', url: link });
-      else await navigator.clipboard.writeText(link);
+      const { url } = await getPvpShareLink(room.code, initData);
+      if (navigator.share) await navigator.share({ title: 'ORBIT Arena', url });
+      else await navigator.clipboard.writeText(url);
       setCopied(true); window.setTimeout(() => setCopied(false), 1600);
     } catch { setError(t('Could not share room')); }
   };

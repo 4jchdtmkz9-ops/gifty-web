@@ -104,11 +104,7 @@ select {
 
 .arena-bet-tile {
   position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: clamp(1px, .7vw, 7px);
+  display: block;
   overflow: hidden;
   border: 2px solid rgb(255 255 255 / 88%);
   padding: clamp(2px, 1.5vw, 12px);
@@ -117,7 +113,10 @@ select {
 }
 
 .arena-bet-name {
-  max-width: 100%;
+  position: absolute;
+  right: 3%;
+  bottom: 27%;
+  left: 3%;
   overflow: hidden;
   font-size: clamp(8px, 2.7vw, 17px);
   font-weight: 800;
@@ -127,6 +126,10 @@ select {
 }
 
 .arena-bet-amount {
+  position: absolute;
+  right: 3%;
+  bottom: 9%;
+  left: 3%;
   font-size: clamp(7px, 2.1vw, 13px);
   font-weight: 700;
   line-height: 1;
@@ -135,11 +138,21 @@ select {
 }
 
 .arena-bet-avatar {
-  width: clamp(18px, 8vw, 48px);
-  height: clamp(18px, 8vw, 48px);
+  position: absolute;
+  z-index: 1;
   border: 2px solid rgb(255 255 255 / 82%);
   border-radius: 999px;
   object-fit: cover;
+  transform: translate(-50%, -50%);
+}
+
+.arena-bet-avatar-fallback {
+  display: grid;
+  place-items: center;
+  background: rgb(255 255 255 / 88%);
+  color: #1557d5;
+  font-size: clamp(8px, 2.4vw, 14px);
+  font-weight: 800;
 }
 
 .arena-bet-tile.is-winner {
