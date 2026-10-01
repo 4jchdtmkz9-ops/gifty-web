@@ -35,7 +35,7 @@ type RollPhase = 'idle' | 'flying' | 'zooming' | 'result';
 type ArenaPolygon = ArenaPoint[];
 type WeightedTile = { id: string; player: PvpRoom['participants'][number]; x: number; y: number; width: number; height: number; polygon: ArenaPolygon };
 type ArenaPoint = { x: number; y: number };
-type ArenaMotion = { start: ArenaPoint; target: ArenaPoint; diameter: number; duration: number; frames: Keyframe[] };
+type ArenaMotion = { start: ArenaPoint; target: ArenaPoint; diameter: number; duration: number; directionDegrees: number; frames: Keyframe[] };
 
 function polygonArea(polygon: ArenaPolygon) {
   return Math.abs(polygon.reduce((sum, point, index) => {
@@ -197,15 +197,8 @@ function makeArenaMotion(tile: WeightedTile): ArenaMotion {
   const spinFrames = 36;
   const flightFrames = 252;
   const center = { x: 50, y: 50 };
-  const angle = Math.random() * Math.PI * 2;
-  const orbit = (progress: number) => {
-    const radius = 4.2 * Math.min(1, progress * 5);
-    const rotation = angle + progress * Math.PI * 3.5;
-    return { x: center.x + Math.cos(rotation) * radius, y: center.y + Math.sin(rotation) * radius };
-  };
-  const launch = orbit(1);
-  const startX = launch.x - margin;
-  const startY = launch.y - margin;
+  const startX = center.x - margin;
+  const startY = center.y - margin;
   let endX = target.x - margin;
   let endY = target.y - margin;
 
@@ -220,27 +213,26 @@ function makeArenaMotion(tile: WeightedTile): ArenaMotion {
     if (distance > 700 && distance < 2200) { endX = candidateX; endY = candidateY; break; }
   }
 
+  const directionDegrees = positiveModulo(Math.atan2(endY - startY, endX - startX) * 180 / Math.PI, 360);
   const start = center;
   const frames: Keyframe[] = [{ left: `${center.x}%`, top: `${center.y}%`, offset: 0 }];
   for (let frame = 1; frame <= spinFrames; frame++) {
-    const progress = frame / spinFrames;
-    const point = orbit(progress);
-    frames.push({ left: `${point.x}%`, top: `${point.y}%`, offset: progress * spinDuration / duration });
+    frames.push({ left: `${center.x}%`, top: `${center.y}%`, offset: (frame / spinFrames) * spinDuration / duration });
   }
   for (let frame = 1; frame <= flightFrames; frame++) {
     const progress = frame / flightFrames;
     let distanceProgress: number;
-    if (progress < 0.08) distanceProgress = 0.1 * Math.pow(progress / 0.08, 1.6);
-    else if (progress < 0.78) distanceProgress = 0.1 + ((progress - 0.08) / 0.7) * 0.75;
+    if (progress < 0.1) distanceProgress = 0.35 * Math.pow(progress / 0.1, 1.25);
+    else if (progress < 0.76) distanceProgress = 0.35 + ((progress - 0.1) / 0.66) * 0.55;
     else {
-      const slowdown = (progress - 0.78) / 0.22;
-      distanceProgress = 0.85 + 0.15 * (1 - Math.pow(1 - slowdown, 3));
+      const slowdown = (progress - 0.76) / 0.24;
+      distanceProgress = 0.9 + 0.1 * (1 - Math.pow(1 - slowdown, 3));
     }
     const x = margin + foldAtWalls(startX + (endX - startX) * distanceProgress, span);
     const y = margin + foldAtWalls(startY + (endY - startY) * distanceProgress, span);
     frames.push({ left: `${x}%`, top: `${y}%`, offset: spinDuration / duration + progress * (1 - spinDuration / duration) });
   }
-  return { start, target, diameter, duration, frames };
+  return { start, target, diameter, duration, directionDegrees, frames };
 }
 
 const sectorColors = ['#1557d5', '#e8505b', '#f4bf28', '#12a875', '#8252d6', '#df4385', '#078fa9', '#ed792f'];
@@ -293,12 +285,18 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
       ball.style.top = `${ballMotion.target.y}%`;
       return;
     }
+    const arrow = ball.querySelector<HTMLElement>('.arena-launch-arrow');
+    const arrowAnimation = arrow?.animate([
+      { transform: 'translate(-50%, -50%) rotate(0deg) translateY(-27px)', opacity: 1 },
+      { transform: `translate(-50%, -50%) rotate(${ballMotion.directionDegrees + 900}deg) translateY(-27px)`, opacity: 1, offset: 0.82 },
+      { transform: `translate(-50%, -50%) rotate(${ballMotion.directionDegrees + 1080}deg) translateY(-27px)`, opacity: 0 },
+    ], { duration: 1150, easing: 'cubic-bezier(.18,.72,.22,1)', fill: 'forwards' });
     const animation = ball.animate(ballMotion.frames, { duration: ballMotion.duration, easing: 'linear', fill: 'forwards' });
     animation.onfinish = () => {
       ball.style.left = `${ballMotion.target.x}%`;
       ball.style.top = `${ballMotion.target.y}%`;
     };
-    return () => animation.cancel();
+    return () => { animation.cancel(); arrowAnimation?.cancel(); };
   }, [ballMotion]);
 
   return (
@@ -339,7 +337,7 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
               <span className="arena-bet-amount">{formatGram(player.stakeGram)} GRAM · {chance < 0.01 ? '<0.01%' : `${chance.toFixed(chance < 1 ? 2 : 1)}%`}</span>
             </div>;
           }) : <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center"><p className="text-sm font-semibold text-blue-950">{t('Arena square is open')}</p><p className="mt-1 text-[11px] text-slate-500">{t('Choose your stake to enter')}</p></div>}
-          {ballMotion && (rollPhase === 'flying' || rollPhase === 'zooming') && <div ref={ballRef} className="arena-bouncing-orb" style={{ width: `${ballMotion.diameter}%` }} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.5"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/><circle cx="12" cy="12" r="1.8" className="arena-orb-core"/></svg></div>}
+          {ballMotion && (rollPhase === 'flying' || rollPhase === 'zooming') && <div ref={ballRef} className="arena-bouncing-orb" style={{ width: `${ballMotion.diameter}%` }} aria-hidden="true"><span className="arena-launch-arrow">→</span><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.5"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/><circle cx="12" cy="12" r="1.8" className="arena-orb-core"/></svg></div>}
         </div>
 
         {participants.length > 0 && <section className="arena-player-list mt-4 overflow-hidden rounded-[20px] border border-slate-200 bg-white" aria-label={t('PLAYERS')}>

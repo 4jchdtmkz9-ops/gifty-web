@@ -196,6 +196,20 @@ select {
   stroke-width: 1;
 }
 
+.arena-launch-arrow {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  color: #fff;
+  font-size: 25px;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 1px 5px rgb(21 87 213 / 85%);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
 .nav-sticker-float,
 .nav-sticker-art {
   display: inline-flex;
