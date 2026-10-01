@@ -608,6 +608,17 @@ export default function ArenaPage() {
           {error && <div role="alert" className="mb-3 rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{error}<button className="float-right font-bold" onClick={() => setError('')} aria-label={t('Close')}>×</button></div>}
           {invitations.length > 0 && <section className="mb-3 rounded-2xl border border-blue-100 bg-white p-3"><div className="mb-2 flex items-center justify-between"><h2 className="text-xs font-bold text-blue-950">{t('Arena invitations')}</h2><span className="rounded-full bg-blue-50 px-2 py-1 text-[9px] font-bold text-blue-700">{invitations.length}</span></div><div className="space-y-2">{invitations.map((invite) => <div key={invite.id} className="flex items-center gap-2 rounded-xl bg-slate-50 p-2"><span className="min-w-0 flex-1 truncate text-[10px] font-semibold text-slate-700">{nameOf(invite.sender)} · {invite.room.stakeGram} GRAM</span><button disabled={busy} onClick={() => void answerInvite(invite, true)} className="rounded-lg bg-blue-700 px-2.5 py-1.5 text-[9px] font-bold text-white">{t('Join')}</button><button disabled={busy} onClick={() => void answerInvite(invite, false)} className="rounded-lg bg-slate-200 px-2 py-1.5 text-[9px] font-bold text-slate-500">×</button></div>)}</div></section>}
 
+          <div className="mb-3 grid grid-cols-2 gap-2" aria-label={t('Arena rooms')}>
+            <div className="rounded-2xl border border-blue-200 bg-blue-50/80 px-3 py-2.5 shadow-sm">
+              <p className="text-[8px] font-extrabold uppercase tracking-[.16em] text-blue-600">{t('ROOM 01 · CLASSIC')}</p>
+              <p className="mt-0.5 text-xs font-extrabold text-blue-950">ORBIT Arena</p>
+            </div>
+            <div aria-disabled="true" className="rounded-2xl border border-slate-200 bg-slate-100/80 px-3 py-2.5 opacity-75">
+              <p className="text-[8px] font-extrabold uppercase tracking-[.16em] text-slate-500">SOON</p>
+              <p className="mt-0.5 text-xs font-extrabold text-slate-500">ROOM 02 · ORBIT Arena</p>
+            </div>
+          </div>
+
           <SquareRoom room={activeRoom} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} onEnter={() => void joinPublic(stake)} rollPhase={rollPhase} t={t} />
 
           {activeRoom?.isPublic === false && activeRoom.status === 'WAITING' && activeRoom.viewerIsCreator && <section className="mt-3 rounded-2xl border border-blue-100 bg-white p-3"><p className="mb-2 text-center text-[10px] text-slate-500">{t('Waiting for invited players to accept.')}</p><button disabled={busy || activeRoom.participants.length < 2} onClick={() => void startPrivateRound()} className="w-full rounded-xl bg-blue-700 py-2.5 text-xs font-bold text-white disabled:bg-slate-300">{t('Start demo round')}</button></section>}
