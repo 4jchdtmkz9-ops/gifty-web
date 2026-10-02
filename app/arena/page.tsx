@@ -481,7 +481,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
             <span className="min-w-0 flex-1"><span className="block text-[7px] font-extrabold uppercase tracking-[.12em] text-slate-400">{t('Last winner')}</span><span className="block max-w-[92px] truncate text-[9px] font-bold text-blue-950 max-[400px]:max-w-[66px]">{lastWinner?.winner ? nameOf(lastWinner.winner) : t('No winner yet')}</span><span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold tabular-nums text-blue-800"><GramIcon size={11} className="text-blue-600" />{lastWinner?.winner ? formatGram(lastWinner.isPublic ? lastWinner.stakeGram : Number(lastWinner.stakeGram) * lastWinner.participants.length) : '—'}</span></span>
             {lastWinner?.winner && <span className="ml-0.5 border-l border-blue-100 pl-2 text-right max-[400px]:hidden"><span className="block text-[7px] font-bold uppercase tracking-wide text-slate-400">{t('Chance')}</span><span className="text-[10px] font-bold tabular-nums text-slate-500">{winnerChance(lastWinner).toFixed(2)}%</span></span>}
           </div>
-          {room && <button onClick={onShare} aria-label={t('Share room')} title={t('Share room')} className="arena-room-share flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-blue-200/80 bg-white/90 text-blue-700 shadow-sm transition hover:bg-blue-50 active:scale-[.97]">
+          {room?.isPublic === false && <button onClick={onShare} aria-label={t('Share room')} title={t('Share room')} className="arena-room-share flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-blue-200/80 bg-white/90 text-blue-700 shadow-sm transition hover:bg-blue-50 active:scale-[.97]">
             <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5"><path d="M11.5 3.75h4.75V8.5M16 4l-7.1 7.1M14.25 10.5v4.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V7.25a1.5 1.5 0 0 1 1.5-1.5H9.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>}
         </div>
@@ -791,7 +791,7 @@ export default function ArenaPage() {
   };
 
   const shareRoom = async (room = activeRoom) => {
-    if (!room || !initData) return;
+    if (!room || room.isPublic || !initData) return;
     try {
       const { url } = await getPvpShareLink(room.code, initData);
       const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent('Join my ORBIT Arena room')}`;

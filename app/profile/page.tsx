@@ -284,9 +284,9 @@ export default function ProfilePage() {
 
         <div className="profile-tabs mt-5 grid grid-cols-3 gap-1 rounded-2xl p-1.5" role="tablist">
           {tabs.map((item) => (
-            <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} onClick={() => setTab(item.id)} className={`flex h-[58px] w-full min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-2 text-[11px] font-semibold leading-none transition-colors ${tab === item.id ? "bg-blue-700 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"}`}>
-              <span className="max-w-full truncate">{item.label}</span>
-              <span className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] leading-none tabular-nums ${tab === item.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"}`}>{item.count}</span>
+            <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} onClick={() => setTab(item.id)} className={`flex h-[54px] w-full min-w-0 items-center justify-center gap-1.5 rounded-xl px-1.5 text-[11px] font-semibold leading-none transition-colors ${tab === item.id ? "bg-blue-700 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"}`}>
+              <span className="min-w-0 truncate">{item.label}</span>
+              <span className={`shrink-0 rounded-full px-1.5 py-1 text-[10px] leading-none tabular-nums ${tab === item.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"}`}>{item.count}</span>
             </button>
           ))}
         </div>
