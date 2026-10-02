@@ -186,7 +186,7 @@ export async function getTonBalance(address: string) {
   return response.json();
 }
 
-export type BotBalance = { balanceGram: string; depositConfigured: boolean };
+export type BotBalance = { balanceGram: string; depositConfigured: boolean; withdrawalConfigured: boolean };
 export type BotDepositIntent = {
   id: string;
   amountTon: string;
@@ -203,6 +203,7 @@ export type BotDepositStatus = {
   txHash: string | null;
   expiresAt: string;
 };
+export type BotWithdrawal = { id: string; amountTon: string; destination: string; status: 'PENDING' | 'PROCESSING' | 'BROADCASTING' | 'SUBMITTED' | 'CONFIRMED' | 'FAILED'; failureReason?: string | null; txHash?: string | null; createdAt: string; confirmedAt?: string | null };
 
 export async function getBotBalance() {
   const initData = getTelegramInitData();
@@ -233,6 +234,24 @@ export async function getBotDepositStatus(depositId: string) {
   });
   if (!response.ok) throw new Error(await responseError(response, 'Failed to check deposit'));
   return response.json() as Promise<BotDepositStatus>;
+}
+
+export async function createBotWithdrawal(amountGram: string) {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Telegram initData is missing');
+  const response = await fetch(`${API_URL}/users/withdrawals`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData, amountGram }),
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'Failed to create withdrawal'));
+  return response.json() as Promise<BotWithdrawal>;
+}
+
+export async function getBotWithdrawalStatus(id: string) {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Telegram initData is missing');
+  const response = await fetch(`${API_URL}/users/withdrawals/${encodeURIComponent(id)}`, { headers: { 'X-Telegram-Init-Data': initData }, cache: 'no-store' });
+  if (!response.ok) throw new Error(await responseError(response, 'Failed to check withdrawal'));
+  return response.json() as Promise<BotWithdrawal>;
 }
 
 export async function getGifts() {

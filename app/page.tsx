@@ -9,6 +9,7 @@ import TelegramTgsSticker from '../components/TelegramTgsSticker';
 import LuckyIcon from '../components/LuckyIcon';
 import ArenaIcon from '../components/ArenaIcon';
 import BotDepositDialog from '../components/BotDepositDialog';
+import BotWithdrawalDialog from '../components/BotWithdrawalDialog';
 import { formatTonBalance } from '../lib/formatTon';
 import { useOrbitLanguage } from '../components/OrbitLanguageContext';
 import GramIcon from '../components/GramIcon';
@@ -50,12 +51,15 @@ export default function Home() {
     const walletAddress = useTonAddress();
     const [balance, setBalance] = useState('0');
     const [depositConfigured, setDepositConfigured] = useState(false);
+    const [withdrawalConfigured, setWithdrawalConfigured] = useState(false);
     const [depositOpen, setDepositOpen] = useState(false);
+    const [withdrawalOpen, setWithdrawalOpen] = useState(false);
     const refreshBalance = useCallback(async () => {
       try {
         const result = await getBotBalance();
         setBalance(result.balanceGram);
         setDepositConfigured(result.depositConfigured);
+        setWithdrawalConfigured(result.withdrawalConfigured);
       } catch (error) {
         console.error('ORBIT balance error:', error);
       }
@@ -96,19 +100,19 @@ export default function Home() {
             <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-[10px] font-semibold text-yellow-800">{t('ORBIT WALLET')}</span>
           </div>
 
-          <div className="mt-2 flex items-center justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-1.5 text-3xl font-bold tracking-tight text-blue-950"><GramIcon size={22} className="text-blue-700" />{formatTonBalance(balance)} <span className="text-lg text-blue-700">GRAM</span></div>
-              {!walletAddress && (
-                <p className="mt-1 text-xs text-slate-500">
-                  {t('Connect wallet to start trading')}
-                </p>
-              )}
+          <div className="mt-2">
+            <div className="flex items-center gap-1.5 text-3xl font-bold tracking-tight text-blue-950"><GramIcon size={22} className="text-blue-700" />{formatTonBalance(balance)} <span className="text-lg text-blue-700">GRAM</span></div>
+            {!walletAddress && <p className="mt-1 text-xs text-slate-500">{t('Connect wallet to start trading')}</p>}
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => setDepositOpen(true)} className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-blue-700 px-3 py-3 text-xs font-bold text-white shadow-[0_6px_16px_rgba(21,87,213,.22)] transition hover:bg-blue-800 active:scale-[.97]">
+                <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4"><path d="M10 3.5v9m0 0 3.5-3.5M10 12.5 6.5 9M4 15.5v1h12v-1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                {t('Deposit')}
+              </button>
+              <button type="button" onClick={() => setWithdrawalOpen(true)} className="inline-flex items-center justify-center gap-1.5 rounded-2xl border border-blue-200 bg-white px-3 py-3 text-xs font-bold text-blue-800 shadow-sm transition hover:bg-blue-50 active:scale-[.97]">
+                <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4"><path d="M10 16.5v-9m0 0L6.5 11M10 7.5l3.5 3.5M4 4.5v-1h12v1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                {t('Withdraw')}
+              </button>
             </div>
-            <button type="button" onClick={() => setDepositOpen(true)} className="inline-flex shrink-0 items-center gap-1.5 rounded-2xl bg-blue-700 px-4 py-3 text-xs font-bold text-white shadow-[0_6px_16px_rgba(21,87,213,.22)] transition hover:bg-blue-800 active:scale-[.97]">
-              <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4"><path d="M10 3.5v9m0 0 3.5-3.5M10 12.5 6.5 9M4 15.5v1h12v-1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              {t('Deposit')}
-            </button>
           </div>
         </section>
 
@@ -260,6 +264,7 @@ export default function Home() {
         {/* Bottom navigation */}
         <BottomNav active="home" />
         <BotDepositDialog open={depositOpen} configured={depositConfigured} onClose={() => setDepositOpen(false)} onConfirmed={refreshBalance} />
+        <BotWithdrawalDialog open={withdrawalOpen} configured={withdrawalConfigured} onClose={() => setWithdrawalOpen(false)} onUpdated={refreshBalance} />
 
       </div>
     </main>
