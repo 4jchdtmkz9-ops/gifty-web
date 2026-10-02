@@ -513,7 +513,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
                 ? <img src={player.user.photoUrl} alt="" className="arena-bet-avatar" style={avatarStyle} />
                 : <span className="arena-bet-avatar arena-bet-avatar-fallback" style={avatarStyle}>{nameOf(player.user).replace(/^@/, '').slice(0, 1).toUpperCase()}</span>}
             </div>;
-          }) : <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center"><p className="text-sm font-semibold text-blue-950">{t('Arena square is open')}</p><p className="mt-1 text-[11px] text-slate-500">{t('Choose your stake to enter')}</p></div>}
+          }) : <div className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center px-10 text-center"><span className="rounded-2xl bg-slate-950/60 px-4 py-2 text-xs font-semibold text-white shadow-lg">{t('Choose your stake to enter')}</span></div>}
           {ballMotion && (rollPhase === 'flying' || rollPhase === 'zooming') && <div ref={ballRef} className="arena-bouncing-orb" style={{ width: `${ballMotion.diameter}%` }} aria-hidden="true"><span className="arena-launch-arrow"><svg viewBox="0 0 68 68" fill="none"><path d="M34 34 62 34M53 25l9 9-9 9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg></span><svg className="arena-orb-token" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.5" className="arena-orb-face"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/><circle cx="12" cy="12" r="1.8" className="arena-orb-core"/></svg></div>}
         </div>}
 
