@@ -76,8 +76,8 @@ function makeWheelSectors(participants: PvpRoom['participants'], palette: string
     const chord = 2 * 52 * Math.sin(Math.min(sweepDegrees, 180) * Math.PI / 360);
     const sector = {
       player, startDegrees, sweepDegrees, color: palette[index % palette.length], path: wheelSlicePath(startDegrees, sweepDegrees),
-      avatarX: 100 + Math.cos(middle) * 52,
-      avatarY: 100 + Math.sin(middle) * 52,
+      avatarX: participants.length === 1 ? 100 : 100 + Math.cos(middle) * 52,
+      avatarY: participants.length === 1 ? 100 : 100 + Math.sin(middle) * 52,
       avatarSize: Math.max(8, Math.min(24, chord * .72)),
     };
     startDegrees += sweepDegrees;
@@ -375,7 +375,7 @@ function WheelBoard({ sectors, rotation, spinning, winnerId, t }: {
       </g>)}
     </svg>
     <svg viewBox="0 0 200 200" className="pointer-events-none absolute inset-0 z-10 h-full w-full drop-shadow-[0_2px_3px_rgba(8,20,44,.45)]" aria-hidden="true">
-      <path transform="translate(100 21) scale(.5) translate(-100 -21)" d="M82 7c-5 0-7 6-3 10l16 18c3 4 7 4 10 0l16-18c4-4 2-10-3-10-2 0-4 1-6 3l-12 12L88 10c-2-2-4-3-6-3Z" fill="#fff" />
+      <g transform="translate(0 -4)"><path transform="translate(100 21) scale(.5) translate(-100 -21)" d="M82 7c-5 0-7 6-3 10l16 18c3 4 7 4 10 0l16-18c4-4 2-10-3-10-2 0-4 1-6 3l-12 12L88 10c-2-2-4-3-6-3Z" fill="#fff" /></g>
     </svg>
     {!sectors.length && <div className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center px-10 text-center"><span className="rounded-2xl bg-slate-950/60 px-4 py-2 text-xs font-semibold text-white shadow-lg">{t('Choose your stake to enter')}</span></div>}
   </div>;
