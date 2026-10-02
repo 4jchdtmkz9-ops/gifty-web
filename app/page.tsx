@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import BottomNav from '../components/BottomNav';
@@ -8,16 +8,14 @@ import MarketIcon from '../components/MarketIcon';
 import TelegramTgsSticker from '../components/TelegramTgsSticker';
 import LuckyIcon from '../components/LuckyIcon';
 import ArenaIcon from '../components/ArenaIcon';
+import BotDepositDialog from '../components/BotDepositDialog';
 import { formatTonBalance } from '../lib/formatTon';
 import { useOrbitLanguage } from '../components/OrbitLanguageContext';
 import GramIcon from '../components/GramIcon';
-import {
-  getTonBalance,
-} from '../lib/api';
+import { getBotBalance } from '../lib/api';
 import {
   TonConnectButton,
   useTonAddress,
-  useTonConnectUI,
 } from '@tonconnect/ui-react';
 
 const gifts = [
@@ -51,22 +49,23 @@ export default function Home() {
     const { t } = useOrbitLanguage();
     const walletAddress = useTonAddress();
     const [balance, setBalance] = useState('0');
-    
-  useEffect(() => {
-  if (!walletAddress) {
-    setBalance('0');
-    return;
-  }
+    const [depositConfigured, setDepositConfigured] = useState(false);
+    const [depositOpen, setDepositOpen] = useState(false);
+    const refreshBalance = useCallback(async () => {
+      try {
+        const result = await getBotBalance();
+        setBalance(result.balanceGram);
+        setDepositConfigured(result.depositConfigured);
+      } catch (error) {
+        console.error('ORBIT balance error:', error);
+      }
+    }, []);
 
-  getTonBalance(walletAddress)
-    .then((data) => {
-      setBalance(data.balanceTon);
-    })
-    .catch((error) => {
-      console.error('TON balance error:', error);
-      setBalance('0');
-    });
-}, [walletAddress]);
+  useEffect(() => {
+    void refreshBalance();
+    const interval = window.setInterval(() => void refreshBalance(), 15_000);
+    return () => window.clearInterval(interval);
+  }, [refreshBalance]);
 
   return (
     <main className="min-h-screen bg-[#f5f8ff] text-slate-900">
@@ -90,11 +89,11 @@ export default function Home() {
         {/* Balance */}
         <section className="mb-5 overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-yellow-50 p-5 shadow-[0_14px_36px_rgba(21,87,213,0.08)]">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-slate-500">{t('Your balance')}</p>
+            <p className="text-sm font-medium text-slate-500">{t('Bot balance')}</p>
             <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-[10px] font-semibold text-yellow-800">{t('ORBIT WALLET')}</span>
           </div>
 
-          <div className="mt-2 flex items-end justify-between">
+          <div className="mt-2 flex items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-1.5 text-3xl font-bold tracking-tight text-blue-950"><GramIcon size={22} className="text-blue-700" />{formatTonBalance(balance)} <span className="text-lg text-blue-700">GRAM</span></div>
               {!walletAddress && (
@@ -103,6 +102,10 @@ export default function Home() {
                 </p>
               )}
             </div>
+            <button type="button" onClick={() => setDepositOpen(true)} className="inline-flex shrink-0 items-center gap-1.5 rounded-2xl bg-blue-700 px-4 py-3 text-xs font-bold text-white shadow-[0_6px_16px_rgba(21,87,213,.22)] transition hover:bg-blue-800 active:scale-[.97]">
+              <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4"><path d="M10 3.5v9m0 0 3.5-3.5M10 12.5 6.5 9M4 15.5v1h12v-1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              {t('Deposit')}
+            </button>
           </div>
         </section>
 
@@ -253,6 +256,7 @@ export default function Home() {
 
         {/* Bottom navigation */}
         <BottomNav active="home" />
+        <BotDepositDialog open={depositOpen} configured={depositConfigured} onClose={() => setDepositOpen(false)} onConfirmed={refreshBalance} />
 
       </div>
     </main>

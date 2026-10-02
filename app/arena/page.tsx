@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { useTonAddress } from '@tonconnect/ui-react';
 import BottomNav from '../../components/BottomNav';
 import GramIcon from '../../components/GramIcon';
 import OrbitWordmark from '../../components/OrbitWordmark';
@@ -16,7 +15,7 @@ import {
   getPvpRoom,
   getPvpShareLink,
   getPublicArenaRooms,
-  getTonBalance,
+  getBotBalance,
   joinPublicArena,
   joinPvpRoom,
   searchPvpUsers,
@@ -393,13 +392,13 @@ function WheelBoard({ sectors, rotation, spinning, winnerId, t }: {
   </div>;
 }
 
-function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJoin, busy, stake, setStake, onEnter, onEnterAmount, walletBalance, roundCoolingDown, rollPhase, t }: {
+function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJoin, busy, stake, setStake, onEnter, onEnterAmount, botBalance, roundCoolingDown, rollPhase, t }: {
   room: PvpRoom | null; rollingSeconds: number | null; onShare: () => void;
   arenaMode: 'CLASSIC' | 'WHEEL';
   lastWinner: PvpRoom | null;
   onJoin: () => void;
   busy: boolean; stake: string; setStake: (stake: string) => void; onEnter: () => void;
-  onEnterAmount: (amount: string) => void; walletBalance: string; roundCoolingDown: boolean;
+  onEnterAmount: (amount: string) => void; botBalance: string; roundCoolingDown: boolean;
   rollPhase: RollPhase; t: (key: string) => string;
 }) {
   const participants = room?.participants ?? [];
@@ -420,7 +419,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
   const isCompleted = room?.status === 'COMPLETED';
   const controlsDisabled = busy || rollPhase !== 'idle' || roundCoolingDown || isCompleted;
   const currentStake = Number(room?.viewerStakeGram ?? 0);
-  const allInAmount = Math.max(0, Number(walletBalance) - (room?.status === 'COUNTDOWN' && room.viewerIsParticipant ? currentStake : 0));
+  const allInAmount = Math.max(0, Number(botBalance) - (room?.status === 'COUNTDOWN' && room.viewerIsParticipant ? currentStake : 0));
 
   useEffect(() => {
     if (arenaMode === 'WHEEL' || rollPhase === 'idle' || !winnerTile) {
@@ -572,8 +571,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
 export default function ArenaPage() {
   const { t } = useOrbitLanguage();
   const [arenaMode, setArenaMode] = useState<'CLASSIC' | 'WHEEL'>('CLASSIC');
-  const walletAddress = useTonAddress();
-  const [walletBalance, setWalletBalance] = useState('0');
+  const [botBalance, setBotBalance] = useState('0');
   const [initData, setInitData] = useState('');
   const [authReady, setAuthReady] = useState(false);
   const [publicRooms, setPublicRooms] = useState<PvpRoom[]>([]);
@@ -597,12 +595,18 @@ export default function ArenaPage() {
 
   useEffect(() => {
     let cancelled = false;
-    if (!walletAddress) { setWalletBalance('0'); return () => { cancelled = true; }; }
-    getTonBalance(walletAddress)
-      .then((result) => { if (!cancelled) setWalletBalance(String(result.balanceTon ?? '0')); })
-      .catch((cause) => { console.error('Could not read wallet balance for arena All in:', cause); if (!cancelled) setWalletBalance('0'); });
-    return () => { cancelled = true; };
-  }, [walletAddress]);
+    const refresh = async () => {
+      try {
+        const result = await getBotBalance();
+        if (!cancelled) setBotBalance(result.balanceGram);
+      } catch (cause) {
+        if (!cancelled) console.error('Could not read ORBIT balance for arena All in:', cause);
+      }
+    };
+    void refresh();
+    const interval = window.setInterval(() => void refresh(), 15_000);
+    return () => { cancelled = true; window.clearInterval(interval); };
+  }, []);
 
   useEffect(() => {
     const current = getTelegramInitData();
@@ -833,7 +837,7 @@ export default function ArenaPage() {
             })}
           </div>
 
-          <SquareRoom room={activeRoom} arenaMode={arenaMode} lastWinner={lastWinners[arenaMode]} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount)} walletBalance={walletBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} />
+          <SquareRoom room={activeRoom} arenaMode={arenaMode} lastWinner={lastWinners[arenaMode]} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount)} botBalance={botBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} />
 
           {activeRoom?.isPublic === false && activeRoom.status === 'WAITING' && activeRoom.viewerIsCreator && <section className="mt-3 rounded-2xl border border-blue-100 bg-white p-3"><p className="mb-2 text-center text-[10px] text-slate-500">{t('Waiting for invited players to accept.')}</p><button disabled={busy || activeRoom.participants.length < 2} onClick={() => void startPrivateRound()} className="w-full rounded-xl bg-blue-700 py-2.5 text-xs font-bold text-white disabled:bg-slate-300">{t('Start demo round')}</button></section>}
 

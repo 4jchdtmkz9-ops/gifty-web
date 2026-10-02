@@ -186,6 +186,55 @@ export async function getTonBalance(address: string) {
   return response.json();
 }
 
+export type BotBalance = { balanceGram: string; depositConfigured: boolean };
+export type BotDepositIntent = {
+  id: string;
+  amountTon: string;
+  address: string;
+  comment: string;
+  payload: string;
+  expiresAt: string;
+};
+export type BotDepositStatus = {
+  id: string;
+  status: 'PENDING' | 'CONFIRMED' | 'MISMATCHED' | 'EXPIRED';
+  requestedTon: string;
+  receivedTon: string | null;
+  txHash: string | null;
+  expiresAt: string;
+};
+
+export async function getBotBalance() {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Telegram initData is missing');
+  const response = await fetch(`${API_URL}/users/balance`, { headers: { 'X-Telegram-Init-Data': initData }, cache: 'no-store' });
+  if (!response.ok) throw new Error(await responseError(response, 'Failed to fetch ORBIT balance'));
+  return response.json() as Promise<BotBalance>;
+}
+
+export async function createBotDepositIntent(amountTon: string, walletAddress: string) {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Telegram initData is missing');
+  const response = await fetch(`${API_URL}/users/deposit-intents`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initData, amountTon, walletAddress }),
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'Failed to create deposit'));
+  return response.json() as Promise<BotDepositIntent>;
+}
+
+export async function getBotDepositStatus(depositId: string) {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Telegram initData is missing');
+  const response = await fetch(`${API_URL}/users/deposits/${encodeURIComponent(depositId)}`, {
+    headers: { 'X-Telegram-Init-Data': initData },
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'Failed to check deposit'));
+  return response.json() as Promise<BotDepositStatus>;
+}
+
 export async function getGifts() {
   const response = await fetch(`${API_URL}/gifts`);
 
