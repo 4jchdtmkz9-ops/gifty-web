@@ -30,10 +30,16 @@ export default function BotDepositDialog({ open, configured, onClose, onConfirme
     const refresh = async () => {
       try {
         const status = await getBotDepositStatus(deposit.id);
-        if (stopped || status.status !== 'CONFIRMED') return;
-        setReceivedAmount(status.receivedTon ?? deposit.amountTon);
-        setPhase('confirmed');
-        onConfirmed();
+        if (stopped) return;
+        if (status.status === 'CONFIRMED') {
+          setReceivedAmount(status.receivedTon ?? deposit.amountTon);
+          setPhase('confirmed');
+          onConfirmed();
+        } else if (status.status === 'EXPIRED') {
+          setDeposit(null);
+          setPhase('editing');
+          setError(t('Deposit request expired. Please try again.'));
+        }
       } catch (cause) {
         if (!stopped) setError(cause instanceof Error ? cause.message : t('Could not check deposit'));
       }
