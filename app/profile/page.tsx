@@ -284,9 +284,9 @@ export default function ProfilePage() {
 
         <div className="profile-tabs mt-5 grid grid-cols-3 gap-1 rounded-2xl p-1.5" role="tablist">
           {tabs.map((item) => (
-            <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} onClick={() => setTab(item.id)} className={`flex items-center justify-center gap-1.5 rounded-xl py-3 text-xs font-semibold transition-colors ${tab === item.id ? "bg-blue-700 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"}`}>
-              <span>{item.label}</span>
-              <span className={`min-w-5 rounded-full px-1.5 py-0.5 text-[10px] leading-none ${tab === item.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"}`}>{item.count}</span>
+            <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} onClick={() => setTab(item.id)} className={`flex h-[58px] w-full min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-2 text-[11px] font-semibold leading-none transition-colors ${tab === item.id ? "bg-blue-700 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"}`}>
+              <span className="max-w-full truncate">{item.label}</span>
+              <span className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] leading-none tabular-nums ${tab === item.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"}`}>{item.count}</span>
             </button>
           ))}
         </div>
@@ -313,10 +313,10 @@ export default function ProfilePage() {
             {tab === "listed" && (
               <section className="mt-5">
                 <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{t("Listed for sale")}</h2><span className="text-xs text-slate-500">{listed.length} {t("items")}</span></div>
-                {listed.length === 0 ? <EmptyState icon="🏷️" title={t("No active listings")} detail={t("Gifts you list for sale will appear here.")} /> : listed.map((gift) => <article key={gift.id} className="mb-3 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-3xl">{gift.emoji || "🎁"}</div>
-                  <div className="min-w-0 flex-1"><h3 className="truncate text-sm font-semibold">{gift.name}</h3><p className="mt-1 truncate text-xs text-slate-500">{gift.collection}</p><p className="mt-2 text-sm font-semibold"><GramIcon size={14} className="mr-1 text-blue-700" />{formatTon(gift.priceTon)} GRAM</p>{gift.status === "RESERVED" && <p className="mt-1 text-[11px] text-amber-700">{t("Reserved for an accepted offer")}</p>}</div>
-                  <div className="flex flex-col gap-2"><button type="button" disabled={Boolean(busy) || gift.status === "RESERVED"} onClick={() => openPriceEditor(gift, true)} className="rounded-xl bg-slate-100 px-3 py-2 text-xs disabled:opacity-50">{t("Edit")}</button><button type="button" disabled={Boolean(busy) || gift.status === "RESERVED"} onClick={() => void removeListing(gift)} className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600 disabled:opacity-50">{busy === `unlist:${gift.id}` ? "…" : t("Unlist")}</button></div>
+                {listed.length === 0 ? <EmptyState icon="🏷️" title={t("No active listings")} detail={t("Gifts you list for sale will appear here.")} /> : listed.map((gift) => <article key={gift.id} className="mb-3 grid grid-cols-[64px_minmax(0,1fr)] gap-3 rounded-2xl border border-slate-200 bg-white p-3">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-3xl">{gift.emoji || "🎁"}</div>
+                  <div className="min-w-0 self-center"><h3 className="truncate text-sm font-semibold">{gift.name}</h3><p className="mt-1 truncate text-xs text-slate-500">{gift.collection}</p><p className="mt-2 text-sm font-semibold"><GramIcon size={14} className="mr-1 text-blue-700" />{formatTon(gift.priceTon)} GRAM</p>{gift.status === "RESERVED" && <p className="mt-1 text-[11px] text-amber-700">{t("Reserved for an accepted offer")}</p>}</div>
+                  <div className="col-span-2 grid grid-cols-2 gap-2"><button type="button" disabled={Boolean(busy) || gift.status === "RESERVED"} onClick={() => openPriceEditor(gift, true)} className="flex h-10 w-full items-center justify-center rounded-xl bg-slate-100 px-2 text-xs font-semibold disabled:opacity-50">{t("Edit")}</button><button type="button" disabled={Boolean(busy) || gift.status === "RESERVED"} onClick={() => void removeListing(gift)} className="flex h-10 w-full items-center justify-center rounded-xl bg-slate-50 px-2 text-xs font-semibold text-slate-600 disabled:opacity-50">{busy === `unlist:${gift.id}` ? "…" : t("Unlist")}</button></div>
                 </article>)}
               </section>
             )}

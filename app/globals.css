@@ -51,6 +51,21 @@ select {
   box-shadow: none;
 }
 
+.arena-waiting-status {
+  background: #eef4ff;
+  color: #40516c;
+}
+
+.arena-waiting-dot {
+  background: #1764df;
+  box-shadow: 0 0 0 3px rgb(23 100 223 / 14%);
+  animation: arena-waiting-pulse 1.35s ease-in-out infinite;
+}
+
+@keyframes arena-waiting-pulse {
+  50% { opacity: .55; transform: scale(.82); }
+}
+
 .case-roulette-stage {
   isolation: isolate;
   background:
@@ -693,6 +708,16 @@ html[data-theme='dark'] main .arena-win-card {
 
 html[data-theme='dark'] main .arena-room-shell {
   border-color: var(--orbit-border) !important;
+}
+
+html[data-theme='dark'] main .arena-waiting-status {
+  background: #172a46 !important;
+  color: #e6efff !important;
+}
+
+html[data-theme='dark'] main .arena-waiting-dot {
+  background: #70b7ff !important;
+  box-shadow: 0 0 0 3px rgb(112 183 255 / 20%) !important;
 }
 
 html[data-theme='dark'] main .arena-player-square {
