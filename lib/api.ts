@@ -5,7 +5,7 @@ const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://gifty-api-75hj.onre
 export type PvpPlayer = { id: string; telegramId?: string; username: string | null; firstName: string | null; photoUrl?: string | null };
 export type PvpRoom = {
   id: string; code: string; stakeGram: string; status: 'WAITING' | 'COUNTDOWN' | 'COMPLETED' | 'CANCELLED'; creatorId: string;
-  isPublic?: boolean; countdownEndsAt?: string | null; completedAt?: string | null;
+  isPublic?: boolean; arenaMode?: 'CLASSIC' | 'WHEEL'; countdownEndsAt?: string | null; completedAt?: string | null;
   winnerId: string | null; participants: Array<{ id: string; userId: string; stakeGram: string; user: PvpPlayer }>;
   invitations: Array<{ id: string; status: string; recipient: PvpPlayer }>;
   creator: PvpPlayer; winner: PvpPlayer | null;
@@ -29,14 +29,14 @@ async function pvpRequest<T>(path: string, initData: string, body?: Record<strin
 export async function searchPvpUsers(query: string, initData: string) {
   return pvpRequest<PvpPlayer[]>(`users/search?q=${encodeURIComponent(query)}`, initData);
 }
-export async function createPvpRoom(stakeGram: string, inviteeIds: string[], initData: string) {
-  return pvpRequest<PvpRoom>('rooms', initData, { stakeGram, inviteeIds });
+export async function createPvpRoom(stakeGram: string, inviteeIds: string[], initData: string, arenaMode: 'CLASSIC' | 'WHEEL' = 'CLASSIC') {
+  return pvpRequest<PvpRoom>('rooms', initData, { stakeGram, inviteeIds, arenaMode });
 }
-export async function joinPublicArena(stakeGram: string, initData: string) {
-  return pvpRequest<PvpRoom>('public-join', initData, { stakeGram });
+export async function joinPublicArena(stakeGram: string, initData: string, arenaMode: 'CLASSIC' | 'WHEEL' = 'CLASSIC') {
+  return pvpRequest<PvpRoom>('public-join', initData, { stakeGram, arenaMode });
 }
-export async function getPublicArenaRooms(initData: string) {
-  return pvpRequest<PvpRoom[]>('public-rooms', initData);
+export async function getPublicArenaRooms(initData: string, arenaMode: 'CLASSIC' | 'WHEEL' = 'CLASSIC') {
+  return pvpRequest<PvpRoom[]>(`public-rooms?mode=${arenaMode}`, initData);
 }
 export async function getPvpRoom(code: string, initData: string) {
   return pvpRequest<PvpRoom>(`rooms?code=${encodeURIComponent(code)}`, initData);

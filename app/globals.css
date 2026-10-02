@@ -115,6 +115,17 @@ select {
   transition: transform .68s cubic-bezier(.16,.82,.22,1), filter .35s ease;
 }
 
+.arena-wheel-stage {
+  isolation: isolate;
+  background: radial-gradient(circle, #f4f8ff 0%, #e8effb 68%, #dce7f8 100%);
+  filter: drop-shadow(0 12px 24px rgb(18 45 89 / 16%));
+}
+
+.arena-wheel-disc {
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
 .arena-bet-board.is-zooming {
   z-index: 10;
   transform: scale(2.15);
@@ -708,6 +719,11 @@ html[data-theme='dark'] main .arena-win-card {
 
 html[data-theme='dark'] main .arena-room-shell {
   border-color: var(--orbit-border) !important;
+}
+
+html[data-theme='dark'] main .arena-wheel-stage {
+  background: radial-gradient(circle, #1b293d 0%, #141f30 72%, #101827 100%);
+  filter: drop-shadow(0 14px 26px rgb(0 0 0 / 38%));
 }
 
 html[data-theme='dark'] main .arena-waiting-status {

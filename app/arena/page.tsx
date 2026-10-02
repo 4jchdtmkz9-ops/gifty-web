@@ -51,6 +51,43 @@ type ArenaPolygon = ArenaPoint[];
 type WeightedTile = { id: string; player: PvpRoom['participants'][number]; x: number; y: number; width: number; height: number; polygon: ArenaPolygon };
 type ArenaPoint = { x: number; y: number };
 type ArenaMotion = { start: ArenaPoint; target: ArenaPoint; diameter: number; duration: number; directionDegrees: number; frames: Keyframe[] };
+type WheelSector = { player: PvpRoom['participants'][number]; startDegrees: number; sweepDegrees: number; color: string; path: string };
+
+function wheelArcPoint(degrees: number, radius = 96) {
+  const radians = (degrees - 90) * Math.PI / 180;
+  return { x: 100 + Math.cos(radians) * radius, y: 100 + Math.sin(radians) * radius };
+}
+
+function wheelSlicePath(startDegrees: number, sweepDegrees: number) {
+  if (sweepDegrees >= 359.999) return '';
+  const start = wheelArcPoint(startDegrees);
+  const end = wheelArcPoint(startDegrees + sweepDegrees);
+  const largeArc = sweepDegrees > 180 ? 1 : 0;
+  return `M 100 100 L ${start.x} ${start.y} A 96 96 0 ${largeArc} 1 ${end.x} ${end.y} Z`;
+}
+
+function makeWheelSectors(participants: PvpRoom['participants'], palette: string[]): WheelSector[] {
+  if (!participants.length) return [];
+  const total = participants.reduce((sum, player) => sum + Math.max(0, Number(player.stakeGram)), 0);
+  let startDegrees = 0;
+  return participants.map((player, index) => {
+    const sweepDegrees = total > 0 ? Math.max(0, Number(player.stakeGram)) / total * 360 : 360 / participants.length;
+    const sector = { player, startDegrees, sweepDegrees, color: palette[index % palette.length], path: wheelSlicePath(startDegrees, sweepDegrees) };
+    startDegrees += sweepDegrees;
+    return sector;
+  });
+}
+
+function wheelStopRotation(sectors: WheelSector[], winnerId: string, currentRotation: number) {
+  const winner = sectors.find(({ player }) => player.userId === winnerId);
+  if (!winner) return currentRotation + 360 * 9;
+  // Land at a random point well inside the winning slice, not always at its center.
+  const pointerAngle = winner.startDegrees + winner.sweepDegrees * (.12 + Math.random() * .76);
+  const desiredRotation = positiveModulo(360 - pointerAngle, 360);
+  const extraTurns = 7 + Math.floor(Math.random() * 4);
+  const offset = positiveModulo(desiredRotation - positiveModulo(currentRotation, 360), 360);
+  return currentRotation + extraTurns * 360 + offset;
+}
 
 function polygonArea(polygon: ArenaPolygon) {
   return Math.abs(polygon.reduce((sum, point, index) => {
@@ -315,20 +352,44 @@ function roomPalette(roomCode: string) {
   return colors;
 }
 
-function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setStake, onEnter, onEnterAmount, walletBalance, roundCoolingDown, rollPhase, t }: {
+function WheelBoard({ sectors, rotation, spinning, winnerId, t }: {
+  sectors: WheelSector[]; rotation: number; spinning: boolean; winnerId?: string | null; t: (key: string) => string;
+}) {
+  return <div className="arena-wheel-stage relative mx-auto aspect-square w-full max-w-[430px] rounded-full p-[3.5%]" aria-label={t('Fortune wheel')}>
+    <svg viewBox="0 0 200 200" className="arena-wheel-disc absolute inset-0 h-full w-full overflow-visible" style={{ transform: `rotate(${rotation}deg)`, transition: spinning ? 'transform 8.65s cubic-bezier(.07,.76,.12,1)' : 'none' }} role="img" aria-label={t('Fortune wheel')}>
+      <circle cx="100" cy="100" r="97" fill="#0e1b30" />
+      {sectors.length === 1 ? <circle cx="100" cy="100" r="96" fill={sectors[0].color} stroke="white" strokeWidth="1.5" /> : sectors.map((sector) => <path key={sector.player.id} d={sector.path} fill={sector.color} stroke={sector.player.userId === winnerId ? '#fff4c2' : '#fff'} strokeWidth={sector.player.userId === winnerId ? 2.4 : 1.5} strokeLinejoin="round" />)}
+      <circle cx="100" cy="100" r="18" fill="#fff" stroke="#dbe8ff" strokeWidth="3" />
+      <circle cx="100" cy="100" r="7" fill="#1557d5" />
+    </svg>
+    <svg viewBox="0 0 200 200" className="pointer-events-none absolute inset-0 z-10 h-full w-full drop-shadow-[0_2px_3px_rgba(8,20,44,.45)]" aria-hidden="true">
+      <path d="M100 31 87 5h26z" fill="#fff" stroke="#17355e" strokeWidth="2.5" strokeLinejoin="round" />
+      <circle cx="100" cy="8" r="3" fill="#f4bf28" />
+    </svg>
+    {!sectors.length && <div className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center px-10 text-center"><span className="rounded-2xl bg-slate-950/60 px-4 py-2 text-xs font-semibold text-white shadow-lg">{t('Choose your stake to enter')}</span></div>}
+  </div>;
+}
+
+function SquareRoom({ room, arenaMode, rollingSeconds, onShare, onJoin, busy, stake, setStake, onEnter, onEnterAmount, walletBalance, roundCoolingDown, rollPhase, t }: {
   room: PvpRoom | null; rollingSeconds: number | null; onShare: () => void;
+  arenaMode: 'CLASSIC' | 'WHEEL';
   onJoin: () => void;
   busy: boolean; stake: string; setStake: (stake: string) => void; onEnter: () => void;
   onEnterAmount: (amount: string) => void; walletBalance: string; roundCoolingDown: boolean;
   rollPhase: RollPhase; t: (key: string) => string;
 }) {
   const participants = room?.participants ?? [];
+  const roomMode = room?.arenaMode ?? arenaMode;
   const tiles = makeWeightedTiles(participants);
   const palette = useMemo(() => roomPalette(room?.code ?? 'orbit'), [room?.code]);
+  const wheelDataKey = participants.map(({ id, stakeGram }) => `${id}:${stakeGram}`).join('|');
+  const wheelSectors = useMemo(() => makeWheelSectors(participants, palette), [wheelDataKey, palette]);
   const totalStake = participants.reduce((sum, player) => sum + Number(player.stakeGram), 0);
   const winnerTile = tiles.find(({ player }) => player.userId === room?.winnerId);
   const pot = room ? Number(room.stakeGram) * (room.isPublic ? 1 : Math.max(1, participants.length)) : 0;
   const [ballMotion, setBallMotion] = useState<ArenaMotion | null>(null);
+  const [wheelRotation, setWheelRotation] = useState(0);
+  const wheelSpinRoomRef = useRef<string | null>(null);
   const ballRef = useRef<HTMLDivElement | null>(null);
   const zoomPoint = ballMotion?.target ?? (winnerTile ? { x: winnerTile.x + winnerTile.width / 2, y: winnerTile.y + winnerTile.height / 2 } : null);
   const zoomStyle = zoomPoint ? { '--zoom-x': `${zoomPoint.x}%`, '--zoom-y': `${zoomPoint.y}%` } as CSSProperties : undefined;
@@ -338,13 +399,23 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
   const allInAmount = Math.max(0, Number(walletBalance) - (room?.status === 'COUNTDOWN' && room.viewerIsParticipant ? currentStake : 0));
 
   useEffect(() => {
-    if (rollPhase === 'idle' || !winnerTile) {
+    if (arenaMode === 'WHEEL' || rollPhase === 'idle' || !winnerTile) {
       if (ballMotion) setBallMotion(null);
       return;
     }
     if (rollPhase !== 'flying' || ballMotion) return;
     setBallMotion(makeArenaMotion(winnerTile));
-  }, [ballMotion, rollPhase, room?.id, winnerTile?.id, winnerTile?.x, winnerTile?.y, winnerTile?.width, winnerTile?.height]);
+  }, [arenaMode, ballMotion, rollPhase, room?.id, winnerTile?.id, winnerTile?.x, winnerTile?.y, winnerTile?.width, winnerTile?.height]);
+
+  useEffect(() => {
+    if (arenaMode !== 'WHEEL' || rollPhase === 'idle') {
+      wheelSpinRoomRef.current = null;
+      return;
+    }
+    if (rollPhase !== 'flying' || room?.status !== 'COMPLETED' || !room.winnerId || wheelSpinRoomRef.current === room.id) return;
+    wheelSpinRoomRef.current = room.id;
+    setWheelRotation((rotation) => wheelStopRotation(wheelSectors, room.winnerId!, rotation));
+  }, [arenaMode, rollPhase, room?.id, room?.status, room?.winnerId, wheelSectors]);
 
   useEffect(() => {
     const ball = ballRef.current;
@@ -375,10 +446,10 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
     <section className="arena-room-shell overflow-hidden rounded-[28px] border border-blue-100 bg-white shadow-[0_12px_34px_rgba(21,87,213,.09)]">
       <div className="flex items-center justify-between gap-3 border-b border-blue-100/80 bg-gradient-to-r from-blue-50/80 via-white to-white px-4 py-3.5">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[15px] bg-blue-700 text-xs font-black text-white shadow-[0_5px_14px_rgba(21,87,213,.24)]">01</span>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[15px] bg-blue-700 text-xs font-black text-white shadow-[0_5px_14px_rgba(21,87,213,.24)]">{roomMode === 'WHEEL' ? '02' : '01'}</span>
           <div className="min-w-0">
             <p className="flex items-center gap-1.5 text-[8px] font-extrabold uppercase tracking-[.16em] text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,.12)]" />{t('CURRENT ROOM')}</p>
-            <h2 className="mt-0.5 truncate text-[15px] font-extrabold tracking-tight text-blue-950">ORBIT <span className="font-semibold text-slate-500">{t('Arena')}</span></h2>
+            <h2 className="mt-0.5 truncate text-[15px] font-extrabold tracking-tight text-blue-950">ORBIT <span className="font-semibold text-slate-500">{t(roomMode === 'WHEEL' ? 'Wheel' : 'Arena')}</span></h2>
           </div>
         </div>
         {room && <button onClick={onShare} className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-blue-200/80 bg-white/90 px-3 py-2 text-[10px] font-bold text-blue-700 shadow-sm transition hover:bg-blue-50 active:scale-[.97]">
@@ -393,7 +464,7 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
           <div className="text-right"><p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">{t('PLAYERS')}</p><p className="text-sm font-extrabold text-slate-700">{participants.length}</p></div>
         </div>
 
-        <div className={`arena-bet-board relative aspect-square overflow-hidden rounded-[28px] border-0 ${rollPhase === 'flying' ? 'is-flying' : ''} ${rollPhase === 'zooming' ? 'is-zooming' : ''}`} style={zoomStyle} aria-label={t('Arena player squares')}>
+        {roomMode === 'WHEEL' ? <WheelBoard sectors={wheelSectors} rotation={wheelRotation} spinning={rollPhase === 'flying' && isCompleted} winnerId={rollPhase === 'result' ? room?.winnerId : null} t={t} /> : <div className={`arena-bet-board relative aspect-square overflow-hidden rounded-[28px] border-0 ${rollPhase === 'flying' ? 'is-flying' : ''} ${rollPhase === 'zooming' ? 'is-zooming' : ''}`} style={zoomStyle} aria-label={t('Arena player squares')}>
           {tiles.length ? tiles.map(({ id, player, x, y, width, height }, index) => {
             const isWinner = isCompleted && room?.winnerId === player.userId && (rollPhase === 'zooming' || rollPhase === 'result');
             const center = polygonCenter(tiles[index].polygon);
@@ -414,7 +485,7 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
             </div>;
           }) : <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center"><p className="text-sm font-semibold text-blue-950">{t('Arena square is open')}</p><p className="mt-1 text-[11px] text-slate-500">{t('Choose your stake to enter')}</p></div>}
           {ballMotion && (rollPhase === 'flying' || rollPhase === 'zooming') && <div ref={ballRef} className="arena-bouncing-orb" style={{ width: `${ballMotion.diameter}%` }} aria-hidden="true"><span className="arena-launch-arrow"><svg viewBox="0 0 68 68" fill="none"><path d="M34 34 62 34M53 25l9 9-9 9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg></span><svg className="arena-orb-token" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.5" className="arena-orb-face"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/><circle cx="12" cy="12" r="1.8" className="arena-orb-core"/></svg></div>}
-        </div>
+        </div>}
 
         {(!room || room.isPublic) && <div className="mt-3" aria-label={t('Quick stakes')}>
           <div className="grid grid-cols-5 gap-1.5">
@@ -470,6 +541,7 @@ function SquareRoom({ room, rollingSeconds, onShare, onJoin, busy, stake, setSta
 
 export default function ArenaPage() {
   const { t } = useOrbitLanguage();
+  const [arenaMode, setArenaMode] = useState<'CLASSIC' | 'WHEEL'>('CLASSIC');
   const walletAddress = useTonAddress();
   const [walletBalance, setWalletBalance] = useState('0');
   const [initData, setInitData] = useState('');
@@ -519,27 +591,38 @@ export default function ArenaPage() {
       if (refreshBusy.current) return;
       refreshBusy.current = true;
       try {
-        const [rooms, nextInvitations] = await Promise.all([getPublicArenaRooms(initData), getPvpInvitations(initData)]);
+        const [rooms, nextInvitations] = await Promise.all([getPublicArenaRooms(initData, arenaMode), getPvpInvitations(initData)]);
         if (cancelled) return;
         setPublicRooms(rooms);
         setInvitations(nextInvitations);
         const current = activeRoomRef.current;
-        if (current?.isPublic) {
-          const updated = rooms.find(({ id }) => id === current.id);
+        const currentMode = current?.arenaMode ?? 'CLASSIC';
+        if (current?.isPublic && currentMode !== arenaMode && current.viewerIsParticipant && current.status !== 'COMPLETED') {
+          setArenaMode(currentMode);
+          return;
+        }
+        if (current?.isPublic && currentMode !== arenaMode && !current.viewerIsParticipant) setRoom(null);
+        const currentForMode = current?.isPublic && currentMode !== arenaMode ? null : current;
+        if (currentForMode?.isPublic) {
+          const updated = rooms.find(({ id }) => id === currentForMode.id);
           // Keep the completed room on screen for its winner animation. Jumping
           // to another public table here can hide the result and look like a
           // second round started before the first one finished.
           if (updated) setRoom(updated);
-          else if (current.status === 'COMPLETED') setRoom(null);
-          else setRoom(await getPvpRoom(current.code, initData));
-        } else if (current) {
-          setRoom(await getPvpRoom(current.code, initData));
+          else if (currentForMode.status === 'COMPLETED') setRoom(null);
+          else setRoom(await getPvpRoom(currentForMode.code, initData));
+        } else if (currentForMode) {
+          setRoom(await getPvpRoom(currentForMode.code, initData));
         } else {
           const joined = rooms.find((room) => room.viewerIsParticipant && (room.status === 'WAITING' || room.status === 'COUNTDOWN'));
           if (joined) setRoom(joined);
           else {
             const inviteCode = new URLSearchParams(window.location.search).get('room');
-            if (inviteCode) setRoom(await getPvpRoom(inviteCode, initData));
+            if (inviteCode) {
+              const invitedRoom = await getPvpRoom(inviteCode, initData);
+              setArenaMode(invitedRoom.arenaMode ?? 'CLASSIC');
+              setRoom(invitedRoom);
+            }
             else {
               const openTable = rooms.find((room) => room.isPublic && (room.status === 'WAITING' || room.status === 'COUNTDOWN'));
               if (openTable) setRoom(openTable);
@@ -556,7 +639,7 @@ export default function ArenaPage() {
     void refresh();
     const interval = window.setInterval(() => { void refresh(); }, 1500);
     return () => { cancelled = true; window.clearInterval(interval); };
-  }, [initData, setRoom, t]);
+  }, [arenaMode, initData, setRoom, t]);
 
   useEffect(() => {
     if (activeRoom?.status !== 'COUNTDOWN') return;
@@ -594,7 +677,7 @@ export default function ArenaPage() {
     if (!initData || !value.trim() || !Number.isFinite(Number(value)) || Number(value) <= 0) return;
     setBusy(true); setError('');
     try {
-      const room = await joinPublicArena(value, initData);
+      const room = await joinPublicArena(value, initData, arenaMode);
       setRoom(room); setStake(''); setRollPhase('idle');
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(room.code)}`);
     } catch (cause) {
@@ -609,7 +692,7 @@ export default function ArenaPage() {
     if (!initData) return;
     setBusy(true); setError('');
     try {
-      const joined = room.isPublic ? await joinPublicArena(stake, initData) : await joinPvpRoom(room.code, initData);
+      const joined = room.isPublic ? await joinPublicArena(stake, initData, room.arenaMode ?? arenaMode) : await joinPvpRoom(room.code, initData);
       setRoom(joined); setStake(''); setRollPhase('idle');
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(joined.code)}`);
     } catch (cause) {
@@ -626,7 +709,7 @@ export default function ArenaPage() {
     try {
       const room = await answerPvpInvitation(invitation.id, accept, initData);
       setInvitations((items) => items.filter(({ id }) => id !== invitation.id));
-      if (accept) { setRoom(room); setRollPhase('idle'); window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(room.code)}`); }
+      if (accept) { setArenaMode(room.arenaMode ?? 'CLASSIC'); setRoom(room); setRollPhase('idle'); window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(room.code)}`); }
     } catch (cause) { setError(cause instanceof Error ? cause.message : t('Could not answer invitation')); }
     finally { setBusy(false); }
   };
@@ -635,7 +718,7 @@ export default function ArenaPage() {
     if (!initData) return;
     setBusy(true); setError('');
     try {
-      const room = await createPvpRoom(stake, selectedPlayers.map(({ id }) => id), initData);
+      const room = await createPvpRoom(stake, selectedPlayers.map(({ id }) => id), initData, arenaMode);
       setRoom(room); setRollPhase('idle'); setSelectedPlayers([]); setQuery(''); setPrivateRoomOpen(false);
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(room.code)}`);
     } catch (cause) { setError(cause instanceof Error ? cause.message : t('Could not create room')); }
@@ -663,6 +746,17 @@ export default function ArenaPage() {
 
   const togglePlayer = (player: PvpPlayer) => setSelectedPlayers((items) => items.some(({ id }) => id === player.id) ? items.filter(({ id }) => id !== player.id) : [...items, player]);
 
+  const roomModeLocked = Boolean(activeRoom?.viewerIsParticipant && activeRoom.status !== 'COMPLETED') || rollPhase !== 'idle';
+  const chooseArenaMode = (mode: 'CLASSIC' | 'WHEEL') => {
+    if (roomModeLocked && (activeRoom?.arenaMode ?? 'CLASSIC') !== mode) return;
+    if (activeRoom?.isPublic && !activeRoom.viewerIsParticipant && (activeRoom.arenaMode ?? 'CLASSIC') !== mode) {
+      setRoom(null);
+      setStake('');
+      window.history.replaceState(null, '', '/arena');
+    }
+    setArenaMode(mode);
+  };
+
   return (
     <main className="min-h-screen bg-[#f5f8ff] text-slate-900">
       <div className="mx-auto min-h-screen max-w-[480px] px-4 pb-28">
@@ -676,17 +770,17 @@ export default function ArenaPage() {
           {invitations.length > 0 && <section className="mb-3 rounded-2xl border border-blue-100 bg-white p-3"><div className="mb-2 flex items-center justify-between"><h2 className="text-xs font-bold text-blue-950">{t('Arena invitations')}</h2><span className="rounded-full bg-blue-50 px-2 py-1 text-[9px] font-bold text-blue-700">{invitations.length}</span></div><div className="space-y-2">{invitations.map((invite) => <div key={invite.id} className="flex items-center gap-2 rounded-xl bg-slate-50 p-2"><span className="min-w-0 flex-1 truncate text-[10px] font-semibold text-slate-700">{nameOf(invite.sender)} · {invite.room.stakeGram} GRAM</span><button disabled={busy} onClick={() => void answerInvite(invite, true)} className="rounded-lg bg-blue-700 px-2.5 py-1.5 text-[9px] font-bold text-white">{t('Join')}</button><button disabled={busy} onClick={() => void answerInvite(invite, false)} className="rounded-lg bg-slate-200 px-2 py-1.5 text-[9px] font-bold text-slate-500">×</button></div>)}</div></section>}
 
           <div className="mb-3 grid grid-cols-2 gap-2" aria-label={t('Arena rooms')}>
-            <div className="rounded-2xl border border-blue-200 bg-blue-50/80 px-3 py-2.5 shadow-sm">
-              <p className="text-[8px] font-extrabold uppercase tracking-[.16em] text-blue-600">{t('ROOM 01 · CLASSIC')}</p>
-              <p className="mt-0.5 text-xs font-extrabold text-blue-950">ORBIT Arena</p>
-            </div>
-            <div aria-disabled="true" className="rounded-2xl border border-slate-200 bg-slate-100/80 px-3 py-2.5 opacity-75">
-              <p className="text-[8px] font-extrabold uppercase tracking-[.16em] text-slate-500">SOON</p>
-              <p className="mt-0.5 text-xs font-extrabold text-slate-500">ROOM 02 · ORBIT Arena</p>
-            </div>
+            {([{ mode: 'CLASSIC' as const, number: '01', label: 'ROOM 01 · CLASSIC', title: 'ORBIT Arena' }, { mode: 'WHEEL' as const, number: '02', label: 'ROOM 02 · WHEEL', title: 'ORBIT Wheel' }]).map(({ mode, number, label, title }) => {
+              const selected = arenaMode === mode;
+              const locked = roomModeLocked && (activeRoom?.arenaMode ?? 'CLASSIC') !== mode;
+              return <button key={mode} type="button" aria-pressed={selected} disabled={locked} onClick={() => chooseArenaMode(mode)} className={`min-w-0 rounded-2xl border px-3 py-2.5 text-left transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50 ${selected ? 'border-blue-300 bg-blue-50/90 shadow-sm' : 'border-slate-200 bg-white hover:border-blue-200'}`}>
+                <p className={`truncate text-[8px] font-extrabold uppercase tracking-[.12em] ${selected ? 'text-blue-600' : 'text-slate-500'}`}>{t(label)}</p>
+                <p className={`mt-0.5 truncate text-xs font-extrabold ${selected ? 'text-blue-950' : 'text-slate-600'}`}>{mode === 'WHEEL' ? `ORBIT ${t('Wheel')}` : title}</p>
+              </button>;
+            })}
           </div>
 
-          <SquareRoom room={activeRoom} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount)} walletBalance={walletBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} />
+          <SquareRoom room={activeRoom} arenaMode={arenaMode} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount)} walletBalance={walletBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} />
 
           {activeRoom?.isPublic === false && activeRoom.status === 'WAITING' && activeRoom.viewerIsCreator && <section className="mt-3 rounded-2xl border border-blue-100 bg-white p-3"><p className="mb-2 text-center text-[10px] text-slate-500">{t('Waiting for invited players to accept.')}</p><button disabled={busy || activeRoom.participants.length < 2} onClick={() => void startPrivateRound()} className="w-full rounded-xl bg-blue-700 py-2.5 text-xs font-bold text-white disabled:bg-slate-300">{t('Start demo round')}</button></section>}
 
@@ -717,7 +811,7 @@ export default function ArenaPage() {
             <h2 id="arena-result-title" className="mt-3 text-2xl font-black text-blue-950">{nameOf(activeRoom.winner)}</h2>
             <p className="mt-3 inline-flex items-center text-lg font-extrabold text-blue-900"><GramIcon size={20} className="mr-2 text-blue-600" />{formatGram(activeRoom.isPublic ? activeRoom.stakeGram : Number(activeRoom.stakeGram) * activeRoom.participants.length)} GRAM</p>
             <p className="mt-1 text-[10px] text-slate-500">{t('Demo result only. Nothing was transferred.')}</p>
-            <button onClick={() => setRollPhase('idle')} className="mt-5 w-full rounded-2xl bg-blue-700 py-3 text-sm font-bold text-white">{t('Continue')}</button>
+            <button onClick={() => { setRollPhase('idle'); setRoom(null); window.history.replaceState(null, '', '/arena'); }} className="mt-5 w-full rounded-2xl bg-blue-700 py-3 text-sm font-bold text-white">{t('Continue')}</button>
           </section>
         </div>}
         <BottomNav active="pvp" />
