@@ -721,6 +721,38 @@ html[data-theme='dark'] main .arena-room-shell {
   border-color: var(--orbit-border) !important;
 }
 
+html[data-theme='dark'] main .arena-last-winner {
+  border-color: var(--orbit-border) !important;
+  background: #17243a !important;
+}
+
+html[data-theme='dark'] main .arena-last-winner [class*='text-blue-950'] {
+  color: #e8eef9 !important;
+}
+
+html[data-theme='dark'] main .arena-last-winner [class*='text-blue-800'],
+html[data-theme='dark'] main .arena-last-winner [class*='text-blue-600'] {
+  color: #a9c6fb !important;
+}
+
+html[data-theme='dark'] main .arena-last-winner [class*='text-slate-400'] {
+  color: #94a4ba !important;
+}
+
+html[data-theme='dark'] main .arena-last-winner [class*='bg-blue-50'] {
+  background: #263853 !important;
+}
+
+html[data-theme='dark'] main .arena-last-winner [class*='border-blue-100'] {
+  border-color: var(--orbit-border) !important;
+}
+
+html[data-theme='dark'] main .arena-room-share {
+  border-color: var(--orbit-border) !important;
+  background: #1b293d !important;
+  color: #a9c6fb !important;
+}
+
 html[data-theme='dark'] main .arena-wheel-stage {
   background: radial-gradient(circle, #1b293d 0%, #141f30 72%, #101827 100%);
   filter: drop-shadow(0 14px 26px rgb(0 0 0 / 38%));

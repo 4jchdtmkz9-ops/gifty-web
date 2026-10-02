@@ -40,6 +40,12 @@ function latestCompletedRoom(rooms: PvpRoom[]) {
     .sort((a, b) => Date.parse(b.completedAt ?? '') - Date.parse(a.completedAt ?? ''))[0] ?? null;
 }
 
+function winnerChance(room: PvpRoom) {
+  const total = room.participants.reduce((sum, participant) => sum + Number(participant.stakeGram), 0);
+  const winnerStake = room.participants.find(({ userId }) => userId === room.winnerId)?.stakeGram;
+  return total > 0 && winnerStake ? (Number(winnerStake) / total) * 100 : 0;
+}
+
 type RollPhase = 'idle' | 'flying' | 'zooming' | 'result';
 const winnerStickers = [
   '/stickers/arena-win-3.json',
@@ -463,23 +469,23 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
   return (
     <section className="arena-room-shell overflow-hidden rounded-[28px] border border-blue-100 bg-white shadow-[0_12px_34px_rgba(21,87,213,.09)]">
       <div className="flex items-center justify-between gap-3 border-b border-blue-100/80 bg-gradient-to-r from-blue-50/80 via-white to-white px-4 py-3.5">
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[15px] bg-blue-700 text-xs font-black text-white shadow-[0_5px_14px_rgba(21,87,213,.24)]">{roomMode === 'WHEEL' ? '02' : '01'}</span>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="flex items-center gap-1.5 text-[8px] font-extrabold uppercase tracking-[.16em] text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,.12)]" />{t('CURRENT ROOM')}</p>
             <h2 className="mt-0.5 truncate text-[15px] font-extrabold tracking-tight text-blue-950">ORBIT <span className="font-semibold text-slate-500">{t(roomMode === 'WHEEL' ? 'Wheel' : 'Arena')}</span></h2>
-            {lastWinner?.winner && <div className="mt-1 flex min-w-0 items-center gap-1 text-[9px] leading-none">
-              {lastWinner.winner.photoUrl ? <img src={lastWinner.winner.photoUrl} alt="" className="h-4 w-4 shrink-0 rounded-full object-cover" /> : <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[8px] font-bold text-blue-800">{nameOf(lastWinner.winner).replace(/^@/, '').slice(0, 1).toUpperCase()}</span>}
-              <span className="shrink-0 font-semibold text-slate-500">{t('Last winner')}</span>
-              <span className="min-w-0 truncate font-bold text-blue-900">{nameOf(lastWinner.winner)}</span>
-              <span className="inline-flex shrink-0 items-center gap-0.5 font-extrabold tabular-nums text-blue-800"><GramIcon size={11} className="text-blue-600" />{formatGram(lastWinner.isPublic ? lastWinner.stakeGram : Number(lastWinner.stakeGram) * lastWinner.participants.length)}</span>
-            </div>}
           </div>
         </div>
-        {room && <button onClick={onShare} className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-blue-200/80 bg-white/90 px-3 py-2 text-[10px] font-bold text-blue-700 shadow-sm transition hover:bg-blue-50 active:scale-[.97]">
-          <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5"><path d="M11.5 3.75h4.75V8.5M16 4l-7.1 7.1M14.25 10.5v4.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V7.25a1.5 1.5 0 0 1 1.5-1.5H9.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          {t('Share room')}
-        </button>}
+        <div className="flex min-w-0 shrink-0 items-center gap-1.5">
+          <div className="arena-last-winner flex w-[188px] min-w-0 items-center gap-2 rounded-2xl border border-blue-100 bg-blue-50/70 px-2 py-1.5 shadow-[0_3px_12px_rgba(31,73,125,.06)] max-[400px]:w-[132px] max-[400px]:gap-1.5 max-[400px]:px-1.5">
+            {lastWinner?.winner?.photoUrl ? <img src={lastWinner.winner.photoUrl} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-blue-50 max-[400px]:h-7 max-[400px]:w-7" /> : <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold text-blue-800 max-[400px]:h-7 max-[400px]:w-7">{lastWinner?.winner ? nameOf(lastWinner.winner).replace(/^@/, '').slice(0, 1).toUpperCase() : '—'}</span>}
+            <span className="min-w-0 flex-1"><span className="block text-[7px] font-extrabold uppercase tracking-[.12em] text-slate-400">{t('Last winner')}</span><span className="block max-w-[92px] truncate text-[9px] font-bold text-blue-950 max-[400px]:max-w-[66px]">{lastWinner?.winner ? nameOf(lastWinner.winner) : t('No winner yet')}</span><span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold tabular-nums text-blue-800"><GramIcon size={11} className="text-blue-600" />{lastWinner?.winner ? formatGram(lastWinner.isPublic ? lastWinner.stakeGram : Number(lastWinner.stakeGram) * lastWinner.participants.length) : '—'}</span></span>
+            {lastWinner?.winner && <span className="ml-0.5 border-l border-blue-100 pl-2 text-right max-[400px]:hidden"><span className="block text-[7px] font-bold uppercase tracking-wide text-slate-400">{t('Chance')}</span><span className="text-[10px] font-bold tabular-nums text-slate-500">{winnerChance(lastWinner).toFixed(2)}%</span></span>}
+          </div>
+          {room && <button onClick={onShare} aria-label={t('Share room')} title={t('Share room')} className="arena-room-share flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-blue-200/80 bg-white/90 text-blue-700 shadow-sm transition hover:bg-blue-50 active:scale-[.97]">
+            <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5"><path d="M11.5 3.75h4.75V8.5M16 4l-7.1 7.1M14.25 10.5v4.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V7.25a1.5 1.5 0 0 1 1.5-1.5H9.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>}
+        </div>
       </div>
 
       <div className="p-4">
