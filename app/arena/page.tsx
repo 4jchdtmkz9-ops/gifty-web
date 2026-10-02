@@ -34,6 +34,12 @@ function formatGram(value: string | number) {
   return Number(value).toFixed(9).replace(/0+$/, '').replace(/\.$/, '');
 }
 
+function latestCompletedRoom(rooms: PvpRoom[]) {
+  return rooms
+    .filter((room) => room.status === 'COMPLETED' && room.winner)
+    .sort((a, b) => Date.parse(b.completedAt ?? '') - Date.parse(a.completedAt ?? ''))[0] ?? null;
+}
+
 type RollPhase = 'idle' | 'flying' | 'zooming' | 'result';
 const winnerStickers = [
   '/stickers/arena-win-3.json',
@@ -381,9 +387,10 @@ function WheelBoard({ sectors, rotation, spinning, winnerId, t }: {
   </div>;
 }
 
-function SquareRoom({ room, arenaMode, rollingSeconds, onShare, onJoin, busy, stake, setStake, onEnter, onEnterAmount, walletBalance, roundCoolingDown, rollPhase, t }: {
+function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJoin, busy, stake, setStake, onEnter, onEnterAmount, walletBalance, roundCoolingDown, rollPhase, t }: {
   room: PvpRoom | null; rollingSeconds: number | null; onShare: () => void;
   arenaMode: 'CLASSIC' | 'WHEEL';
+  lastWinner: PvpRoom | null;
   onJoin: () => void;
   busy: boolean; stake: string; setStake: (stake: string) => void; onEnter: () => void;
   onEnterAmount: (amount: string) => void; walletBalance: string; roundCoolingDown: boolean;
@@ -461,6 +468,12 @@ function SquareRoom({ room, arenaMode, rollingSeconds, onShare, onJoin, busy, st
           <div className="min-w-0">
             <p className="flex items-center gap-1.5 text-[8px] font-extrabold uppercase tracking-[.16em] text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,.12)]" />{t('CURRENT ROOM')}</p>
             <h2 className="mt-0.5 truncate text-[15px] font-extrabold tracking-tight text-blue-950">ORBIT <span className="font-semibold text-slate-500">{t(roomMode === 'WHEEL' ? 'Wheel' : 'Arena')}</span></h2>
+            {lastWinner?.winner && <div className="mt-1 flex min-w-0 items-center gap-1 text-[9px] leading-none">
+              {lastWinner.winner.photoUrl ? <img src={lastWinner.winner.photoUrl} alt="" className="h-4 w-4 shrink-0 rounded-full object-cover" /> : <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[8px] font-bold text-blue-800">{nameOf(lastWinner.winner).replace(/^@/, '').slice(0, 1).toUpperCase()}</span>}
+              <span className="shrink-0 font-semibold text-slate-500">{t('Last winner')}</span>
+              <span className="min-w-0 truncate font-bold text-blue-900">{nameOf(lastWinner.winner)}</span>
+              <span className="inline-flex shrink-0 items-center gap-0.5 font-extrabold tabular-nums text-blue-800"><GramIcon size={11} className="text-blue-600" />{formatGram(lastWinner.isPublic ? lastWinner.stakeGram : Number(lastWinner.stakeGram) * lastWinner.participants.length)}</span>
+            </div>}
           </div>
         </div>
         {room && <button onClick={onShare} className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-blue-200/80 bg-white/90 px-3 py-2 text-[10px] font-bold text-blue-700 shadow-sm transition hover:bg-blue-50 active:scale-[.97]">
@@ -558,6 +571,7 @@ export default function ArenaPage() {
   const [initData, setInitData] = useState('');
   const [authReady, setAuthReady] = useState(false);
   const [publicRooms, setPublicRooms] = useState<PvpRoom[]>([]);
+  const [lastWinners, setLastWinners] = useState<{ CLASSIC: PvpRoom | null; WHEEL: PvpRoom | null }>({ CLASSIC: null, WHEEL: null });
   const [activeRoom, setActiveRoom] = useState<PvpRoom | null>(null);
   const [invitations, setInvitations] = useState<PvpInvitation[]>([]);
   const [stake, setStake] = useState('');
@@ -606,6 +620,8 @@ export default function ArenaPage() {
         if (cancelled) return;
         setPublicRooms(rooms);
         setInvitations(nextInvitations);
+        const latestWinner = latestCompletedRoom(rooms);
+        if (latestWinner) setLastWinners((winners) => ({ ...winners, [arenaMode]: latestWinner }));
         const current = activeRoomRef.current;
         const currentMode = current?.arenaMode ?? 'CLASSIC';
         if (current?.isPublic && currentMode !== arenaMode && current.viewerIsParticipant && current.status !== 'COMPLETED') {
@@ -651,6 +667,26 @@ export default function ArenaPage() {
     const interval = window.setInterval(() => { void refresh(); }, 1500);
     return () => { cancelled = true; window.clearInterval(interval); };
   }, [arenaMode, initData, setRoom, t]);
+
+  useEffect(() => {
+    if (!initData) return;
+    let cancelled = false;
+    const refreshWinners = async () => {
+      const [classicRooms, wheelRooms] = await Promise.all([
+        getPublicArenaRooms(initData, 'CLASSIC'),
+        getPublicArenaRooms(initData, 'WHEEL'),
+      ]);
+      if (cancelled) return;
+      const classic = latestCompletedRoom(classicRooms);
+      const wheel = latestCompletedRoom(wheelRooms);
+      setLastWinners((previous) => ({ CLASSIC: classic ?? previous.CLASSIC, WHEEL: wheel ?? previous.WHEEL }));
+    };
+    void refreshWinners().catch((cause) => console.error('Could not load the last arena winners:', cause));
+    const interval = window.setInterval(() => {
+      void refreshWinners().catch((cause) => console.error('Could not refresh the last arena winners:', cause));
+    }, 30_000);
+    return () => { cancelled = true; window.clearInterval(interval); };
+  }, [initData]);
 
   useEffect(() => {
     if (activeRoom?.status !== 'COUNTDOWN') return;
@@ -791,7 +827,7 @@ export default function ArenaPage() {
             })}
           </div>
 
-          <SquareRoom room={activeRoom} arenaMode={arenaMode} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount)} walletBalance={walletBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} />
+          <SquareRoom room={activeRoom} arenaMode={arenaMode} lastWinner={lastWinners[arenaMode]} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount)} walletBalance={walletBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} />
 
           {activeRoom?.isPublic === false && activeRoom.status === 'WAITING' && activeRoom.viewerIsCreator && <section className="mt-3 rounded-2xl border border-blue-100 bg-white p-3"><p className="mb-2 text-center text-[10px] text-slate-500">{t('Waiting for invited players to accept.')}</p><button disabled={busy || activeRoom.participants.length < 2} onClick={() => void startPrivateRound()} className="w-full rounded-xl bg-blue-700 py-2.5 text-xs font-bold text-white disabled:bg-slate-300">{t('Start demo round')}</button></section>}
 
