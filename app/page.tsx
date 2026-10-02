@@ -97,7 +97,6 @@ export default function Home() {
               <span className="font-extrabold tracking-[0.14em] text-blue-700">ORBIT</span>
               <span>Balance</span>
             </p>
-            <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-[10px] font-semibold text-yellow-800">{t('ORBIT WALLET')}</span>
           </div>
 
           <div className="mt-2">
