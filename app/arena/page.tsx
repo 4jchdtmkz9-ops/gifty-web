@@ -34,6 +34,12 @@ function formatGram(value: string | number) {
   return Number(value).toFixed(9).replace(/0+$/, '').replace(/\.$/, '');
 }
 
+function latestCompletedRoom(rooms: PvpRoom[]) {
+  return rooms
+    .filter((room) => room.status === 'COMPLETED' && room.winner)
+    .sort((a, b) => Date.parse(b.completedAt ?? '') - Date.parse(a.completedAt ?? ''))[0] ?? null;
+}
+
 type RollPhase = 'idle' | 'flying' | 'zooming' | 'result';
 const winnerStickers = [
   '/stickers/arena-win-3.json',
@@ -51,7 +57,7 @@ type ArenaPolygon = ArenaPoint[];
 type WeightedTile = { id: string; player: PvpRoom['participants'][number]; x: number; y: number; width: number; height: number; polygon: ArenaPolygon };
 type ArenaPoint = { x: number; y: number };
 type ArenaMotion = { start: ArenaPoint; target: ArenaPoint; diameter: number; duration: number; directionDegrees: number; frames: Keyframe[] };
-type WheelSector = { player: PvpRoom['participants'][number]; startDegrees: number; sweepDegrees: number; color: string; path: string };
+type WheelSector = { player: PvpRoom['participants'][number]; startDegrees: number; sweepDegrees: number; color: string; path: string; avatarX: number; avatarY: number; avatarSize: number };
 
 function wheelArcPoint(degrees: number, radius = 96) {
   const radians = (degrees - 90) * Math.PI / 180;
@@ -72,7 +78,14 @@ function makeWheelSectors(participants: PvpRoom['participants'], palette: string
   let startDegrees = 0;
   return participants.map((player, index) => {
     const sweepDegrees = total > 0 ? Math.max(0, Number(player.stakeGram)) / total * 360 : 360 / participants.length;
-    const sector = { player, startDegrees, sweepDegrees, color: palette[index % palette.length], path: wheelSlicePath(startDegrees, sweepDegrees) };
+    const middle = (startDegrees + sweepDegrees / 2 - 90) * Math.PI / 180;
+    const chord = 2 * 52 * Math.sin(Math.min(sweepDegrees, 180) * Math.PI / 360);
+    const sector = {
+      player, startDegrees, sweepDegrees, color: palette[index % palette.length], path: wheelSlicePath(startDegrees, sweepDegrees),
+      avatarX: 100 + Math.cos(middle) * 52,
+      avatarY: 100 + Math.sin(middle) * 52,
+      avatarSize: Math.max(8, Math.min(24, chord * .72)),
+    };
     startDegrees += sweepDegrees;
     return sector;
   });
@@ -357,14 +370,18 @@ function WheelBoard({ sectors, rotation, spinning, winnerId, t }: {
 }) {
   return <div className="arena-wheel-stage relative mx-auto aspect-square w-full max-w-[430px] rounded-full p-[3.5%]" aria-label={t('Fortune wheel')}>
     <svg viewBox="0 0 200 200" className="arena-wheel-disc absolute inset-0 h-full w-full overflow-visible" style={{ transform: `rotate(${rotation}deg)`, transition: spinning ? 'transform 8.65s cubic-bezier(.07,.76,.12,1)' : 'none' }} role="img" aria-label={t('Fortune wheel')}>
-      <circle cx="100" cy="100" r="97" fill="#0e1b30" />
-      {sectors.length === 1 ? <circle cx="100" cy="100" r="96" fill={sectors[0].color} stroke="white" strokeWidth="1.5" /> : sectors.map((sector) => <path key={sector.player.id} d={sector.path} fill={sector.color} stroke={sector.player.userId === winnerId ? '#fff4c2' : '#fff'} strokeWidth={sector.player.userId === winnerId ? 2.4 : 1.5} strokeLinejoin="round" />)}
-      <circle cx="100" cy="100" r="18" fill="#fff" stroke="#dbe8ff" strokeWidth="3" />
-      <circle cx="100" cy="100" r="7" fill="#1557d5" />
+      <defs>{sectors.map((sector, index) => <clipPath key={sector.player.id} id={`orbit-wheel-avatar-${index}`}><circle cx={sector.avatarX} cy={sector.avatarY} r={sector.avatarSize / 2} /></clipPath>)}</defs>
+      {sectors.length === 1 ? <circle cx="100" cy="100" r="96" fill={sectors[0].color} stroke="rgb(255 255 255 / 20%)" strokeWidth="1.25" /> : sectors.map((sector) => <path key={sector.player.id} d={sector.path} fill={sector.color} stroke={sector.player.userId === winnerId ? '#fff4c2' : 'rgb(255 255 255 / 24%)'} strokeWidth={sector.player.userId === winnerId ? 2 : 1.25} strokeLinejoin="round" />)}
+      {sectors.map((sector, index) => <g key={`avatar-${sector.player.id}`}>
+        <circle cx={sector.avatarX} cy={sector.avatarY} r={sector.avatarSize / 2 + 1.5} fill="rgb(7 20 39 / 45%)" />
+        {sector.player.user.photoUrl ? <image href={sector.player.user.photoUrl} x={sector.avatarX - sector.avatarSize / 2} y={sector.avatarY - sector.avatarSize / 2} width={sector.avatarSize} height={sector.avatarSize} preserveAspectRatio="xMidYMid slice" clipPath={`url(#orbit-wheel-avatar-${index})`} /> : <g>
+          <circle cx={sector.avatarX} cy={sector.avatarY} r={sector.avatarSize / 2} fill="#f3f7ff" />
+          <text x={sector.avatarX} y={sector.avatarY + sector.avatarSize * .34} textAnchor="middle" fontSize={Math.max(6, sector.avatarSize * .62)} fontWeight="800" fill="#183563">{nameOf(sector.player.user).replace(/^@/, '').slice(0, 1).toUpperCase()}</text>
+        </g>}
+      </g>)}
     </svg>
     <svg viewBox="0 0 200 200" className="pointer-events-none absolute inset-0 z-10 h-full w-full drop-shadow-[0_2px_3px_rgba(8,20,44,.45)]" aria-hidden="true">
-      <path d="M100 31 87 5h26z" fill="#fff" stroke="#17355e" strokeWidth="2.5" strokeLinejoin="round" />
-      <circle cx="100" cy="8" r="3" fill="#f4bf28" />
+      <path d="M82 7c-5 0-7 6-3 10l16 18c3 4 7 4 10 0l16-18c4-4 2-10-3-10-2 0-4 1-6 3l-12 12L88 10c-2-2-4-3-6-3Z" fill="#fff" />
     </svg>
     {!sectors.length && <div className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center px-10 text-center"><span className="rounded-2xl bg-slate-950/60 px-4 py-2 text-xs font-semibold text-white shadow-lg">{t('Choose your stake to enter')}</span></div>}
   </div>;
@@ -547,6 +564,7 @@ export default function ArenaPage() {
   const [initData, setInitData] = useState('');
   const [authReady, setAuthReady] = useState(false);
   const [publicRooms, setPublicRooms] = useState<PvpRoom[]>([]);
+  const [lastWheelWinner, setLastWheelWinner] = useState<PvpRoom | null>(null);
   const [activeRoom, setActiveRoom] = useState<PvpRoom | null>(null);
   const [invitations, setInvitations] = useState<PvpInvitation[]>([]);
   const [stake, setStake] = useState('');
@@ -595,6 +613,10 @@ export default function ArenaPage() {
         if (cancelled) return;
         setPublicRooms(rooms);
         setInvitations(nextInvitations);
+        if (arenaMode === 'WHEEL') {
+          const latestWheelWinner = latestCompletedRoom(rooms);
+          if (latestWheelWinner) setLastWheelWinner(latestWheelWinner);
+        }
         const current = activeRoomRef.current;
         const currentMode = current?.arenaMode ?? 'CLASSIC';
         if (current?.isPublic && currentMode !== arenaMode && current.viewerIsParticipant && current.status !== 'COMPLETED') {
@@ -640,6 +662,25 @@ export default function ArenaPage() {
     const interval = window.setInterval(() => { void refresh(); }, 1500);
     return () => { cancelled = true; window.clearInterval(interval); };
   }, [arenaMode, initData, setRoom, t]);
+
+  useEffect(() => {
+    if (!initData) return;
+    let cancelled = false;
+    const refreshWheelWinner = async () => {
+      try {
+        const rooms = await getPublicArenaRooms(initData, 'WHEEL');
+        if (!cancelled) {
+          const latest = latestCompletedRoom(rooms);
+          if (latest) setLastWheelWinner(latest);
+        }
+      } catch (cause) {
+        if (!cancelled) console.error('Could not load the last wheel winner:', cause);
+      }
+    };
+    void refreshWheelWinner();
+    const interval = window.setInterval(() => { void refreshWheelWinner(); }, 30_000);
+    return () => { cancelled = true; window.clearInterval(interval); };
+  }, [initData]);
 
   useEffect(() => {
     if (activeRoom?.status !== 'COUNTDOWN') return;
@@ -776,6 +817,13 @@ export default function ArenaPage() {
               return <button key={mode} type="button" aria-pressed={selected} disabled={locked} onClick={() => chooseArenaMode(mode)} className={`min-w-0 rounded-2xl border px-3 py-2.5 text-left transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50 ${selected ? 'border-blue-300 bg-blue-50/90 shadow-sm' : 'border-slate-200 bg-white hover:border-blue-200'}`}>
                 <p className={`truncate text-[8px] font-extrabold uppercase tracking-[.12em] ${selected ? 'text-blue-600' : 'text-slate-500'}`}>{t(label)}</p>
                 <p className={`mt-0.5 truncate text-xs font-extrabold ${selected ? 'text-blue-950' : 'text-slate-600'}`}>{mode === 'WHEEL' ? `ORBIT ${t('Wheel')}` : title}</p>
+                {mode === 'WHEEL' && <div className="mt-2 flex min-w-0 items-center gap-1.5 border-t border-blue-100/80 pt-1.5">
+                  {lastWheelWinner?.winner ? <>
+                    {lastWheelWinner.winner.photoUrl ? <img src={lastWheelWinner.winner.photoUrl} alt="" className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-white" /> : <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/80 text-[10px] font-bold text-blue-800">{nameOf(lastWheelWinner.winner).replace(/^@/, '').slice(0, 1).toUpperCase()}</span>}
+                    <span className="min-w-0 flex-1"><span className="block text-[8px] font-semibold uppercase tracking-wide text-slate-500">{t('Last winner')}</span><span className="block truncate text-[10px] font-bold text-blue-950">{nameOf(lastWheelWinner.winner)}</span></span>
+                    <span className="inline-flex shrink-0 items-center gap-0.5 text-[9px] font-extrabold tabular-nums text-blue-800"><GramIcon size={12} className="text-blue-600" />{formatGram(lastWheelWinner.stakeGram)}</span>
+                  </> : <span className="py-1 text-[9px] font-medium text-slate-500">{t('No winner yet')}</span>}
+                </div>}
               </button>;
             })}
           </div>
