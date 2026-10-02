@@ -89,7 +89,10 @@ export default function Home() {
         {/* Balance */}
         <section className="mb-5 overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-yellow-50 p-5 shadow-[0_14px_36px_rgba(21,87,213,0.08)]">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-slate-500">{t('Bot balance')}</p>
+            <p className="flex items-center gap-1.5 text-sm font-medium text-slate-500" aria-label="ORBIT Balance">
+              <span className="font-extrabold tracking-[0.14em] text-blue-700">ORBIT</span>
+              <span>Balance</span>
+            </p>
             <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-[10px] font-semibold text-yellow-800">{t('ORBIT WALLET')}</span>
           </div>
 
