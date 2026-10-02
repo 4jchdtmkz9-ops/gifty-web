@@ -34,12 +34,6 @@ function formatGram(value: string | number) {
   return Number(value).toFixed(9).replace(/0+$/, '').replace(/\.$/, '');
 }
 
-function latestCompletedRoom(rooms: PvpRoom[]) {
-  return rooms
-    .filter((room) => room.status === 'COMPLETED' && room.winner)
-    .sort((a, b) => Date.parse(b.completedAt ?? '') - Date.parse(a.completedAt ?? ''))[0] ?? null;
-}
-
 type RollPhase = 'idle' | 'flying' | 'zooming' | 'result';
 const winnerStickers = [
   '/stickers/arena-win-3.json',
@@ -381,7 +375,7 @@ function WheelBoard({ sectors, rotation, spinning, winnerId, t }: {
       </g>)}
     </svg>
     <svg viewBox="0 0 200 200" className="pointer-events-none absolute inset-0 z-10 h-full w-full drop-shadow-[0_2px_3px_rgba(8,20,44,.45)]" aria-hidden="true">
-      <path d="M82 7c-5 0-7 6-3 10l16 18c3 4 7 4 10 0l16-18c4-4 2-10-3-10-2 0-4 1-6 3l-12 12L88 10c-2-2-4-3-6-3Z" fill="#fff" />
+      <path transform="translate(100 21) scale(.5) translate(-100 -21)" d="M82 7c-5 0-7 6-3 10l16 18c3 4 7 4 10 0l16-18c4-4 2-10-3-10-2 0-4 1-6 3l-12 12L88 10c-2-2-4-3-6-3Z" fill="#fff" />
     </svg>
     {!sectors.length && <div className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center px-10 text-center"><span className="rounded-2xl bg-slate-950/60 px-4 py-2 text-xs font-semibold text-white shadow-lg">{t('Choose your stake to enter')}</span></div>}
   </div>;
@@ -564,7 +558,6 @@ export default function ArenaPage() {
   const [initData, setInitData] = useState('');
   const [authReady, setAuthReady] = useState(false);
   const [publicRooms, setPublicRooms] = useState<PvpRoom[]>([]);
-  const [lastWheelWinner, setLastWheelWinner] = useState<PvpRoom | null>(null);
   const [activeRoom, setActiveRoom] = useState<PvpRoom | null>(null);
   const [invitations, setInvitations] = useState<PvpInvitation[]>([]);
   const [stake, setStake] = useState('');
@@ -613,10 +606,6 @@ export default function ArenaPage() {
         if (cancelled) return;
         setPublicRooms(rooms);
         setInvitations(nextInvitations);
-        if (arenaMode === 'WHEEL') {
-          const latestWheelWinner = latestCompletedRoom(rooms);
-          if (latestWheelWinner) setLastWheelWinner(latestWheelWinner);
-        }
         const current = activeRoomRef.current;
         const currentMode = current?.arenaMode ?? 'CLASSIC';
         if (current?.isPublic && currentMode !== arenaMode && current.viewerIsParticipant && current.status !== 'COMPLETED') {
@@ -662,25 +651,6 @@ export default function ArenaPage() {
     const interval = window.setInterval(() => { void refresh(); }, 1500);
     return () => { cancelled = true; window.clearInterval(interval); };
   }, [arenaMode, initData, setRoom, t]);
-
-  useEffect(() => {
-    if (!initData) return;
-    let cancelled = false;
-    const refreshWheelWinner = async () => {
-      try {
-        const rooms = await getPublicArenaRooms(initData, 'WHEEL');
-        if (!cancelled) {
-          const latest = latestCompletedRoom(rooms);
-          if (latest) setLastWheelWinner(latest);
-        }
-      } catch (cause) {
-        if (!cancelled) console.error('Could not load the last wheel winner:', cause);
-      }
-    };
-    void refreshWheelWinner();
-    const interval = window.setInterval(() => { void refreshWheelWinner(); }, 30_000);
-    return () => { cancelled = true; window.clearInterval(interval); };
-  }, [initData]);
 
   useEffect(() => {
     if (activeRoom?.status !== 'COUNTDOWN') return;
@@ -817,13 +787,6 @@ export default function ArenaPage() {
               return <button key={mode} type="button" aria-pressed={selected} disabled={locked} onClick={() => chooseArenaMode(mode)} className={`min-w-0 rounded-2xl border px-3 py-2.5 text-left transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50 ${selected ? 'border-blue-300 bg-blue-50/90 shadow-sm' : 'border-slate-200 bg-white hover:border-blue-200'}`}>
                 <p className={`truncate text-[8px] font-extrabold uppercase tracking-[.12em] ${selected ? 'text-blue-600' : 'text-slate-500'}`}>{t(label)}</p>
                 <p className={`mt-0.5 truncate text-xs font-extrabold ${selected ? 'text-blue-950' : 'text-slate-600'}`}>{mode === 'WHEEL' ? `ORBIT ${t('Wheel')}` : title}</p>
-                {mode === 'WHEEL' && <div className="mt-2 flex min-w-0 items-center gap-1.5 border-t border-blue-100/80 pt-1.5">
-                  {lastWheelWinner?.winner ? <>
-                    {lastWheelWinner.winner.photoUrl ? <img src={lastWheelWinner.winner.photoUrl} alt="" className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-white" /> : <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/80 text-[10px] font-bold text-blue-800">{nameOf(lastWheelWinner.winner).replace(/^@/, '').slice(0, 1).toUpperCase()}</span>}
-                    <span className="min-w-0 flex-1"><span className="block text-[8px] font-semibold uppercase tracking-wide text-slate-500">{t('Last winner')}</span><span className="block truncate text-[10px] font-bold text-blue-950">{nameOf(lastWheelWinner.winner)}</span></span>
-                    <span className="inline-flex shrink-0 items-center gap-0.5 text-[9px] font-extrabold tabular-nums text-blue-800"><GramIcon size={12} className="text-blue-600" />{formatGram(lastWheelWinner.stakeGram)}</span>
-                  </> : <span className="py-1 text-[9px] font-medium text-slate-500">{t('No winner yet')}</span>}
-                </div>}
               </button>;
             })}
           </div>
