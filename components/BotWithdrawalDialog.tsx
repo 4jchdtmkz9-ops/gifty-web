@@ -45,7 +45,7 @@ export default function BotWithdrawalDialog({ open, configured, onClose, onUpdat
     setError('');
     if (!configured) { setError(t('Withdrawals are not configured yet.')); return; }
     if (!address) { setError(t('Connect your TON wallet before withdrawing.')); return; }
-    if (!/^\d+(\.\d{1,9})?$/.test(amount) || Number(amount) < 0.01) { setError(t('Minimum withdrawal is 0.01 GRAM')); return; }
+    if (!/^\d+(\.\d{1,9})?$/.test(amount) || Number(amount) < 1) { setError(t('Minimum withdrawal is 1 TON')); return; }
     setSubmitting(true);
     try {
       await syncTelegramProfile(address);
@@ -78,10 +78,10 @@ export default function BotWithdrawalDialog({ open, configured, onClose, onUpdat
         <label htmlFor="withdraw-amount" className="mt-4 block text-xs font-bold text-slate-700">{t('Withdrawal amount')}</label>
         <div className="mt-1.5 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus-within:border-blue-400">
           <GramIcon size={18} className="shrink-0 text-blue-600" />
-          <input id="withdraw-amount" type="number" inputMode="decimal" min="0.01" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0.01" disabled={submitting} className="min-w-0 flex-1 bg-transparent text-lg font-bold tabular-nums text-slate-900 outline-none" />
+          <input id="withdraw-amount" type="number" inputMode="decimal" min="1" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="1" disabled={submitting} className="min-w-0 flex-1 bg-transparent text-lg font-bold tabular-nums text-slate-900 outline-none" />
           <span className="text-xs font-bold text-slate-500">GRAM</span>
         </div>
-        <p className="mt-1.5 text-[10px] text-slate-500">{t('Minimum withdrawal is 0.01 GRAM. Funds go to your connected wallet.')}</p>
+        <p className="mt-1.5 text-[10px] text-slate-500">{t('Minimum withdrawal is 1 TON. The same amount is deducted from your ORBIT balance.')}</p>
         <p className="mt-2 truncate text-[10px] text-slate-500">{address ? `${t('To connected wallet')}: ${address}` : t('Connect your TON wallet before withdrawing.')}</p>
       </>}
 
