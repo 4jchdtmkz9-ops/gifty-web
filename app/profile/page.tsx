@@ -339,13 +339,13 @@ export default function ProfilePage() {
           {history.length === 0 ? <EmptyState icon="🕘" title={t("No activity yet")} detail={t("Completed actions and past offers will appear here.")} /> : (
             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
               {visibleHistory.map((item, index) => <div key={item.id} className={`flex items-center gap-3 p-4 ${index < visibleHistory.length - 1 ? "border-b border-slate-100" : ""}`}>
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${item.kind === "BALANCE" ? item.event === "DEPOSIT" ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-700" : "bg-slate-50"}`}>{item.kind === "BALANCE" ? item.event === "DEPOSIT" ? "↓" : "↑" : item.gift?.emoji || (item.kind === "OFFER" ? "💬" : "💎")}</div>
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${item.kind === "BALANCE" ? item.event === "DEPOSIT" || item.event.endsWith("PAYOUT") || item.event.endsWith("REFUND") ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-700" : "bg-slate-50"}`}>{item.kind === "BALANCE" ? item.event === "DEPOSIT" || item.event.endsWith("STAKE") ? "↓" : "↑" : item.gift?.emoji || (item.kind === "OFFER" ? "💬" : "💎")}</div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{historyTitle(item, t)}</p>
-                  <p className="mt-1 truncate text-xs text-slate-500">{item.kind === "BALANCE" ? item.txHash ? `TX ${item.txHash.slice(0, 12)}…` : t(item.event === "DEPOSIT" ? "ORBIT balance deposit" : "ORBIT balance withdrawal") : item.gift?.name || t("Gift")} · {new Date(item.createdAt).toLocaleString(language)}</p>
+                  <p className="mt-1 truncate text-xs text-slate-500">{item.kind === "BALANCE" ? item.txHash ? `TX ${item.txHash.slice(0, 12)}…` : item.event.startsWith("PVP_") || item.event === "LUCKY_SETTLEMENT" ? t("Game balance settlement") : t(item.event === "DEPOSIT" ? "ORBIT balance deposit" : "ORBIT balance withdrawal") : item.gift?.name || t("Gift")} · {new Date(item.createdAt).toLocaleString(language)}</p>
                 </div>
                 <div className="text-right">
-                  {item.amountTon != null && <p className={`text-sm font-semibold ${item.event === "DEPOSIT" ? "text-emerald-700" : ""}`}>{item.event === "DEPOSIT" ? "+" : item.event === "WITHDRAWAL" ? "−" : ""}<GramIcon size={14} className="mx-1 text-blue-700" />{formatTon(item.amountTon)} GRAM</p>}
+                  {item.amountTon != null && <p className={`text-sm font-semibold ${item.event === "DEPOSIT" || item.event.endsWith("PAYOUT") || item.event.endsWith("REFUND") || (item.event === "LUCKY_SETTLEMENT" && Number(item.amountTon) > 0) ? "text-emerald-700" : ""}`}>{item.event === "DEPOSIT" || item.event.endsWith("PAYOUT") || item.event.endsWith("REFUND") ? "+" : item.event === "WITHDRAWAL" || item.event.endsWith("STAKE") || (item.event === "LUCKY_SETTLEMENT" && Number(item.amountTon) < 0) ? "−" : ""}<GramIcon size={14} className="mx-1 text-blue-700" />{formatTon(Math.abs(Number(item.amountTon)))} GRAM</p>}
                   <p className="mt-1 text-[10px] uppercase text-slate-500">{offerStatusLabel(item.status, t)}</p>
                 </div>
               </div>)}
@@ -385,6 +385,10 @@ export default function ProfilePage() {
 }
 
 function historyTitle(item: HistoryItem, t: (key: string) => string) {
+  if (item.event === "PVP_STAKE") return t("Arena stake");
+  if (item.event === "PVP_PAYOUT") return t("Arena win");
+  if (item.event === "PVP_REFUND") return t("Arena refund");
+  if (item.event === "LUCKY_SETTLEMENT") return t("Lucky settlement");
   if (item.event === "DEPOSIT") return t("Deposit received");
   if (item.event === "WITHDRAWAL") return t("Wallet withdrawal");
   if (item.kind === "OFFER") {

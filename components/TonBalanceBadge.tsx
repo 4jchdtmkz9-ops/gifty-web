@@ -16,9 +16,11 @@ export default function TonBalanceBadge() {
       .then((data) => { if (active) setBalance(data.balanceGram); })
       .catch((error) => { console.error('ORBIT balance error:', error); });
     void refresh();
+    window.addEventListener('orbit-balance-updated', refresh);
     const interval = window.setInterval(() => void refresh(), 15_000);
     return () => {
       active = false;
+      window.removeEventListener('orbit-balance-updated', refresh);
       window.clearInterval(interval);
     };
   }, []);

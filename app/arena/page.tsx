@@ -557,7 +557,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
           </div>
         </section>}
 
-        {(!room || room.isPublic) && <p className="mt-2 text-center text-[10px] text-slate-500">{t('Your square size and win chance match your stake.')} · {t('DEMO · NO PAYMENT')}</p>}
+        {(!room || room.isPublic) && <p className="mt-2 text-center text-[10px] text-slate-500">{t('Your square size and win chance match your stake.')} · {t('Stakes and winnings are settled from your ORBIT balance.')}</p>}
         {room?.isPublic === false && !room.viewerIsParticipant && room.status === 'WAITING' && <button onClick={onJoin} disabled={busy} className="mt-3 w-full rounded-xl bg-blue-700 py-3 text-xs font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : t('Join private room')} · {formatGram(room.stakeGram)} GRAM</button>}
 
         {(!room || room.status === 'WAITING') && <div className="arena-waiting-status mt-3 flex items-center justify-center gap-2 rounded-xl py-2.5 text-center"><span className="arena-waiting-dot h-2 w-2 shrink-0 rounded-full"/><p className="text-[10px] font-semibold">{!room ? t('Waiting for players') : participants.length < 2 ? t('Waiting for one more player') : t('Waiting for players')}</p></div>}
@@ -591,7 +591,7 @@ export default function ArenaPage() {
   const activeRoomRef = useRef<PvpRoom | null>(null);
   const refreshBusy = useRef(false);
   const setRoom = useCallback((room: PvpRoom | null) => { activeRoomRef.current = room; setActiveRoom(room); }, []);
-  const winnerPrize = activeRoom ? Number(activeRoom.stakeGram) * (activeRoom.isPublic ? 1 : activeRoom.participants.length) : 0;
+  const winnerPrize = activeRoom ? Number(activeRoom.stakeGram) : 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -703,6 +703,11 @@ export default function ArenaPage() {
     const timer = window.setInterval(() => setNow(Date.now()), 200);
     return () => window.clearInterval(timer);
   }, [activeRoom?.status, activeRoom?.countdownEndsAt]);
+
+  useEffect(() => {
+    if (!activeRoom || activeRoom.status !== 'COMPLETED') return;
+    void getBotBalance().then((result) => setBotBalance(result.balanceGram)).catch((cause) => console.error('Could not refresh ORBIT balance after arena settlement:', cause));
+  }, [activeRoom?.id, activeRoom?.status]);
 
   useEffect(() => {
     if (activeRoom?.status !== 'COMPLETED') return;
@@ -819,7 +824,7 @@ export default function ArenaPage() {
       <div className="mx-auto min-h-screen max-w-[480px] px-4 pb-28">
         <header className="flex items-center justify-between gap-3 py-4">
           <div><OrbitWordmark /><h1 className="mt-1 text-2xl font-bold tracking-tight text-blue-950">{t('Arena')}</h1></div>
-          <div className="flex shrink-0 flex-col items-end gap-1.5"><TonBalanceBadge /><span className="rounded-full bg-yellow-50 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wide text-yellow-800">{t('DEMO')}</span></div>
+          <TonBalanceBadge />
         </header>
 
         {!authReady ? <section className="rounded-3xl border border-blue-100 bg-white p-5 text-center text-sm text-slate-500">{t('Connecting to Telegram…')}</section> : !initData ? <section className="rounded-3xl border border-blue-100 bg-white p-5 text-center"><p className="font-semibold text-slate-800">{t('Open ORBIT inside Telegram')}</p><p className="mt-2 text-xs text-slate-500">{t('Telegram sign-in is needed for shared rooms and invitations.')}</p></section> : <>
@@ -839,7 +844,7 @@ export default function ArenaPage() {
 
           <SquareRoom room={activeRoom} arenaMode={arenaMode} lastWinner={lastWinners[arenaMode]} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount)} botBalance={botBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} />
 
-          {activeRoom?.isPublic === false && activeRoom.status === 'WAITING' && activeRoom.viewerIsCreator && <section className="mt-3 rounded-2xl border border-blue-100 bg-white p-3"><p className="mb-2 text-center text-[10px] text-slate-500">{t('Waiting for invited players to accept.')}</p><button disabled={busy || activeRoom.participants.length < 2} onClick={() => void startPrivateRound()} className="w-full rounded-xl bg-blue-700 py-2.5 text-xs font-bold text-white disabled:bg-slate-300">{t('Start demo round')}</button></section>}
+          {activeRoom?.isPublic === false && activeRoom.status === 'WAITING' && activeRoom.viewerIsCreator && <section className="mt-3 rounded-2xl border border-blue-100 bg-white p-3"><p className="mb-2 text-center text-[10px] text-slate-500">{t('Waiting for invited players to accept.')}</p><button disabled={busy || activeRoom.participants.length < 2} onClick={() => void startPrivateRound()} className="w-full rounded-xl bg-blue-700 py-2.5 text-xs font-bold text-white disabled:bg-slate-300">{t('Start round')}</button></section>}
 
           <button type="button" onClick={() => setPrivateRoomOpen((open) => !open)} aria-expanded={privateRoomOpen} className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50/90 via-white to-white px-3 py-2.5 text-left shadow-[0_5px_18px_rgba(21,87,213,.06)] transition hover:border-blue-200 active:scale-[.99]">
             <TelegramTgsSticker size={42} src="/stickers/arena-custom-room.json" className="shrink-0" fallback={<span className="flex h-full w-full items-center justify-center text-xl" aria-hidden="true">↗</span>} />
@@ -866,8 +871,8 @@ export default function ArenaPage() {
             </div>
             {activeRoom.winner?.photoUrl && <img src={activeRoom.winner.photoUrl} alt="" className="mx-auto mt-4 h-20 w-20 rounded-full border-4 border-yellow-300 object-cover" />}
             <h2 id="arena-result-title" className="mt-3 text-2xl font-black text-blue-950">{nameOf(activeRoom.winner)}</h2>
-            <p className="mt-3 inline-flex items-center text-lg font-extrabold text-blue-900"><GramIcon size={20} className="mr-2 text-blue-600" />{formatGram(activeRoom.isPublic ? activeRoom.stakeGram : Number(activeRoom.stakeGram) * activeRoom.participants.length)} GRAM</p>
-            <p className="mt-1 text-[10px] text-slate-500">{t('Demo result only. Nothing was transferred.')}</p>
+            <p className="mt-3 inline-flex items-center text-lg font-extrabold text-blue-900"><GramIcon size={20} className="mr-2 text-blue-600" />{formatGram(activeRoom.stakeGram)} GRAM</p>
+            <p className="mt-1 text-[10px] text-slate-500">{t('The full pot was credited to the winner’s ORBIT balance.')}</p>
             <button onClick={() => { setRollPhase('idle'); setRoom(null); window.history.replaceState(null, '', '/arena'); }} className="mt-5 w-full rounded-2xl bg-blue-700 py-3 text-sm font-bold text-white">{t('Continue')}</button>
           </section>
         </div>}

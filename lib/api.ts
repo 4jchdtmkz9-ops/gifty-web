@@ -23,7 +23,9 @@ async function pvpRequest<T>(path: string, initData: string, body?: Record<strin
     cache: 'no-store',
   });
   if (!response.ok) throw new Error(await responseError(response, 'Arena request failed'));
-  return response.json() as Promise<T>;
+  const result = await response.json() as T;
+  if (body && typeof window !== 'undefined') window.dispatchEvent(new Event('orbit-balance-updated'));
+  return result;
 }
 
 export async function searchPvpUsers(query: string, initData: string) {
@@ -187,6 +189,31 @@ export async function getTonBalance(address: string) {
 }
 
 export type BotBalance = { balanceGram: string; depositConfigured: boolean; withdrawalConfigured: boolean };
+
+export type GameSettlement = {
+  reward: { id: string; name: string; valueGram: string; kind?: 'gram' | 'nft'; chance?: number };
+  balanceGram: string;
+};
+
+async function gameRequest(path: string, requestId: string): Promise<GameSettlement> {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Open ORBIT inside Telegram to play');
+  const response = await fetch(`${API_URL}/games/${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initData, requestId }),
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'Could not settle game'));
+  const result = await response.json() as GameSettlement;
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('orbit-balance-updated'));
+  return result;
+}
+
+export function spinLuckyForBalance(requestId: string) {
+  return gameRequest('lucky/spin', requestId);
+}
+
 export type BotDepositIntent = {
   id: string;
   amountTon: string;

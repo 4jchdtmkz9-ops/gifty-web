@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import BottomNav from '../../components/BottomNav';
 import GramIcon from '../../components/GramIcon';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
 import OrbitWordmark from '../../components/OrbitWordmark';
 import { useOrbitLanguage } from '../../components/OrbitLanguageContext';
+import { spinLuckyForBalance } from '../../lib/api';
 
 type LuckyReward = {
   id: string;
@@ -48,19 +49,6 @@ function CasinoChip() {
   );
 }
 
-function chooseWeightedReward() {
-  const available = rewards.filter((reward) => reward.chance > 0);
-  const roll = Math.random() * available.reduce((total, reward) => total + reward.chance, 0);
-  let threshold = 0;
-
-  for (const reward of available) {
-    threshold += reward.chance;
-    if (roll < threshold) return reward;
-  }
-
-  return available[available.length - 1];
-}
-
 function RewardArt({ reward, large = false }: { reward: LuckyReward; large?: boolean }) {
   const size = large ? 'h-32 w-32' : 'h-14 w-14';
 
@@ -81,13 +69,32 @@ export default function LuckyPage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [rolling, setRolling] = useState(false);
   const [result, setResult] = useState<LuckyReward | null>(null);
+  const [error, setError] = useState('');
+  const requestIdRef = useRef<string | null>(null);
 
-  function playLucky() {
+  async function playLucky() {
     if (rolling) return;
 
     setRolling(true);
     setResult(null);
     setSelected(null);
+    setError('');
+    let settled: Awaited<ReturnType<typeof spinLuckyForBalance>>;
+    try {
+      requestIdRef.current ??= crypto.randomUUID();
+      settled = await spinLuckyForBalance(requestIdRef.current);
+      requestIdRef.current = null;
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t('Could not spin. Try again.'));
+      setRolling(false);
+      return;
+    }
+    const actualReward = rewards.find((reward) => reward.id === settled.reward.id);
+    if (!actualReward) {
+      setError(t('Could not spin. Try again.'));
+      setRolling(false);
+      return;
+    }
 
     let count = 0;
     const interval = setInterval(() => {
@@ -97,11 +104,10 @@ export default function LuckyPage() {
 
       if (count >= 16) {
         clearInterval(interval);
-        const winner = chooseWeightedReward();
-        setSelected(winner.id);
+        setSelected(actualReward.id);
 
         setTimeout(() => {
-          setResult(winner);
+          setResult(actualReward);
           setRolling(false);
         }, 550);
       }
@@ -129,8 +135,10 @@ export default function LuckyPage() {
             <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{t('Spin cost')}</span>
             <span className="mt-0.5 flex items-center justify-center text-lg font-bold leading-tight text-slate-900"><GramIcon size={19} className="mr-1.5 text-blue-700" />{spinPriceGram} GRAM</span>
           </div>
-          <p className="mt-2 text-[10px] leading-4 text-slate-400">{t('Demo mode: no payment or inventory changes.')}</p>
+          <p className="mt-2 text-[10px] leading-4 text-slate-400">{t('1 GRAM is taken from your ORBIT balance. Collectible prizes are credited at their displayed GRAM value.')}</p>
         </section>
+
+        {error && <p role="alert" className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-center text-xs font-medium text-red-700">{error}</p>}
 
         <section className="mt-4">
           <div className="mb-2 flex items-center justify-between">
@@ -162,11 +170,11 @@ export default function LuckyPage() {
         {result && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/45 px-5 backdrop-blur-sm" onClick={() => setResult(null)}>
             <div role="dialog" aria-modal="true" aria-labelledby="lucky-result-title" onClick={(event) => event.stopPropagation()} className="w-full max-w-[360px] rounded-3xl border border-slate-200 bg-white p-7 text-center shadow-2xl">
-              <p className="text-sm text-slate-500">{t('Demo result')}</p>
+              <p className="text-sm text-slate-500">{t('Your result')}</p>
               <div className="my-6 flex justify-center"><RewardArt reward={result} large /></div>
               <h2 id="lucky-result-title" className="text-2xl font-bold">{result.kind === 'gram' ? t('You got') : result.name}</h2>
               <p className="mt-2 flex items-center justify-center text-lg font-semibold text-slate-700"><GramIcon size={17} className="mr-1 text-blue-700" />{result.valueGram}{result.kind === 'gram' ? '' : ` ${t('GRAM value')}`}</p>
-              <p className="mt-2 text-xs text-slate-500">{t('Demo only. Nothing was charged or added to your inventory.')}</p>
+              <p className="mt-2 text-xs text-slate-500">{t(result.kind === 'nft' ? 'The collectible is not transferred yet. Its displayed value was credited to your ORBIT balance.' : 'The prize was credited to your ORBIT balance.')}</p>
               <button type="button" onClick={() => setResult(null)} className="mt-6 w-full rounded-2xl bg-blue-700 py-4 font-semibold text-white">{t('Continue')}</button>
             </div>
           </div>
