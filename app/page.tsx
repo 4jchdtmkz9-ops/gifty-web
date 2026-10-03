@@ -91,7 +91,7 @@ export default function Home() {
         </header>
 
         {/* Balance */}
-        <section className="mb-5 overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-yellow-50 p-5 shadow-[0_14px_36px_rgba(21,87,213,0.08)]">
+        <section className="mb-5 overflow-hidden rounded-3xl border border-blue-100 bg-white p-5 shadow-[0_14px_36px_rgba(21,87,213,0.08)]">
           <div className="flex items-center justify-between">
             <p className="flex items-center gap-1.5 text-sm font-medium text-slate-500" aria-label="ORBIT Balance">
               <span className="font-extrabold tracking-[0.14em] text-blue-700">ORBIT</span>
