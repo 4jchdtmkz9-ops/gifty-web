@@ -418,8 +418,9 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
   const zoomStyle = zoomPoint ? { '--zoom-x': `${zoomPoint.x}%`, '--zoom-y': `${zoomPoint.y}%` } as CSSProperties : undefined;
   const isCompleted = room?.status === 'COMPLETED';
   const controlsDisabled = busy || rollPhase !== 'idle' || roundCoolingDown || isCompleted;
-  const currentStake = Number(room?.viewerStakeGram ?? 0);
-  const allInAmount = Math.max(0, Number(botBalance) - (room?.status === 'COUNTDOWN' && room.viewerIsParticipant ? currentStake : 0));
+  // The current stake was already debited; All in adds only the remaining
+  // spendable balance and must never subtract/rewrite the existing stake.
+  const allInAmount = Math.max(0, Number(botBalance));
 
   useEffect(() => {
     if (arenaMode === 'WHEEL' || rollPhase === 'idle' || !winnerTile) {
@@ -532,7 +533,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
           <GramIcon size={18} className="shrink-0 text-blue-600" />
           <input aria-label={t('Your stake')} data-static-keyboard data-keep-visible-with-keyboard type="number" min="0" step="any" inputMode="decimal" enterKeyHint="done" value={stake} onChange={(event) => setStake(event.target.value)} className="min-w-0 flex-1 border-0 bg-transparent py-2 text-base font-bold text-slate-800 outline-none" placeholder="Enter amount" />
           <span className="text-[10px] font-bold text-blue-700">GRAM</span>
-          <button disabled={controlsDisabled || !stake.trim() || !Number.isFinite(Number(stake)) || Number(stake) <= 0} onClick={onEnter} className="shrink-0 rounded-xl bg-blue-700 px-4 py-3 text-[10px] font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : t('Join')}</button>
+          <button disabled={controlsDisabled || !stake.trim() || !Number.isFinite(Number(stake)) || Number(stake) <= 0} onClick={onEnter} className="shrink-0 rounded-xl bg-blue-700 px-4 py-3 text-[10px] font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : room?.viewerIsParticipant ? t('Add more') : t('Join')}</button>
         </div>}
 
         {participants.length > 0 && <section className="arena-player-list mt-4 overflow-hidden rounded-[20px] border border-slate-200 bg-white" aria-label={t('PLAYERS')}>
