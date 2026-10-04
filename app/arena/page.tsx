@@ -754,6 +754,7 @@ export default function ArenaPage() {
     try {
       const room = await joinPublicArena(value, initData, arenaMode);
       setRoom(room); setStake(''); setRollPhase('idle');
+      void getBotBalance().then((result) => setBotBalance(result.balanceGram)).catch((cause) => console.error('Could not refresh ORBIT balance after adding an arena stake:', cause));
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(room.code)}`);
     } catch (cause) {
       setError(cause instanceof Error && cause.message.includes('previous arena is finishing')
@@ -769,6 +770,7 @@ export default function ArenaPage() {
     try {
       const joined = room.isPublic ? await joinPublicArena(stake, initData, room.arenaMode ?? arenaMode) : await joinPvpRoom(room.code, initData);
       setRoom(joined); setStake(''); setRollPhase('idle');
+      void getBotBalance().then((result) => setBotBalance(result.balanceGram)).catch((cause) => console.error('Could not refresh ORBIT balance after joining an arena room:', cause));
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(joined.code)}`);
     } catch (cause) {
       setError(cause instanceof Error && cause.message.includes('previous arena is finishing')
