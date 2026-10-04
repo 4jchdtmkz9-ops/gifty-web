@@ -575,10 +575,13 @@ export default function ArenaPage() {
   const [initData, setInitData] = useState('');
   const [authReady, setAuthReady] = useState(false);
   const [publicRooms, setPublicRooms] = useState<PvpRoom[]>([]);
+  const [myArenaStakes, setMyArenaStakes] = useState<{ CLASSIC: string | null; WHEEL: string | null }>({ CLASSIC: null, WHEEL: null });
   const [lastWinners, setLastWinners] = useState<{ CLASSIC: PvpRoom | null; WHEEL: PvpRoom | null }>({ CLASSIC: null, WHEEL: null });
   const [activeRoom, setActiveRoom] = useState<PvpRoom | null>(null);
   const [invitations, setInvitations] = useState<PvpInvitation[]>([]);
-  const [stake, setStake] = useState('');
+  const [stakesByMode, setStakesByMode] = useState<{ CLASSIC: string; WHEEL: string }>({ CLASSIC: '', WHEEL: '' });
+  const stake = stakesByMode[arenaMode];
+  const setStake = (value: string) => setStakesByMode((stakes) => ({ ...stakes, [arenaMode]: value }));
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<PvpPlayer[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<PvpPlayer[]>([]);
@@ -626,19 +629,28 @@ export default function ArenaPage() {
       if (refreshBusy.current) return;
       refreshBusy.current = true;
       try {
-        const [rooms, nextInvitations] = await Promise.all([getPublicArenaRooms(initData, arenaMode), getPvpInvitations(initData)]);
+        const otherMode = arenaMode === 'CLASSIC' ? 'WHEEL' : 'CLASSIC';
+        const [rooms, otherRooms, nextInvitations] = await Promise.all([
+          getPublicArenaRooms(initData, arenaMode),
+          getPublicArenaRooms(initData, otherMode),
+          getPvpInvitations(initData),
+        ]);
         if (cancelled) return;
         setPublicRooms(rooms);
+        const ownActiveStake = (items: PvpRoom[]) => {
+          const joined = items.find((room) => room.viewerIsParticipant && (room.status === 'WAITING' || room.status === 'COUNTDOWN'));
+          return joined?.viewerStakeGram ?? null;
+        };
+        setMyArenaStakes((previous) => ({
+          ...previous,
+          [arenaMode]: ownActiveStake(rooms),
+          [otherMode]: ownActiveStake(otherRooms),
+        }));
         setInvitations(nextInvitations);
         const latestWinner = latestCompletedRoom(rooms);
         if (latestWinner) setLastWinners((winners) => ({ ...winners, [arenaMode]: latestWinner }));
         const current = activeRoomRef.current;
         const currentMode = current?.arenaMode ?? 'CLASSIC';
-        if (current?.isPublic && currentMode !== arenaMode && current.viewerIsParticipant && current.status !== 'COMPLETED') {
-          setArenaMode(currentMode);
-          return;
-        }
-        if (current?.isPublic && currentMode !== arenaMode && !current.viewerIsParticipant) setRoom(null);
         const currentForMode = current?.isPublic && currentMode !== arenaMode ? null : current;
         if (currentForMode?.isPublic) {
           const updated = rooms.find(({ id }) => id === currentForMode.id);
@@ -808,12 +820,15 @@ export default function ArenaPage() {
 
   const togglePlayer = (player: PvpPlayer) => setSelectedPlayers((items) => items.some(({ id }) => id === player.id) ? items.filter(({ id }) => id !== player.id) : [...items, player]);
 
-  const roomModeLocked = Boolean(activeRoom?.viewerIsParticipant && activeRoom.status !== 'COMPLETED') || rollPhase !== 'idle';
+  // Public arena participation is independent per mode, so it must never lock
+  // the other room. Private-room flow stays pinned to its invitation.
+  const roomModeLocked = Boolean(activeRoom && activeRoom.isPublic === false && activeRoom.status !== 'COMPLETED');
   const chooseArenaMode = (mode: 'CLASSIC' | 'WHEEL') => {
     if (roomModeLocked && (activeRoom?.arenaMode ?? 'CLASSIC') !== mode) return;
-    if (activeRoom?.isPublic && !activeRoom.viewerIsParticipant && (activeRoom.arenaMode ?? 'CLASSIC') !== mode) {
+    if (mode === arenaMode) return;
+    if (activeRoom && (activeRoom.arenaMode ?? 'CLASSIC') !== mode) {
       setRoom(null);
-      setStake('');
+      setRollPhase('idle');
       window.history.replaceState(null, '', '/arena');
     }
     setArenaMode(mode);
@@ -835,9 +850,11 @@ export default function ArenaPage() {
             {([{ mode: 'CLASSIC' as const, number: '01', label: 'ROOM 01 · CLASSIC', title: 'ORBIT Arena' }, { mode: 'WHEEL' as const, number: '02', label: 'ROOM 02 · WHEEL', title: 'ORBIT Wheel' }]).map(({ mode, number, label, title }) => {
               const selected = arenaMode === mode;
               const locked = roomModeLocked && (activeRoom?.arenaMode ?? 'CLASSIC') !== mode;
+              const ownStake = myArenaStakes[mode];
               return <button key={mode} type="button" aria-pressed={selected} disabled={locked} onClick={() => chooseArenaMode(mode)} className={`min-w-0 rounded-2xl border px-3 py-2.5 text-left transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50 ${selected ? 'border-blue-300 bg-blue-50/90 shadow-sm' : 'border-slate-200 bg-white hover:border-blue-200'}`}>
                 <p className={`truncate text-[8px] font-extrabold uppercase tracking-[.12em] ${selected ? 'text-blue-600' : 'text-slate-500'}`}>{t(label)}</p>
                 <p className={`mt-0.5 truncate text-xs font-extrabold ${selected ? 'text-blue-950' : 'text-slate-600'}`}>{mode === 'WHEEL' ? `ORBIT ${t('Wheel')}` : title}</p>
+                {ownStake && <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-blue-100/80 px-1.5 py-0.5 text-[8px] font-extrabold tabular-nums text-blue-800"><GramIcon size={10} className="text-blue-600" />{formatGram(ownStake)}</span>}
               </button>;
             })}
           </div>
@@ -859,7 +876,8 @@ export default function ArenaPage() {
           </section>}
         </>}
         {rollPhase === 'result' && activeRoom?.status === 'COMPLETED' && <div className="arena-result-backdrop fixed inset-0 z-50 flex items-center justify-center p-5" role="dialog" aria-modal="true" aria-labelledby="arena-result-title">
-          <section className="arena-result-modal w-full max-w-[340px] rounded-[28px] border border-yellow-300 bg-white p-6 text-center shadow-2xl">
+          <section className="arena-result-modal relative w-full max-w-[340px] rounded-[28px] border border-yellow-300 bg-white p-6 text-center shadow-2xl">
+            <button type="button" aria-label={t('Close')} onClick={() => { setRollPhase('idle'); setRoom(null); window.history.replaceState(null, '', '/arena'); }} className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-lg font-semibold text-slate-500">×</button>
             <p className="text-[10px] font-bold uppercase tracking-[.2em] text-yellow-700">{t('ARENA WINNER')}</p>
             <div className="mx-auto mt-3 flex h-[104px] w-[104px] items-center justify-center rounded-[30px] border border-blue-100 bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.98),rgba(232,241,255,0.9)_68%,rgba(255,244,211,0.9))] shadow-[0_12px_30px_rgba(28,73,145,0.14)]">
               <TelegramTgsSticker
