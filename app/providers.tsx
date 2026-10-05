@@ -45,7 +45,7 @@ function WalletDatabaseSync() {
 }
 
 const TON_CONNECT_MANIFEST_URL =
-  'https://gifty-web-iota.vercel.app/tonconnect-manifest.json';
+  'https://orbitmrktbot.vercel.app/tonconnect-manifest.json';
 
 export default function Providers({
   children,
