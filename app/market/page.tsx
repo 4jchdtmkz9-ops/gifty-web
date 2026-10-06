@@ -55,7 +55,7 @@ const giftBackdrops = [
   ['Tomato', '#e34b43'], ['Chestnut', '#89543f'], ['Turquoise', '#37c1bd'], ['Caramel', '#bd8752'],
   ['Indigo Dye', '#354d8c'], ['Fandango', '#c44491'], ['Carmine', '#b92e4b'], ['Aquamarine', '#68d6c7'],
   ['Dark Green', '#174b38'], ['Satin Gold', '#c6a456'], ['Ranger Green', '#596b51'], ['Khaki Green', '#9b9a5a'],
-  ['Lavender', '#b8a0e0'], ['Azure Blue', '#39a1de'], ['Cappuccino', '#b28a6b'], ['Mystic Pearl', '#ded9ed'],
+  ['Lavender', '#b8a0e0'], ['Azure Blue', '#39a1de'], ['Cappuccino', '#b28a6b'], ['Mystic Pearl', '#b05670'],
   ['Celtic Blue', '#2877bb'], ['Rosewood', '#70404e'], ['Chocolate', '#70452f'], ['Feldgrau', '#667267'],
   ['French Violet', '#7850a0'], ['Sky Blue', '#83c9ee'], ['English Violet', '#57446f'], ['Silver Blue', '#829caf'],
   ['Gunship Green', '#4b6255'], ['Coral Red', '#f27670'], ['Mustard', '#d2aa39'], ['Moonstone', '#83aaa7'],

@@ -12,7 +12,7 @@ export const demoBackdrops = [
   { name: 'Pine Green', color: '#27634a' },
   { name: 'Raspberry', color: '#d82f68' },
   { name: 'Persimmon', color: '#e8783f' },
-  { name: 'Mystic Pearl', color: '#ded9ed' },
+  { name: 'Mystic Pearl', color: '#b05670' },
   { name: 'Platinum', color: '#d5d9df' },
   { name: 'Rosewood', color: '#70404e' },
   { name: 'Pure Gold', color: '#e5b83e' },
