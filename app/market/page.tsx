@@ -37,6 +37,9 @@ const sortOptions: { id: SortKey; label: string }[] = [
   { id: 'symbol-rarity', label: 'Symbol rarity: rarest first' },
 ];
 
+const BACKDROP_TILE_SIZE = 208;
+const BACKDROP_TILE_GAP = 9;
+
 const giftBackdrops = [
   ['Black', '#17191d'], ['Onyx Black', '#202329'], ['Gunmetal', '#30363d'], ['Mint Green', '#a8e6cf'],
   ['Camo Green', '#596b3a'], ['Mexican Pink', '#e94b9b'], ['Ivory White', '#f5f0df'], ['Lemongrass', '#d9e978'],
@@ -135,7 +138,7 @@ export default function MarketPage() {
     const enableTransitionFrame = window.requestAnimationFrame(() => {
       setSpinStarted(true);
       targetFrame = window.requestAnimationFrame(() => {
-        setSpinOffset(-(spinWinnerIndex * (70 + 9) + 35));
+        setSpinOffset(-(spinWinnerIndex * (BACKDROP_TILE_SIZE + BACKDROP_TILE_GAP) + BACKDROP_TILE_SIZE / 2));
       });
     });
     return () => {
@@ -533,16 +536,16 @@ export default function MarketPage() {
                 <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 id="backdrop-spin-title" className="mt-1 text-lg font-bold">{isSpinning ? t('Opening backdrop…') : t('Congratulations!')}</h2></div>
                 {!isSpinning && <button type="button" onClick={() => setSpinOpen(false)} aria-label={t('Close')} className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>}
               </div>
-              {isSpinning ? <div className="backdrop-roulette-stage relative mt-5 h-[132px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+              {isSpinning ? <div className="backdrop-roulette-stage relative mt-5 h-[260px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
                 <div onTransitionEnd={(event) => {
                   if (event.propertyName === 'transform' && spinStarted && isSpinning && pendingSpinResult.current) finishBackdropSpin(pendingSpinResult.current);
-                }} className="absolute left-1/2 top-1/2 flex h-[94px] items-start gap-[9px] will-change-transform" style={{ transform: `translate(${spinOffset}px, -50%)`, transition: spinStarted ? 'transform 4s cubic-bezier(.08,.74,.11,1)' : 'none' }}>
-                  {spinTiles.map((tile, index) => <div key={`${tile.name}-${index}`} className="flex h-[94px] w-[70px] shrink-0 flex-col items-center gap-1.5">
-                    <div className="h-[70px] w-[70px] rounded-2xl border border-white/65 shadow-md" style={{ backgroundColor: tile.color }} />
-                    <span className="w-full truncate text-center text-[9px] font-semibold leading-[12px] text-slate-600">{tile.name}</span>
+                }} className="absolute left-1/2 top-[26px] flex h-[232px] items-start gap-[9px] will-change-transform" style={{ transform: `translateX(${spinOffset}px)`, transition: spinStarted ? 'transform 4s cubic-bezier(.08,.74,.11,1)' : 'none' }}>
+                  {spinTiles.map((tile, index) => <div key={`${tile.name}-${index}`} className="flex h-[232px] w-[208px] shrink-0 flex-col items-center gap-1.5">
+                    <div className="h-[208px] w-[208px] rounded-[30px] border border-white/65 shadow-md" style={{ backgroundColor: tile.color }} />
+                    <span className="w-full truncate text-center text-xs font-semibold leading-4 text-slate-600">{tile.name}</span>
                   </div>)}
                 </div>
-                <div className="pointer-events-none absolute left-1/2 top-[19px] z-10 flex h-[70px] w-[70px] -translate-x-1/2 items-center justify-center drop-shadow-[0_2px_5px_rgba(15,23,42,0.28)]"><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={69} className="h-[69px] w-[69px]" autoplay={false} fallback={<span />}/></div>
+                <div className="pointer-events-none absolute left-1/2 top-[26px] z-10 flex h-[208px] w-[208px] -translate-x-1/2 items-center justify-center drop-shadow-[0_2px_5px_rgba(15,23,42,0.28)]"><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={198} className="h-[198px] w-[198px]" autoplay={false} fallback={<span />}/></div>
               </div> : spinResult && <div className="flex flex-col items-center pt-5">
                 <div className="backdrop-prize-reveal relative flex h-52 w-52 items-center justify-center rounded-[34px] shadow-[0_20px_50px_rgba(20,69,150,0.24)]" style={{ backgroundColor: spinResult.color }}>
                   <TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={198} className="h-[198px] w-[198px]" autoplay fallback={<span />}/>
