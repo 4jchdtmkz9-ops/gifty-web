@@ -111,6 +111,9 @@ export default function MarketPage() {
   const [spinOffset, setSpinOffset] = useState(0);
   const [dropNotice, setDropNotice] = useState('');
   const rouletteStage = useRef<HTMLDivElement>(null);
+  const spinTimeout = useRef<number | null>(null);
+  const spinFinalized = useRef(true);
+  const pendingSpinResult = useRef<typeof demoBackdrops[number] | null>(null);
 
   useEffect(() => {
     const syncInventory = () => setBackdropInventory(readDemoBackdrops());
@@ -121,6 +124,10 @@ export default function MarketPage() {
       window.removeEventListener(DEMO_BACKDROP_UPDATE_EVENT, syncInventory);
       window.removeEventListener('storage', syncInventory);
     };
+  }, []);
+
+  useEffect(() => () => {
+    if (spinTimeout.current !== null) window.clearTimeout(spinTimeout.current);
   }, []);
 
   useEffect(() => {
@@ -142,6 +149,19 @@ export default function MarketPage() {
     return () => window.cancelAnimationFrame(frame);
   }, [spinOpen, isSpinning, spinTiles, spinWinnerIndex]);
 
+  function finishBackdropSpin(reward: typeof demoBackdrops[number]) {
+    if (spinFinalized.current) return;
+    spinFinalized.current = true;
+    if (spinTimeout.current !== null) window.clearTimeout(spinTimeout.current);
+    spinTimeout.current = null;
+    pendingSpinResult.current = null;
+    const dropped = createDemoBackdropDrop(reward, '');
+    saveDemoBackdrops([dropped, ...readDemoBackdrops()]);
+    setBackdropInventory(readDemoBackdrops());
+    setIsSpinning(false);
+    setDropNotice(t('Backdrop added to demo inventory'));
+  }
+
   function startBackdropDemoPurchase() {
     if (isSpinning) return;
     const reward = chooseDemoBackdrop();
@@ -156,13 +176,10 @@ export default function MarketPage() {
     setSpinOpen(true);
     setIsSpinning(true);
     setDropNotice('');
-    window.setTimeout(() => {
-      const dropped = createDemoBackdropDrop(reward, '');
-      saveDemoBackdrops([dropped, ...readDemoBackdrops()]);
-      setBackdropInventory(readDemoBackdrops());
-      setIsSpinning(false);
-      setDropNotice(t('Backdrop added to demo inventory'));
-    }, 4300);
+    spinFinalized.current = false;
+    pendingSpinResult.current = reward;
+    if (spinTimeout.current !== null) window.clearTimeout(spinTimeout.current);
+    spinTimeout.current = window.setTimeout(() => finishBackdropSpin(reward), 5200);
   }
 
   useEffect(() => {
@@ -361,7 +378,7 @@ export default function MarketPage() {
                 <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700">0.25 TON</span>
               </div>
               <div className="mt-4 flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-inner" style={{ backgroundColor: '#17191d' }}><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={42} className="h-[42px] w-[42px]" autoplay={false} fallback={<span />}/></div>
+                <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-2xl shadow-inner" style={{ backgroundColor: '#17191d' }}><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={63} className="h-[63px] w-[63px]" autoplay={false} fallback={<span />}/></div>
                 <div className="min-w-0 flex-1"><p className="text-sm font-semibold">{t('Backdrop drop')}</p><p className="mt-0.5 text-xs text-slate-500">{t('Black has an 80% demo chance. Other colors share 20%.')}</p></div>
               </div>
               <button type="button" disabled={isSpinning} onClick={startBackdropDemoPurchase} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">
@@ -376,7 +393,7 @@ export default function MarketPage() {
               {demoBackdrops.map((backdrop) => (
                 <article key={backdrop.name} className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
                   <div className="relative flex aspect-square items-center justify-center rounded-xl text-3xl shadow-inner" style={{ backgroundColor: backdrop.color }}>
-                    <TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={38} className="h-[38px] w-[38px]" autoplay={false} fallback={<span />}/>
+                    <TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={57} className="h-[57px] w-[57px]" autoplay={false} fallback={<span />}/>
                     {backdrop.name === 'Black' && <span className="absolute right-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-extrabold text-slate-900">80%</span>}
                   </div>
                   <p className="mt-2 truncate text-center text-[11px] font-semibold text-slate-700">{backdrop.name}</p>
@@ -518,19 +535,23 @@ export default function MarketPage() {
           <div className="fixed inset-0 z-[130] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-md" onClick={() => { if (!isSpinning) setSpinOpen(false); }}>
             <section role="dialog" aria-modal="true" aria-labelledby="backdrop-spin-title" onClick={(event) => event.stopPropagation()} className="backdrop-spin-dialog w-full max-w-[420px] overflow-hidden rounded-[30px] border border-slate-200 bg-white p-5 shadow-2xl">
               <div className="flex items-start justify-between gap-3">
-                <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 id="backdrop-spin-title" className="mt-1 text-lg font-bold">{isSpinning ? t('Opening backdrop…') : spinResult?.name ?? t('Backdrop received')}</h2></div>
+                <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 id="backdrop-spin-title" className="mt-1 text-lg font-bold">{isSpinning ? t('Opening backdrop…') : t('Congratulations!')}</h2></div>
                 {!isSpinning && <button type="button" onClick={() => setSpinOpen(false)} aria-label={t('Close')} className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>}
               </div>
-              <div ref={rouletteStage} className="backdrop-roulette-stage relative mt-5 flex h-[116px] items-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+              {isSpinning ? <div ref={rouletteStage} className="backdrop-roulette-stage relative mt-5 flex h-[116px] items-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
                 <div className="backdrop-roulette-marker" />
-                <div className="flex h-full items-center gap-[9px] px-0" style={{ transform: `translateX(${spinOffset}px)`, transition: spinStarted && isSpinning ? 'transform 4s cubic-bezier(.08,.74,.11,1)' : 'none' }}>
-                  {spinTiles.map((tile, index) => {
-                    const isWinner = !isSpinning && index === spinWinnerIndex;
-                    return <div key={`${tile.name}-${index}`} className={`flex h-[70px] w-[70px] shrink-0 items-center justify-center rounded-2xl border border-white/65 shadow-md transition-transform duration-300 ${isWinner ? 'relative z-10 scale-[1.25] ring-2 ring-blue-500 shadow-xl' : ''}`} style={{ backgroundColor: tile.color }}><TelegramTgsSticker key={`${tile.name}-${index}-${isWinner}`} src="/stickers/orbit-backdrop-gift.json" size={46} className="h-[46px] w-[46px]" autoplay={isWinner} fallback={<span />}/></div>;
-                  })}
+                <div onTransitionEnd={(event) => {
+                  if (event.propertyName === 'transform' && spinStarted && isSpinning && pendingSpinResult.current) finishBackdropSpin(pendingSpinResult.current);
+                }} className="flex h-full items-center gap-[9px] px-0" style={{ transform: `translateX(${spinOffset}px)`, transition: spinStarted ? 'transform 4s cubic-bezier(.08,.74,.11,1)' : 'none' }}>
+                  {spinTiles.map((tile, index) => <div key={`${tile.name}-${index}`} className="flex h-[70px] w-[70px] shrink-0 items-center justify-center rounded-2xl border border-white/65 shadow-md" style={{ backgroundColor: tile.color }}><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={69} className="h-[69px] w-[69px]" autoplay={false} fallback={<span />}/></div>)}
                 </div>
-              </div>
-              {isSpinning && <p className="mt-4 text-center text-sm font-medium text-slate-500">{t('A backdrop is rolling…')}</p>}
+              </div> : spinResult && <div className="flex flex-col items-center pt-5">
+                <div className="backdrop-prize-reveal relative flex h-52 w-52 items-center justify-center rounded-[34px] shadow-[0_20px_50px_rgba(20,69,150,0.24)]" style={{ backgroundColor: spinResult.color }}>
+                  <TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={198} className="h-[198px] w-[198px]" autoplay fallback={<span />}/>
+                  <span className="absolute -bottom-2 rounded-full border border-white/80 bg-white px-3 py-1 text-xs font-bold text-slate-800 shadow-md">{spinResult.name}</span>
+                </div>
+                <button type="button" onClick={() => setSpinOpen(false)} className="mt-7 w-full rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)]">{t('Claim')}</button>
+              </div>}
             </section>
           </div>
         )}
