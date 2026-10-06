@@ -110,6 +110,7 @@ export default function MarketPage() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [isRewardSaving, setIsRewardSaving] = useState(false);
   const [spinStarted, setSpinStarted] = useState(false);
+  const [spinSlowdown, setSpinSlowdown] = useState(false);
   const [spinTiles, setSpinTiles] = useState<typeof demoBackdrops[number][]>([]);
   const [spinWinnerIndex, setSpinWinnerIndex] = useState(0);
   const [spinResult, setSpinResult] = useState<typeof demoBackdrops[number] | null>(null);
@@ -149,7 +150,9 @@ export default function MarketPage() {
     const enableTransitionFrame = window.requestAnimationFrame(() => {
       setSpinStarted(true);
       targetFrame = window.requestAnimationFrame(() => {
-        setSpinOffset(-(spinWinnerIndex * (BACKDROP_TILE_SIZE + BACKDROP_TILE_GAP) + BACKDROP_TILE_SIZE / 2));
+        const winnerOffset = -(spinWinnerIndex * (BACKDROP_TILE_SIZE + BACKDROP_TILE_GAP) + BACKDROP_TILE_SIZE / 2);
+        const twoTiles = 2 * (BACKDROP_TILE_SIZE + BACKDROP_TILE_GAP);
+        setSpinOffset(winnerOffset + twoTiles);
       });
     });
     return () => {
@@ -188,6 +191,7 @@ export default function MarketPage() {
     setSpinTiles(tiles);
     setSpinWinnerIndex(winnerIndex);
     setSpinStarted(false);
+    setSpinSlowdown(false);
     setSpinOffset(-35);
     setSpinOpen(true);
     setIsSpinning(true);
@@ -196,7 +200,7 @@ export default function MarketPage() {
     spinFinalized.current = false;
     pendingSpinResult.current = reward;
     if (spinTimeout.current !== null) window.clearTimeout(spinTimeout.current);
-    spinTimeout.current = window.setTimeout(() => finishBackdropSpin(reward), 5200);
+    spinTimeout.current = window.setTimeout(() => finishBackdropSpin(reward), 6200);
   }
 
   useEffect(() => {
@@ -562,10 +566,16 @@ export default function MarketPage() {
                 <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 id="backdrop-spin-title" className="mt-1 text-lg font-bold">{isSpinning ? t('Opening backdrop…') : isRewardSaving ? t('Saving…') : t('Congratulations!')}</h2></div>
                 {!isSpinning && !isRewardSaving && <button type="button" onClick={() => setSpinOpen(false)} aria-label={t('Close')} className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>}
               </div>
-              {isSpinning || isRewardSaving ? <div className="backdrop-roulette-stage relative mt-5 h-[260px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+              {isSpinning || isRewardSaving ? <div className={`backdrop-roulette-stage relative mt-5 h-[260px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50${spinSlowdown ? ' is-slowing' : ''}`}>
                 <div onTransitionEnd={(event) => {
-                  if (event.propertyName === 'transform' && spinStarted && isSpinning && pendingSpinResult.current) finishBackdropSpin(pendingSpinResult.current);
-                }} className="absolute left-1/2 top-[26px] flex h-[232px] items-start gap-[9px] will-change-transform" style={{ transform: `translateX(${spinOffset}px)`, transition: spinStarted ? 'transform 4s cubic-bezier(.08,.74,.11,1)' : 'none' }}>
+                  if (event.propertyName !== 'transform' || !spinStarted || !isSpinning || !pendingSpinResult.current) return;
+                  if (!spinSlowdown) {
+                    setSpinSlowdown(true);
+                    setSpinOffset(-(spinWinnerIndex * (BACKDROP_TILE_SIZE + BACKDROP_TILE_GAP) + BACKDROP_TILE_SIZE / 2));
+                    return;
+                  }
+                  finishBackdropSpin(pendingSpinResult.current);
+                }} className="absolute left-1/2 top-[26px] flex h-[232px] items-start gap-[9px] will-change-transform" style={{ transform: `translateX(${spinOffset}px)`, transition: !spinStarted ? 'none' : spinSlowdown ? 'transform 2.3s cubic-bezier(.18,.72,.24,1)' : 'transform 2.8s cubic-bezier(.12,.78,.2,1)' }}>
                   {spinTiles.map((tile, index) => <div key={`${tile.name}-${index}`} className="flex h-[232px] w-[208px] shrink-0 flex-col items-center gap-1.5">
                     <div className="h-[208px] w-[208px] rounded-[30px] border border-white/65 shadow-md" style={{ backgroundColor: tile.color }} />
                     <span className="w-full truncate text-center text-xs font-semibold leading-4 text-slate-600">{tile.name}</span>

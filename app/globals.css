@@ -94,6 +94,15 @@ select {
   will-change: transform, filter;
 }
 
+.backdrop-roulette-stage.is-slowing .backdrop-wind-vortex {
+  animation-duration: 2.3s;
+  opacity: .48;
+}
+
+.backdrop-roulette-stage.is-slowing .backdrop-wind-gift {
+  animation-duration: 2.3s;
+}
+
 @keyframes backdrop-prize-pop {
   0% { opacity: 0; transform: scale(.38) translateY(24px); }
   68% { opacity: 1; transform: scale(1.1) translateY(-3px); }
