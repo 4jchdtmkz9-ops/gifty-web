@@ -459,7 +459,7 @@ export default function MarketPage() {
                     <span className="absolute left-2.5 top-2.5 rounded-full bg-blue-700/90 px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white">{t('DEMO')}</span>
                   </div>
                   <div className="p-3">
-                    <h3 className="truncate text-sm font-bold">New Gift</h3>
+                    <h3 className="truncate text-sm font-bold">Sweeties</h3>
                     <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5"><span className="text-[10px] text-slate-400">{t('Price')}</span><span className="text-sm font-bold tabular-nums text-slate-900">0.25 TON</span></div>
                   </div>
                 </button>
@@ -468,7 +468,7 @@ export default function MarketPage() {
               <button type="button" onClick={() => setBackdropPackOpen(false)} className="mb-4 inline-flex items-center gap-2 rounded-xl px-1 py-2 text-sm font-semibold text-slate-600"><span aria-hidden="true">←</span>{t('ORBIT NFT')}</button>
               <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div className="relative flex h-44 items-center justify-center bg-[#17191d]"><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={150} className="h-[150px] w-[150px]" autoplay={false} fallback={<span />}/><span className="absolute left-3 top-3 rounded-full bg-blue-700/90 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white">{t('DEMO')}</span></div>
-                <div className="p-4"><h2 className="text-xl font-bold">New Gift</h2><p className="mt-1 text-xs leading-5 text-slate-500">{t('Open a demo drop to collect a gift backdrop.')}</p>
+                <div className="p-4"><h2 className="text-xl font-bold">Sweeties</h2><p className="mt-1 text-xs leading-5 text-slate-500">{t('Open a demo drop to collect a gift backdrop.')}</p>
                   <button type="button" disabled={isSpinning || isRewardSaving} onClick={startBackdropDemoPurchase} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{t('Spin')} <span className="rounded-full bg-white/15 px-2 py-0.5">0.25 TON</span></button>
                   <p className="mt-2 text-center text-[11px] leading-4 text-slate-500">{t('Demo only — no TON is charged and no sale proceeds are credited.')}</p>
                 </div>
@@ -633,12 +633,14 @@ export default function MarketPage() {
               </div> : spinResult && <div className="backdrop-winner-celebration relative flex flex-col items-center pt-5">
                 <div className="backdrop-confetti-burst pointer-events-none absolute inset-0" aria-hidden="true">
                   {backdropConfettiPieces.map((index) => {
-                    const angle = (index / backdropConfettiPieces.length) * Math.PI * 2;
-                    const distance = 88 + (index % 4) * 20;
+                    const fromLeft = index % 2 === 0;
+                    const distance = 112 + (Math.floor(index / 2) % 4) * 22;
                     const confettiStyle = {
-                      '--confetti-x': `${Math.cos(angle) * distance}px`,
-                      '--confetti-y': `${Math.sin(angle) * distance - 24}px`,
+                      '--confetti-x': `${fromLeft ? distance : -distance}px`,
+                      '--confetti-y': `${-70 + (index % 8) * 20}px`,
                       '--confetti-spin': `${360 + (index % 3) * 180}deg`,
+                      left: fromLeft ? '0%' : '100%',
+                      top: `${12 + (index % 8) * 10}%`,
                       backgroundColor: backdropConfettiColors[index % backdropConfettiColors.length],
                       animationDelay: `${(index % 5) * 18}ms`,
                     } as CSSProperties;

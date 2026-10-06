@@ -909,8 +909,6 @@ html[data-theme='dark'] main .arena-player-square.is-winner {
 
 .backdrop-confetti-piece {
   position: absolute;
-  top: 42%;
-  left: 50%;
   width: 7px;
   height: 12px;
   border-radius: 2px;
