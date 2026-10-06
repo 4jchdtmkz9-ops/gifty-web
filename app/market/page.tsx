@@ -105,6 +105,7 @@ export default function MarketPage() {
   const [selectedCollection, setSelectedCollection] = useState('all');
   const [sortBy, setSortBy] = useState<SortKey>('price-asc');
   const [backdropInventory, setBackdropInventory] = useState<DemoBackdrop[]>([]);
+  const [backdropPackOpen, setBackdropPackOpen] = useState(false);
   const [spinOpen, setSpinOpen] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isRewardSaving, setIsRewardSaving] = useState(false);
@@ -388,24 +389,40 @@ export default function MarketPage() {
         )}
         </> : (
           <section className="pb-6">
-            <div className="mb-4 flex items-center justify-between">
-              <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 className="mt-1 text-lg font-bold">{t('ORBIT NFT')}</h2></div>
-              <span className="text-xs text-slate-400">1 {t('items')}</span>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <button type="button" disabled={isSpinning || isRewardSaving} onClick={startBackdropDemoPurchase} className="overflow-hidden rounded-3xl border border-slate-200 bg-white text-left shadow-sm transition hover:border-blue-300 hover:shadow-md active:scale-[0.98] disabled:opacity-60">
-                <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[#17191d]">
-                  <TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={150} className="h-[150px] w-[150px]" autoplay={false} fallback={<span />}/>
-                  <span className="absolute right-2.5 top-2.5 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold text-slate-800">0.25 TON</span>
-                  <span className="absolute left-2.5 top-2.5 rounded-full bg-blue-700/90 px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white">{t('DEMO')}</span>
+            {!backdropPackOpen ? <>
+              <div className="mb-4 flex items-center justify-between">
+                <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 className="mt-1 text-lg font-bold">{t('ORBIT NFT')}</h2></div>
+                <span className="text-xs text-slate-400">1 {t('items')}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button type="button" onClick={() => setBackdropPackOpen(true)} className="overflow-hidden rounded-3xl border border-slate-200 bg-white text-left shadow-sm transition hover:border-blue-300 hover:shadow-md active:scale-[0.98]">
+                  <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[#17191d]">
+                    <TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={150} className="h-[150px] w-[150px]" autoplay={false} fallback={<span />}/>
+                    <span className="absolute left-2.5 top-2.5 rounded-full bg-blue-700/90 px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white">{t('DEMO')}</span>
+                  </div>
+                  <div className="p-3">
+                    <h3 className="truncate text-sm font-bold">New Gift</h3>
+                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5"><span className="text-[10px] text-slate-400">{t('Price')}</span><span className="text-sm font-bold tabular-nums text-slate-900">0.25 TON</span></div>
+                  </div>
+                </button>
+              </div>
+            </> : <>
+              <button type="button" onClick={() => setBackdropPackOpen(false)} className="mb-4 inline-flex items-center gap-2 rounded-xl px-1 py-2 text-sm font-semibold text-slate-600"><span aria-hidden="true">←</span>{t('ORBIT NFT')}</button>
+              <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div className="relative flex h-44 items-center justify-center bg-[#17191d]"><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={150} className="h-[150px] w-[150px]" autoplay={false} fallback={<span />}/><span className="absolute left-3 top-3 rounded-full bg-blue-700/90 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white">{t('DEMO')}</span></div>
+                <div className="p-4"><h2 className="text-xl font-bold">New Gift</h2><p className="mt-1 text-xs leading-5 text-slate-500">{t('Open a demo drop to collect a gift backdrop.')}</p>
+                  <button type="button" disabled={isSpinning || isRewardSaving} onClick={startBackdropDemoPurchase} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{t('Spin')} <span className="rounded-full bg-white/15 px-2 py-0.5">0.25 TON</span></button>
+                  <p className="mt-2 text-center text-[11px] leading-4 text-slate-500">{t('Demo only — no TON is charged and no sale proceeds are credited.')}</p>
                 </div>
-                <div className="p-3">
-                  <h3 className="truncate text-sm font-bold">New Gift</h3>
-                  <p className="mt-1 text-[11px] leading-4 text-slate-500">{t('Open a demo drop to collect a gift backdrop.')}</p>
-                  <p className="mt-2 text-[10px] font-semibold text-blue-700">{t('Possible backgrounds')}: {demoBackdrops.length}</p>
-                </div>
-              </button>
-            </div>
+              </div>
+              <div className="mb-3 mt-5 flex items-center justify-between"><h3 className="font-semibold">{t('Possible backgrounds')}</h3><span className="text-xs text-slate-400">{demoBackdrops.length} {t('colors')}</span></div>
+              <div className="grid grid-cols-3 gap-2.5">
+                {demoBackdrops.map((backdrop) => <article key={backdrop.name} className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
+                  <div className="relative flex aspect-square items-center justify-center rounded-xl text-3xl shadow-inner" style={{ backgroundColor: backdrop.color }}><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={57} className="h-[57px] w-[57px]" autoplay={false} fallback={<span />}/>{backdrop.name === 'Black' && <span className="absolute right-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-extrabold text-slate-900">80%</span>}</div>
+                  <p className="mt-2 truncate text-center text-[11px] font-semibold text-slate-700">{backdrop.name}</p>
+                </article>)}
+              </div>
+            </>}
             {dropNotice && !spinOpen && <p role="status" className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-center text-xs font-semibold text-emerald-800">{dropNotice}</p>}
           </section>
         )}
