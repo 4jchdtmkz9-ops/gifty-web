@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createDemoBackdropDrop as createDemoBackdropDropApi, getGifts, syncDemoBackdropInventory as syncDemoBackdropInventoryApi } from '../../lib/api';
 import BottomNav from '../../components/BottomNav';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
@@ -39,6 +39,8 @@ const sortOptions: { id: SortKey; label: string }[] = [
 
 const BACKDROP_TILE_SIZE = 208;
 const BACKDROP_TILE_GAP = 9;
+const backdropConfettiColors = ['#1557d5', '#f4bf28', '#e8505b', '#ffffff', '#4cc9a6'];
+const backdropConfettiPieces = Array.from({ length: 32 }, (_, index) => index);
 
 const giftBackdrops = [
   ['Black', '#17191d'], ['Onyx Black', '#202329'], ['Gunmetal', '#30363d'], ['Mint Green', '#a8e6cf'],
@@ -615,7 +617,7 @@ export default function MarketPage() {
           <div className="fixed inset-0 z-[130] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-md" onClick={() => { if (!isSpinning && !isRewardSaving) setSpinOpen(false); }}>
             <section role="dialog" aria-modal="true" aria-labelledby="backdrop-spin-title" onClick={(event) => event.stopPropagation()} className="backdrop-spin-dialog w-full max-w-[420px] overflow-hidden rounded-[30px] border border-slate-200 bg-white p-5 shadow-2xl">
               <div className="flex items-start justify-between gap-3">
-                <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 id="backdrop-spin-title" className="mt-1 text-lg font-bold">{isSpinning ? t('Opening backdrop…') : isRewardSaving ? t('Saving…') : t('Congratulations!')}</h2></div>
+                <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 id="backdrop-spin-title" className="mt-1 text-lg font-bold">{isSpinning ? t('Opening backdrop…') : isRewardSaving ? t('Saving…') : t('Your win')}</h2></div>
                 {!isSpinning && !isRewardSaving && <button type="button" onClick={() => setSpinOpen(false)} aria-label={t('Close')} className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>}
               </div>
               {isSpinning || isRewardSaving ? <div className={`backdrop-roulette-stage relative mt-5 h-[260px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50${spinSlowdown ? ' is-slowing' : ''}`}>
@@ -628,12 +630,27 @@ export default function MarketPage() {
                   </div>)}
                 </div>
                 <div className="pointer-events-none absolute left-1/2 top-[26px] z-10 flex h-[208px] w-[208px] -translate-x-1/2 items-center justify-center drop-shadow-[0_2px_5px_rgba(15,23,42,0.28)]"><span className="backdrop-wind-effect" aria-hidden="true"><span ref={spinWindMotionRef} className="backdrop-wind-vortex" /><span ref={spinGiftMotionRef} className="backdrop-wind-gift"><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={198} className="h-[198px] w-[198px]" autoplay={false} fallback={<span />}/></span></span></div>
-              </div> : spinResult && <div className="flex flex-col items-center pt-5">
+              </div> : spinResult && <div className="backdrop-winner-celebration relative flex flex-col items-center pt-5">
+                <div className="backdrop-confetti-burst pointer-events-none absolute inset-0" aria-hidden="true">
+                  {backdropConfettiPieces.map((index) => {
+                    const angle = (index / backdropConfettiPieces.length) * Math.PI * 2;
+                    const distance = 88 + (index % 4) * 20;
+                    const confettiStyle = {
+                      '--confetti-x': `${Math.cos(angle) * distance}px`,
+                      '--confetti-y': `${Math.sin(angle) * distance - 24}px`,
+                      '--confetti-spin': `${360 + (index % 3) * 180}deg`,
+                      backgroundColor: backdropConfettiColors[index % backdropConfettiColors.length],
+                      animationDelay: `${(index % 5) * 18}ms`,
+                    } as CSSProperties;
+                    return <span key={index} className="backdrop-confetti-piece" style={confettiStyle} />;
+                  })}
+                </div>
                 <div className="backdrop-prize-reveal relative flex h-52 w-52 items-center justify-center rounded-[34px] shadow-[0_20px_50px_rgba(20,69,150,0.24)]" style={{ backgroundColor: spinResult.color }}>
                   <TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={198} className="h-[198px] w-[198px]" autoplay fallback={<span />}/>
+                  <span className="absolute -top-2 rounded-full border border-white/80 bg-white px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-blue-700 shadow-md">NFT</span>
                   <span className="absolute -bottom-2 rounded-full border border-white/80 bg-white px-3 py-1 text-xs font-bold text-slate-800 shadow-md">{spinResult.name}</span>
                 </div>
-                <button type="button" onClick={() => setSpinOpen(false)} className="mt-7 w-full rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)]">{t('Claim')}</button>
+                <button type="button" onClick={() => setSpinOpen(false)} className="relative z-10 mt-7 w-full rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)]">{t('Claim')}</button>
               </div>}
             </section>
           </div>

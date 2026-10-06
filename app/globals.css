@@ -897,3 +897,36 @@ html[data-theme='dark'] main .arena-player-square {
 html[data-theme='dark'] main .arena-player-square.is-winner {
   border-color: #d5aa2e !important;
 }
+
+.backdrop-winner-celebration {
+  isolation: isolate;
+}
+
+.backdrop-confetti-burst {
+  z-index: 5;
+  overflow: visible;
+}
+
+.backdrop-confetti-piece {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  width: 7px;
+  height: 12px;
+  border-radius: 2px;
+  opacity: 0;
+  box-shadow: 0 1px 3px rgb(20 40 80 / 20%);
+  animation: backdrop-confetti-pop 1.25s cubic-bezier(.12,.68,.2,1) both;
+}
+
+.backdrop-confetti-piece:nth-child(3n) {
+  width: 5px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+@keyframes backdrop-confetti-pop {
+  0% { opacity: 0; translate: 0 0; rotate: 0deg; scale: .4; }
+  12% { opacity: 1; scale: 1; }
+  100% { opacity: 0; translate: var(--confetti-x) var(--confetti-y); rotate: var(--confetti-spin); scale: .7; }
+}
