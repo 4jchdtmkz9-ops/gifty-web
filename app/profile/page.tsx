@@ -27,6 +27,7 @@ import { useOrbitLanguage, type OrbitLanguage } from "../../components/OrbitLang
 import LanguageChoiceList from "../../components/LanguageChoiceList";
 import ThemeToggle from "../../components/ThemeToggle";
 import { useOrbitTheme } from "../../components/OrbitThemeContext";
+import TelegramTgsSticker from "../../components/TelegramTgsSticker";
 import { DEMO_BACKDROP_UPDATE_EVENT, readDemoBackdrops, saveDemoBackdrops, type DemoBackdrop } from "../../lib/demoBackdrops";
 
 type Gift = {
@@ -326,7 +327,7 @@ export default function ProfilePage() {
                   {demoBackdropInventory.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-5 text-center text-xs text-slate-400">{t("Backdrop drops you win will appear here.")}</div> : (
                     <div className="grid grid-cols-2 gap-3">
                       {demoBackdropInventory.map((backdrop) => <article key={backdrop.id} className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
-                        <div className="flex h-28 items-center justify-center text-5xl" style={{ backgroundColor: backdrop.color }}>{backdrop.emoji}</div>
+                        <div className="flex h-28 items-center justify-center" style={{ backgroundColor: backdrop.color }}><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={68} className="h-[68px] w-[68px]" fallback={<span />}/></div>
                         <div className="p-3"><h3 className="truncate text-sm font-semibold">{backdrop.name}</h3><p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-blue-600">{t("Demo backdrop")}</p>
                           <button type="button" disabled={Boolean(busy)} onClick={() => sellDemoBackdrop(backdrop)} className="mt-3 w-full rounded-xl bg-blue-700 py-2 text-xs font-semibold text-white disabled:opacity-50">{t("Sell · 0.30 TON · demo")}</button>
                         </div>

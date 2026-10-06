@@ -6,6 +6,7 @@ import BottomNav from '../../components/BottomNav';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
 import GramIcon from '../../components/GramIcon';
 import OrbitWordmark from '../../components/OrbitWordmark';
+import TelegramTgsSticker from '../../components/TelegramTgsSticker';
 import { useOrbitLanguage } from '../../components/OrbitLanguageContext';
 import { giftCollectionImage, normalizeGiftName, telegramGiftCollections } from '../../lib/telegramGiftCollections';
 import { chooseDemoBackdrop, createDemoBackdropDrop, demoBackdrops, DEMO_BACKDROP_UPDATE_EVENT, readDemoBackdrops, saveDemoBackdrops, type DemoBackdrop } from '../../lib/demoBackdrops';
@@ -153,7 +154,7 @@ export default function MarketPage() {
     setIsSpinning(true);
     setDropNotice('');
     window.setTimeout(() => {
-      const dropped = createDemoBackdropDrop(reward, '🎁');
+      const dropped = createDemoBackdropDrop(reward, '');
       saveDemoBackdrops([dropped, ...readDemoBackdrops()]);
       setBackdropInventory(readDemoBackdrops());
       setIsSpinning(false);
@@ -256,7 +257,7 @@ export default function MarketPage() {
 
         <div className="mb-4 grid grid-cols-2 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm" role="tablist" aria-label={t('Market sections')}>
           <button type="button" role="tab" aria-selected={marketSection === 'gifts'} onClick={() => setMarketSection('gifts')} className={`rounded-xl px-3 py-2.5 text-sm font-semibold transition ${marketSection === 'gifts' ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-500'}`}>{t('NFT gifts')}</button>
-          <button type="button" role="tab" aria-selected={marketSection === 'backdrops'} onClick={() => setMarketSection('backdrops')} className={`rounded-xl px-3 py-2.5 text-sm font-semibold transition ${marketSection === 'backdrops' ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-500'}`}>{t('Gift backgrounds')}</button>
+          <button type="button" role="tab" aria-selected={marketSection === 'backdrops'} onClick={() => setMarketSection('backdrops')} className={`rounded-xl px-3 py-2.5 text-sm font-semibold transition ${marketSection === 'backdrops' ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-500'}`}>{t('ORBIT NFT')}</button>
         </div>
 
         {marketSection === 'gifts' ? <>
@@ -353,11 +354,11 @@ export default function MarketPage() {
           <section className="pb-6">
             <div className="mb-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="flex items-start justify-between gap-3">
-                <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 className="mt-1 text-lg font-bold">{t('Gift backgrounds')}</h2><p className="mt-1 text-xs leading-5 text-slate-500">{t('Open a demo drop to collect a gift backdrop.')}</p></div>
+                <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 className="mt-1 text-lg font-bold">{t('ORBIT NFT')}</h2><p className="mt-1 text-xs leading-5 text-slate-500">{t('Open a demo drop to collect a gift backdrop.')}</p></div>
                 <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700">0.25 TON</span>
               </div>
               <div className="mt-4 flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-3xl shadow-inner" style={{ backgroundColor: '#17191d' }}>🎁</div>
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-inner" style={{ backgroundColor: '#17191d' }}><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={42} className="h-[42px] w-[42px]" fallback={<span />}/></div>
                 <div className="min-w-0 flex-1"><p className="text-sm font-semibold">{t('Backdrop drop')}</p><p className="mt-0.5 text-xs text-slate-500">{t('Black has an 80% demo chance. Other colors share 20%.')}</p></div>
               </div>
               <button type="button" disabled={isSpinning} onClick={startBackdropDemoPurchase} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">
@@ -372,7 +373,7 @@ export default function MarketPage() {
               {demoBackdrops.map((backdrop) => (
                 <article key={backdrop.name} className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
                   <div className="relative flex aspect-square items-center justify-center rounded-xl text-3xl shadow-inner" style={{ backgroundColor: backdrop.color }}>
-                    <span aria-hidden="true">🎁</span>
+                    <TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={38} className="h-[38px] w-[38px]" fallback={<span />}/>
                     {backdrop.name === 'Black' && <span className="absolute right-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-extrabold text-slate-900">80%</span>}
                   </div>
                   <p className="mt-2 truncate text-center text-[11px] font-semibold text-slate-700">{backdrop.name}</p>
@@ -468,7 +469,7 @@ export default function MarketPage() {
                 </button>
                 {collectionChoices.map((collection) => <button key={collection.slug} type="button" onClick={() => { setSelectedCollection(collection.name); setCollectionOpen(false); }} className="flex w-full items-center gap-3 border-b border-slate-100 py-3 text-left last:border-0">
                   <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50">
-                    <span aria-hidden="true">🎁</span>
+                    <TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={38} className="h-[38px] w-[38px]" fallback={<span />}/>
                     <img src={giftCollectionImage(collection.slug)} alt="" loading="lazy" className="absolute h-11 w-11 rounded-xl object-cover" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
                   </span>
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800">{collection.name}</span>
@@ -521,13 +522,13 @@ export default function MarketPage() {
               <div ref={rouletteStage} className="backdrop-roulette-stage relative mt-5 flex h-[116px] items-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
                 <div className="backdrop-roulette-marker" />
                 <div className="flex h-full items-center gap-[9px] px-0" style={{ transform: `translateX(${spinOffset}px)`, transition: spinStarted && isSpinning ? 'transform 4s cubic-bezier(.08,.74,.11,1)' : 'none' }}>
-                  {spinTiles.map((tile, index) => <div key={`${tile.name}-${index}`} className="flex h-[70px] w-[70px] shrink-0 items-center justify-center rounded-2xl border border-white/65 text-3xl shadow-md" style={{ backgroundColor: tile.color }}>🎁</div>)}
+                  {spinTiles.map((tile, index) => <div key={`${tile.name}-${index}`} className="flex h-[70px] w-[70px] shrink-0 items-center justify-center rounded-2xl border border-white/65 shadow-md" style={{ backgroundColor: tile.color }}><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={46} className="h-[46px] w-[46px]" fallback={<span />}/></div>)}
                 </div>
               </div>
               {isSpinning ? <p className="mt-4 text-center text-sm font-medium text-slate-500">{t('A backdrop is rolling…')}</p> : spinResult && (
                 <div className="mt-4">
                   <div className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-3xl shadow-inner" style={{ backgroundColor: spinResult.color }}>🎁</div>
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-inner" style={{ backgroundColor: spinResult.color }}><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={42} className="h-[42px] w-[42px]" fallback={<span />}/></div>
                     <div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-700">{t('Added to inventory')}</p><p className="mt-1 font-bold">{spinResult.name}</p></div>
                   </div>
                   <p className="mt-3 text-center text-[11px] leading-4 text-slate-500">{t('Stored on this device for demo. No balance or history changed.')}</p>
