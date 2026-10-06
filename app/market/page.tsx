@@ -106,6 +106,7 @@ export default function MarketPage() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinStarted, setSpinStarted] = useState(false);
   const [spinTiles, setSpinTiles] = useState<typeof demoBackdrops[number][]>([]);
+  const [spinWinnerIndex, setSpinWinnerIndex] = useState(0);
   const [spinResult, setSpinResult] = useState<typeof demoBackdrops[number] | null>(null);
   const [spinOffset, setSpinOffset] = useState(0);
   const [dropNotice, setDropNotice] = useState('');
@@ -128,7 +129,7 @@ export default function MarketPage() {
       const stageWidth = rouletteStage.current?.clientWidth ?? 320;
       const cardWidth = 70;
       const gap = 9;
-      const winnerIndex = spinTiles.length - 1;
+      const winnerIndex = spinWinnerIndex;
       setSpinOffset(stageWidth / 2 - cardWidth / 2);
       setSpinStarted(false);
       window.requestAnimationFrame(() => {
@@ -139,15 +140,17 @@ export default function MarketPage() {
       });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [spinOpen, isSpinning, spinTiles]);
+  }, [spinOpen, isSpinning, spinTiles, spinWinnerIndex]);
 
   function startBackdropDemoPurchase() {
     if (isSpinning) return;
     const reward = chooseDemoBackdrop();
-    const tiles = Array.from({ length: 18 }, () => demoBackdrops[Math.floor(Math.random() * demoBackdrops.length)]);
-    tiles[tiles.length - 1] = reward;
+    const winnerIndex = 18;
+    const tiles = Array.from({ length: 24 }, () => demoBackdrops[Math.floor(Math.random() * demoBackdrops.length)]);
+    tiles[winnerIndex] = reward;
     setSpinResult(reward);
     setSpinTiles(tiles);
+    setSpinWinnerIndex(winnerIndex);
     setSpinStarted(false);
     setSpinOffset(0);
     setSpinOpen(true);
