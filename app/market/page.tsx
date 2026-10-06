@@ -118,6 +118,8 @@ export default function MarketPage() {
   const [dropNotice, setDropNotice] = useState('');
   const spinTimeout = useRef<number | null>(null);
   const spinTrackRef = useRef<HTMLDivElement | null>(null);
+  const spinGiftMotionRef = useRef<HTMLSpanElement | null>(null);
+  const spinWindMotionRef = useRef<HTMLSpanElement | null>(null);
   const spinFinalized = useRef(true);
   const pendingSpinResult = useRef<typeof demoBackdrops[number] | null>(null);
 
@@ -144,6 +146,36 @@ export default function MarketPage() {
   useEffect(() => () => {
     if (spinTimeout.current !== null) window.clearTimeout(spinTimeout.current);
   }, []);
+
+  function easeBackdropMotionToStop() {
+    const gift = spinGiftMotionRef.current;
+    const motionElements = [gift, spinWindMotionRef.current].filter((element): element is HTMLSpanElement => element !== null);
+    const animations = motionElements.flatMap((element) => element.getAnimations());
+    const playbackRates = animations.map((animation) => Math.max(Math.abs(animation.playbackRate), 0.01));
+
+    if (gift) {
+      const currentFilter = window.getComputedStyle(gift).filter;
+      gift.animate([{ filter: currentFilter }, { filter: 'blur(0px)' }], {
+        duration: 260,
+        easing: 'cubic-bezier(.2,.7,.25,1)',
+        fill: 'forwards',
+      });
+    }
+
+    if (!animations.length) return;
+    const startedAt = performance.now();
+    const brakeDuration = 260;
+    const brakeFrame = (now: number) => {
+      const progress = Math.min(1, (now - startedAt) / brakeDuration);
+      const remainingSpeed = Math.max(0.015, (1 - progress) ** 2);
+      animations.forEach((animation, index) => {
+        animation.updatePlaybackRate(playbackRates[index] * remainingSpeed);
+      });
+      if (progress < 1) window.requestAnimationFrame(brakeFrame);
+      else animations.forEach((animation) => animation.pause());
+    };
+    window.requestAnimationFrame(brakeFrame);
+  }
 
   useEffect(() => {
     if (!spinOpen || !isSpinning || spinTiles.length === 0) return;
@@ -172,6 +204,7 @@ export default function MarketPage() {
       const offset = transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m41;
       if (offset <= pauseOffset) {
         setSpinSlowdown(true);
+        easeBackdropMotionToStop();
         return;
       }
       frame = window.requestAnimationFrame(watchTrack);
@@ -594,7 +627,7 @@ export default function MarketPage() {
                     <span className="w-full truncate text-center text-xs font-semibold leading-4 text-slate-600">{tile.name}</span>
                   </div>)}
                 </div>
-                <div className="pointer-events-none absolute left-1/2 top-[26px] z-10 flex h-[208px] w-[208px] -translate-x-1/2 items-center justify-center drop-shadow-[0_2px_5px_rgba(15,23,42,0.28)]"><span className="backdrop-wind-effect" aria-hidden="true"><span className="backdrop-wind-vortex" /><span className="backdrop-wind-gift"><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={198} className="h-[198px] w-[198px]" autoplay={false} fallback={<span />}/></span></span></div>
+                <div className="pointer-events-none absolute left-1/2 top-[26px] z-10 flex h-[208px] w-[208px] -translate-x-1/2 items-center justify-center drop-shadow-[0_2px_5px_rgba(15,23,42,0.28)]"><span className="backdrop-wind-effect" aria-hidden="true"><span ref={spinWindMotionRef} className="backdrop-wind-vortex" /><span ref={spinGiftMotionRef} className="backdrop-wind-gift"><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={198} className="h-[198px] w-[198px]" autoplay={false} fallback={<span />}/></span></span></div>
               </div> : spinResult && <div className="flex flex-col items-center pt-5">
                 <div className="backdrop-prize-reveal relative flex h-52 w-52 items-center justify-center rounded-[34px] shadow-[0_20px_50px_rgba(20,69,150,0.24)]" style={{ backgroundColor: spinResult.color }}>
                   <TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={198} className="h-[198px] w-[198px]" autoplay fallback={<span />}/>

@@ -94,9 +94,9 @@ select {
   will-change: transform, filter;
 }
 
-.backdrop-roulette-stage.is-slowing .backdrop-wind-vortex,
-.backdrop-roulette-stage.is-slowing .backdrop-wind-gift {
-  animation-play-state: paused;
+.backdrop-roulette-stage.is-slowing .backdrop-wind-vortex {
+  opacity: 0;
+  transition: opacity .26s ease-out;
 }
 
 @keyframes backdrop-prize-pop {
