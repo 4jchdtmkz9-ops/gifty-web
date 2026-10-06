@@ -117,6 +117,7 @@ export default function MarketPage() {
   const [spinOffset, setSpinOffset] = useState(0);
   const [dropNotice, setDropNotice] = useState('');
   const spinTimeout = useRef<number | null>(null);
+  const spinTrackRef = useRef<HTMLDivElement | null>(null);
   const spinFinalized = useRef(true);
   const pendingSpinResult = useRef<typeof demoBackdrops[number] | null>(null);
 
@@ -151,8 +152,7 @@ export default function MarketPage() {
       setSpinStarted(true);
       targetFrame = window.requestAnimationFrame(() => {
         const winnerOffset = -(spinWinnerIndex * (BACKDROP_TILE_SIZE + BACKDROP_TILE_GAP) + BACKDROP_TILE_SIZE / 2);
-        const twoTiles = 2 * (BACKDROP_TILE_SIZE + BACKDROP_TILE_GAP);
-        setSpinOffset(winnerOffset + twoTiles);
+        setSpinOffset(winnerOffset);
       });
     });
     return () => {
@@ -160,6 +160,25 @@ export default function MarketPage() {
       window.cancelAnimationFrame(targetFrame);
     };
   }, [spinOpen, isSpinning, spinTiles, spinWinnerIndex]);
+
+  useEffect(() => {
+    if (!spinOpen || !isSpinning || !spinStarted || spinSlowdown || !spinTrackRef.current) return;
+    const track = spinTrackRef.current;
+    const winnerOffset = -(spinWinnerIndex * (BACKDROP_TILE_SIZE + BACKDROP_TILE_GAP) + BACKDROP_TILE_SIZE / 2);
+    const pauseOffset = winnerOffset + 2 * (BACKDROP_TILE_SIZE + BACKDROP_TILE_GAP);
+    let frame = 0;
+    const watchTrack = () => {
+      const transform = window.getComputedStyle(track).transform;
+      const offset = transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m41;
+      if (offset <= pauseOffset) {
+        setSpinSlowdown(true);
+        return;
+      }
+      frame = window.requestAnimationFrame(watchTrack);
+    };
+    frame = window.requestAnimationFrame(watchTrack);
+    return () => window.cancelAnimationFrame(frame);
+  }, [spinOpen, isSpinning, spinStarted, spinSlowdown, spinWinnerIndex]);
 
   function finishBackdropSpin(reward: typeof demoBackdrops[number]) {
     if (spinFinalized.current) return;
@@ -567,15 +586,9 @@ export default function MarketPage() {
                 {!isSpinning && !isRewardSaving && <button type="button" onClick={() => setSpinOpen(false)} aria-label={t('Close')} className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>}
               </div>
               {isSpinning || isRewardSaving ? <div className={`backdrop-roulette-stage relative mt-5 h-[260px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50${spinSlowdown ? ' is-slowing' : ''}`}>
-                <div onTransitionEnd={(event) => {
-                  if (event.propertyName !== 'transform' || !spinStarted || !isSpinning || !pendingSpinResult.current) return;
-                  if (!spinSlowdown) {
-                    setSpinSlowdown(true);
-                    setSpinOffset(-(spinWinnerIndex * (BACKDROP_TILE_SIZE + BACKDROP_TILE_GAP) + BACKDROP_TILE_SIZE / 2));
-                    return;
-                  }
-                  finishBackdropSpin(pendingSpinResult.current);
-                }} className="absolute left-1/2 top-[26px] flex h-[232px] items-start gap-[9px] will-change-transform" style={{ transform: `translateX(${spinOffset}px)`, transition: !spinStarted ? 'none' : spinSlowdown ? 'transform 2.3s cubic-bezier(.18,.72,.24,1)' : 'transform 2.8s cubic-bezier(.12,.78,.2,1)' }}>
+                <div ref={spinTrackRef} onTransitionEnd={(event) => {
+                  if (event.propertyName === 'transform' && spinStarted && isSpinning && pendingSpinResult.current) finishBackdropSpin(pendingSpinResult.current);
+                }} className="absolute left-1/2 top-[26px] flex h-[232px] items-start gap-[9px] will-change-transform" style={{ transform: `translateX(${spinOffset}px)`, transition: spinStarted ? 'transform 4s cubic-bezier(.08,.74,.11,1)' : 'none' }}>
                   {spinTiles.map((tile, index) => <div key={`${tile.name}-${index}`} className="flex h-[232px] w-[208px] shrink-0 flex-col items-center gap-1.5">
                     <div className="h-[208px] w-[208px] rounded-[30px] border border-white/65 shadow-md" style={{ backgroundColor: tile.color }} />
                     <span className="w-full truncate text-center text-xs font-semibold leading-4 text-slate-600">{tile.name}</span>
