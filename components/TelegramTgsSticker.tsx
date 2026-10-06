@@ -9,11 +9,15 @@ export default function TelegramTgsSticker({
   size = 23,
   src = '/stickers/pvp-controller.json',
   className = 'nav-sticker-art nav-sticker-pvp',
+  autoplay = true,
+  loop = true,
   fallback,
 }: {
   size?: number;
   src?: string;
   className?: string;
+  autoplay?: boolean;
+  loop?: boolean;
   fallback: ReactNode;
 }) {
   const [animation, setAnimation] = useState<TelegramStickerAnimation | null>(null);
@@ -42,7 +46,7 @@ export default function TelegramTgsSticker({
       className={className}
       style={{ width: size, height: size }}
     >
-      {animation ? <Lottie src={animation} loop autoplay className="h-full w-full" /> : fallback}
+      {animation ? <Lottie src={animation} loop={loop} autoplay={autoplay} className="h-full w-full" /> : fallback}
     </span>
   );
 }
