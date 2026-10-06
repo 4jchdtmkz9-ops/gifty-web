@@ -110,7 +110,6 @@ export default function MarketPage() {
   const [spinResult, setSpinResult] = useState<typeof demoBackdrops[number] | null>(null);
   const [spinOffset, setSpinOffset] = useState(0);
   const [dropNotice, setDropNotice] = useState('');
-  const rouletteStage = useRef<HTMLDivElement>(null);
   const spinTimeout = useRef<number | null>(null);
   const spinFinalized = useRef(true);
   const pendingSpinResult = useRef<typeof demoBackdrops[number] | null>(null);
@@ -132,21 +131,17 @@ export default function MarketPage() {
 
   useEffect(() => {
     if (!spinOpen || !isSpinning || spinTiles.length === 0) return;
-    const frame = window.requestAnimationFrame(() => {
-      const stageWidth = rouletteStage.current?.clientWidth ?? 320;
-      const cardWidth = 70;
-      const gap = 9;
-      const winnerIndex = spinWinnerIndex;
-      setSpinOffset(stageWidth / 2 - cardWidth / 2);
-      setSpinStarted(false);
-      window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(() => {
-          setSpinStarted(true);
-          setSpinOffset(stageWidth / 2 - (winnerIndex * (cardWidth + gap) + cardWidth / 2));
-        });
+    let targetFrame = 0;
+    const enableTransitionFrame = window.requestAnimationFrame(() => {
+      setSpinStarted(true);
+      targetFrame = window.requestAnimationFrame(() => {
+        setSpinOffset(-(spinWinnerIndex * (70 + 9) + 35));
       });
     });
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(enableTransitionFrame);
+      window.cancelAnimationFrame(targetFrame);
+    };
   }, [spinOpen, isSpinning, spinTiles, spinWinnerIndex]);
 
   function finishBackdropSpin(reward: typeof demoBackdrops[number]) {
@@ -172,7 +167,7 @@ export default function MarketPage() {
     setSpinTiles(tiles);
     setSpinWinnerIndex(winnerIndex);
     setSpinStarted(false);
-    setSpinOffset(0);
+    setSpinOffset(-35);
     setSpinOpen(true);
     setIsSpinning(true);
     setDropNotice('');
@@ -538,13 +533,14 @@ export default function MarketPage() {
                 <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 id="backdrop-spin-title" className="mt-1 text-lg font-bold">{isSpinning ? t('Opening backdrop…') : t('Congratulations!')}</h2></div>
                 {!isSpinning && <button type="button" onClick={() => setSpinOpen(false)} aria-label={t('Close')} className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>}
               </div>
-              {isSpinning ? <div ref={rouletteStage} className="backdrop-roulette-stage relative mt-5 flex h-[116px] items-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+              {isSpinning ? <div className="backdrop-roulette-stage relative mt-5 h-[116px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
                 <div className="backdrop-roulette-marker" />
                 <div onTransitionEnd={(event) => {
                   if (event.propertyName === 'transform' && spinStarted && isSpinning && pendingSpinResult.current) finishBackdropSpin(pendingSpinResult.current);
-                }} className="flex h-full items-center gap-[9px] px-0" style={{ transform: `translateX(${spinOffset}px)`, transition: spinStarted ? 'transform 4s cubic-bezier(.08,.74,.11,1)' : 'none' }}>
-                  {spinTiles.map((tile, index) => <div key={`${tile.name}-${index}`} className="flex h-[70px] w-[70px] shrink-0 items-center justify-center rounded-2xl border border-white/65 shadow-md" style={{ backgroundColor: tile.color }}><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={69} className="h-[69px] w-[69px]" autoplay={false} fallback={<span />}/></div>)}
+                }} className="absolute left-1/2 top-1/2 flex h-[70px] items-center gap-[9px] will-change-transform" style={{ transform: `translate(${spinOffset}px, -50%)`, transition: spinStarted ? 'transform 4s cubic-bezier(.08,.74,.11,1)' : 'none' }}>
+                  {spinTiles.map((tile, index) => <div key={`${tile.name}-${index}`} className="h-[70px] w-[70px] shrink-0 rounded-2xl border border-white/65 shadow-md" style={{ backgroundColor: tile.color }} />)}
                 </div>
+                <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 flex h-[70px] w-[70px] -translate-x-1/2 -translate-y-1/2 items-center justify-center drop-shadow-[0_2px_5px_rgba(15,23,42,0.28)]"><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={69} className="h-[69px] w-[69px]" autoplay={false} fallback={<span />}/></div>
               </div> : spinResult && <div className="flex flex-col items-center pt-5">
                 <div className="backdrop-prize-reveal relative flex h-52 w-52 items-center justify-center rounded-[34px] shadow-[0_20px_50px_rgba(20,69,150,0.24)]" style={{ backgroundColor: spinResult.color }}>
                   <TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={198} className="h-[198px] w-[198px]" autoplay fallback={<span />}/>
