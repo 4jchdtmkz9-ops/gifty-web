@@ -53,16 +53,6 @@ select {
   animation: backdrop-prize-pop .72s cubic-bezier(.16,1.25,.3,1) both;
 }
 
-.backdrop-wind-effect {
-  position: relative;
-  display: flex;
-  width: 198px;
-  height: 198px;
-  align-items: center;
-  justify-content: center;
-  isolation: isolate;
-}
-
 .backdrop-wind-vortex {
   position: absolute;
   inset: -8px;
@@ -72,7 +62,7 @@ select {
   mask-image: radial-gradient(ellipse, transparent 43%, #000 51%, #000 57%, transparent 70%);
   filter: blur(2px);
   opacity: .8;
-  animation: backdrop-wind-swirl .72s linear infinite;
+  animation: backdrop-wind-swirl .42s linear infinite;
 }
 
 .backdrop-wind-vortex::before,
@@ -100,7 +90,7 @@ select {
   align-items: center;
   justify-content: center;
   transform-origin: center;
-  animation: backdrop-gift-spin 1.05s cubic-bezier(.38,.02,.58,.98) infinite;
+  animation: backdrop-gift-spin .52s cubic-bezier(.38,.02,.58,.98) infinite;
   will-change: transform, filter;
 }
 

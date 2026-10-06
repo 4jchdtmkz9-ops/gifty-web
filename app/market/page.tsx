@@ -559,11 +559,14 @@ export default function MarketPage() {
                   if (event.propertyName === 'transform' && spinStarted && isSpinning && pendingSpinResult.current) finishBackdropSpin(pendingSpinResult.current);
                 }} className="absolute left-1/2 top-[26px] flex h-[232px] items-start gap-[9px] will-change-transform" style={{ transform: `translateX(${spinOffset}px)`, transition: spinStarted ? 'transform 4s cubic-bezier(.08,.74,.11,1)' : 'none' }}>
                   {spinTiles.map((tile, index) => <div key={`${tile.name}-${index}`} className="flex h-[232px] w-[208px] shrink-0 flex-col items-center gap-1.5">
-                    <div className="h-[208px] w-[208px] rounded-[30px] border border-white/65 shadow-md" style={{ backgroundColor: tile.color }} />
+                    <div className="relative flex h-[208px] w-[208px] flex-col items-center justify-center overflow-hidden rounded-[30px] border border-white/65 shadow-md" style={{ backgroundColor: tile.color }}>
+                      <span className="absolute left-3 top-3 rounded-full bg-slate-950/70 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.12em] text-white">New Gift</span>
+                      <span className="backdrop-wind-gift"><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={154} className="h-[154px] w-[154px]" autoplay={false} fallback={<span />}/></span>
+                    </div>
                     <span className="w-full truncate text-center text-xs font-semibold leading-4 text-slate-600">{tile.name}</span>
                   </div>)}
                 </div>
-                <div className="pointer-events-none absolute left-1/2 top-[26px] z-10 flex h-[208px] w-[208px] -translate-x-1/2 items-center justify-center drop-shadow-[0_2px_5px_rgba(15,23,42,0.28)]"><span className="backdrop-wind-effect" aria-hidden="true"><span className="backdrop-wind-vortex" /><span className="backdrop-wind-gift"><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={198} className="h-[198px] w-[198px]" autoplay={false} fallback={<span />}/></span></span></div>
+                <div className="pointer-events-none absolute left-1/2 top-[26px] z-10 h-[208px] w-[208px] -translate-x-1/2" aria-hidden="true"><span className="backdrop-wind-vortex" /></div>
               </div> : spinResult && <div className="flex flex-col items-center pt-5">
                 <div className="backdrop-prize-reveal relative flex h-52 w-52 items-center justify-center rounded-[34px] shadow-[0_20px_50px_rgba(20,69,150,0.24)]" style={{ backgroundColor: spinResult.color }}>
                   <TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={198} className="h-[198px] w-[198px]" autoplay fallback={<span />}/>
