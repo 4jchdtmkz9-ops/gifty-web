@@ -4,7 +4,14 @@ export type DemoBackdrop = {
   color: string;
   emoji: string;
   obtainedAt: number;
+  packId?: DemoBackdropPackId;
 };
+
+export type DemoBackdropPackId = 'sweeties' | 'orbit-dog';
+
+export function getDemoBackdropSticker(packId?: string) {
+  return packId === 'orbit-dog' ? '/stickers/orbit-dog.json' : '/stickers/orbit-backdrop-gift.json';
+}
 
 export const demoBackdrops = [
   { name: 'Celtic Blue', color: '#2877bb' },

@@ -1,5 +1,5 @@
 import { getTelegramInitData } from './telegram';
-import type { DemoBackdrop } from './demoBackdrops';
+import type { DemoBackdrop, DemoBackdropPackId } from './demoBackdrops';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://gifty-api-75hj.onrender.com').replace(/\/+$/, '');
 
@@ -390,11 +390,11 @@ async function demoBackdropRequest<T>(path: string, body: Record<string, unknown
 }
 
 export function syncDemoBackdropInventory(items: DemoBackdrop[]) {
-  return demoBackdropRequest<DemoBackdrop[]>('sync', { items: items.map(({ id, name }) => ({ id, name })) });
+  return demoBackdropRequest<DemoBackdrop[]>('sync', { items: items.map(({ id, name, packId }) => ({ id, name, packId: packId ?? 'sweeties' })) });
 }
 
-export function createDemoBackdropDrop(name: string) {
-  return demoBackdropRequest<DemoBackdrop[]>('drop', { name });
+export function createDemoBackdropDrop(name: string, packId: DemoBackdropPackId) {
+  return demoBackdropRequest<DemoBackdrop[]>('drop', { name, packId });
 }
 
 export function transferDemoBackdrop(itemId: string, recipientUsername: string) {

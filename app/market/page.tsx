@@ -9,7 +9,7 @@ import OrbitWordmark from '../../components/OrbitWordmark';
 import TelegramTgsSticker from '../../components/TelegramTgsSticker';
 import { useOrbitLanguage } from '../../components/OrbitLanguageContext';
 import { giftCollectionImage, normalizeGiftName, telegramGiftCollections } from '../../lib/telegramGiftCollections';
-import { chooseDemoBackdrop, demoBackdrops, DEMO_BACKDROP_UPDATE_EVENT, readDemoBackdrops, saveDemoBackdrops, type DemoBackdrop } from '../../lib/demoBackdrops';
+import { chooseDemoBackdrop, demoBackdrops, DEMO_BACKDROP_UPDATE_EVENT, getDemoBackdropSticker, readDemoBackdrops, saveDemoBackdrops, type DemoBackdrop, type DemoBackdropPackId } from '../../lib/demoBackdrops';
 
 type StockGift = {
   id: string;
@@ -41,6 +41,10 @@ const BACKDROP_TILE_SIZE = 208;
 const BACKDROP_TILE_GAP = 9;
 const backdropConfettiColors = ['#1557d5', '#f4bf28', '#e8505b', '#ffffff', '#4cc9a6'];
 const backdropConfettiPieces = Array.from({ length: 32 }, (_, index) => index);
+const backdropPacks: { id: DemoBackdropPackId; name: string; price: string; sticker: string }[] = [
+  { id: 'sweeties', name: 'Sweeties', price: '0.25', sticker: getDemoBackdropSticker('sweeties') },
+  { id: 'orbit-dog', name: 'Orbit Dog', price: '0.35', sticker: getDemoBackdropSticker('orbit-dog') },
+];
 
 const giftBackdrops = [
   ['Black', '#17191d'], ['Onyx Black', '#202329'], ['Gunmetal', '#30363d'], ['Mint Green', '#a8e6cf'],
@@ -108,6 +112,7 @@ export default function MarketPage() {
   const [sortBy, setSortBy] = useState<SortKey>('price-asc');
   const [backdropInventory, setBackdropInventory] = useState<DemoBackdrop[]>([]);
   const [backdropPackOpen, setBackdropPackOpen] = useState(false);
+  const [selectedBackdropPackId, setSelectedBackdropPackId] = useState<DemoBackdropPackId>('sweeties');
   const [spinOpen, setSpinOpen] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isRewardSaving, setIsRewardSaving] = useState(false);
@@ -124,6 +129,7 @@ export default function MarketPage() {
   const spinWindMotionRef = useRef<HTMLSpanElement | null>(null);
   const spinFinalized = useRef(true);
   const pendingSpinResult = useRef<typeof demoBackdrops[number] | null>(null);
+  const selectedBackdropPack = backdropPacks.find((pack) => pack.id === selectedBackdropPackId) ?? backdropPacks[0];
 
   useEffect(() => {
     let active = true;
@@ -223,7 +229,7 @@ export default function MarketPage() {
     pendingSpinResult.current = null;
     setIsSpinning(false);
     setIsRewardSaving(true);
-    void createDemoBackdropDropApi(reward.name).then((items) => {
+    void createDemoBackdropDropApi(reward.name, selectedBackdropPack.id).then((items) => {
       saveDemoBackdrops(items);
       setBackdropInventory(items);
       setIsRewardSaving(false);
@@ -450,33 +456,33 @@ export default function MarketPage() {
             {!backdropPackOpen ? <>
               <div className="mb-4 flex items-center justify-between">
                 <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 className="mt-1 text-lg font-bold">{t('ORBIT NFT')}</h2></div>
-                <span className="text-xs text-slate-400">1 {t('items')}</span>
+                <span className="text-xs text-slate-400">{backdropPacks.length} {t('items')}</span>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <button type="button" onClick={() => setBackdropPackOpen(true)} className="overflow-hidden rounded-3xl border border-slate-200 bg-white text-left shadow-sm transition hover:border-blue-300 hover:shadow-md active:scale-[0.98]">
+                {backdropPacks.map((pack) => <button key={pack.id} type="button" onClick={() => { setSelectedBackdropPackId(pack.id); setBackdropPackOpen(true); }} className="overflow-hidden rounded-3xl border border-slate-200 bg-white text-left shadow-sm transition hover:border-blue-300 hover:shadow-md active:scale-[0.98]">
                   <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[#17191d]">
-                    <TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={150} className="h-[150px] w-[150px]" autoplay={false} fallback={<span />}/>
+                    <TelegramTgsSticker src={pack.sticker} size={150} className="h-[150px] w-[150px]" autoplay={false} fallback={<span />}/>
                     <span className="absolute left-2.5 top-2.5 rounded-full bg-blue-700/90 px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white">{t('DEMO')}</span>
                   </div>
                   <div className="p-3">
-                    <h3 className="truncate text-sm font-bold">Sweeties</h3>
-                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5"><span className="text-[10px] text-slate-400">{t('Price')}</span><span className="text-sm font-bold tabular-nums text-slate-900">0.25 TON</span></div>
+                    <h3 className="truncate text-sm font-bold">{pack.name}</h3>
+                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5"><span className="text-[10px] text-slate-400">{t('Price')}</span><span className="text-sm font-bold tabular-nums text-slate-900">{pack.price} TON</span></div>
                   </div>
-                </button>
+                </button>)}
               </div>
             </> : <>
               <button type="button" onClick={() => setBackdropPackOpen(false)} className="mb-4 inline-flex items-center gap-2 rounded-xl px-1 py-2 text-sm font-semibold text-slate-600"><span aria-hidden="true">←</span>{t('ORBIT NFT')}</button>
               <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                <div className="relative flex h-44 items-center justify-center bg-[#17191d]"><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={150} className="h-[150px] w-[150px]" autoplay={false} fallback={<span />}/><span className="absolute left-3 top-3 rounded-full bg-blue-700/90 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white">{t('DEMO')}</span></div>
-                <div className="p-4"><h2 className="text-xl font-bold">Sweeties</h2><p className="mt-1 text-xs leading-5 text-slate-500">{t('Open a demo drop to collect a gift backdrop.')}</p>
-                  <button type="button" disabled={isSpinning || isRewardSaving} onClick={startBackdropDemoPurchase} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{t('Spin')} <span className="rounded-full bg-white/15 px-2 py-0.5">0.25 TON</span></button>
+                <div className="relative flex h-44 items-center justify-center bg-[#17191d]"><TelegramTgsSticker src={selectedBackdropPack.sticker} size={150} className="h-[150px] w-[150px]" autoplay={false} fallback={<span />}/><span className="absolute left-3 top-3 rounded-full bg-blue-700/90 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white">{t('DEMO')}</span></div>
+                <div className="p-4"><h2 className="text-xl font-bold">{selectedBackdropPack.name}</h2><p className="mt-1 text-xs leading-5 text-slate-500">{t('Open a demo drop to collect a gift backdrop.')}</p>
+                  <button type="button" disabled={isSpinning || isRewardSaving} onClick={startBackdropDemoPurchase} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{t('Spin')} <span className="rounded-full bg-white/15 px-2 py-0.5">{selectedBackdropPack.price} TON</span></button>
                   <p className="mt-2 text-center text-[11px] leading-4 text-slate-500">{t('Demo only — no TON is charged and no sale proceeds are credited.')}</p>
                 </div>
               </div>
               <div className="mb-3 mt-5 flex items-center justify-between"><h3 className="font-semibold">{t('Possible backgrounds')}</h3><span className="text-xs text-slate-400">{demoBackdrops.length} {t('colors')}</span></div>
               <div className="grid grid-cols-3 gap-2.5">
                 {demoBackdrops.map((backdrop) => <article key={backdrop.name} className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
-                  <div className="relative flex aspect-square items-center justify-center rounded-xl text-3xl shadow-inner" style={{ backgroundColor: backdrop.color }}><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={57} className="h-[57px] w-[57px]" autoplay={false} fallback={<span />}/>{backdrop.name === 'Black' && <span className="absolute right-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-extrabold text-slate-900">80%</span>}</div>
+                  <div className="relative flex aspect-square items-center justify-center rounded-xl text-3xl shadow-inner" style={{ backgroundColor: backdrop.color }}><TelegramTgsSticker src={selectedBackdropPack.sticker} size={57} className="h-[57px] w-[57px]" autoplay={false} fallback={<span />}/>{backdrop.name === 'Black' && <span className="absolute right-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-extrabold text-slate-900">80%</span>}</div>
                   <p className="mt-2 truncate text-center text-[11px] font-semibold text-slate-700">{backdrop.name}</p>
                 </article>)}
               </div>
@@ -629,7 +635,7 @@ export default function MarketPage() {
                     <span className="w-full truncate text-center text-xs font-semibold leading-4 text-slate-600">{tile.name}</span>
                   </div>)}
                 </div>
-                <div className="pointer-events-none absolute left-1/2 top-[26px] z-10 flex h-[208px] w-[208px] -translate-x-1/2 items-center justify-center drop-shadow-[0_2px_5px_rgba(15,23,42,0.28)]"><span className="backdrop-wind-effect" aria-hidden="true"><span ref={spinWindMotionRef} className="backdrop-wind-vortex" /><span ref={spinGiftMotionRef} className="backdrop-wind-gift"><TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={198} className="h-[198px] w-[198px]" autoplay={false} fallback={<span />}/></span></span></div>
+                <div className="pointer-events-none absolute left-1/2 top-[26px] z-10 flex h-[208px] w-[208px] -translate-x-1/2 items-center justify-center drop-shadow-[0_2px_5px_rgba(15,23,42,0.28)]"><span className="backdrop-wind-effect" aria-hidden="true"><span ref={spinWindMotionRef} className="backdrop-wind-vortex" /><span ref={spinGiftMotionRef} className="backdrop-wind-gift"><TelegramTgsSticker src={selectedBackdropPack.sticker} size={198} className="h-[198px] w-[198px]" autoplay={false} fallback={<span />}/></span></span></div>
               </div> : spinResult && <div className="backdrop-winner-celebration relative flex flex-col items-center pt-5">
                 <div className="backdrop-confetti-burst pointer-events-none absolute inset-0" aria-hidden="true">
                   {backdropConfettiPieces.map((index) => {
@@ -648,7 +654,7 @@ export default function MarketPage() {
                   })}
                 </div>
                 <div className="backdrop-prize-reveal relative flex h-52 w-52 items-center justify-center rounded-[34px] shadow-[0_20px_50px_rgba(20,69,150,0.24)]" style={{ backgroundColor: spinResult.color }}>
-                  <TelegramTgsSticker src="/stickers/orbit-backdrop-gift.json" size={198} className="h-[198px] w-[198px]" autoplay fallback={<span />}/>
+                  <TelegramTgsSticker src={selectedBackdropPack.sticker} size={198} className="h-[198px] w-[198px]" autoplay fallback={<span />}/>
                   <span className="absolute -top-2 rounded-full border border-white/80 bg-white px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-blue-700 shadow-md">NFT</span>
                   <span className="absolute -bottom-2 rounded-full border border-white/80 bg-white px-3 py-1 text-xs font-bold text-slate-800 shadow-md">{spinResult.name}</span>
                 </div>
