@@ -45,19 +45,6 @@ select {
   box-shadow: none;
 }
 
-.backdrop-roulette-marker {
-  position: absolute;
-  z-index: 2;
-  top: 10px;
-  bottom: 10px;
-  left: 50%;
-  width: 2px;
-  background: linear-gradient(180deg, transparent, #1557d5 18%, #1557d5 82%, transparent);
-  box-shadow: 0 0 12px rgb(21 87 213 / 44%);
-  transform: translateX(-50%);
-  pointer-events: none;
-}
-
 .backdrop-spin-dialog {
   animation: orbit-arena-win .28s cubic-bezier(.2,.8,.2,1) both;
 }
