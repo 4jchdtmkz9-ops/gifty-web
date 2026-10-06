@@ -90,7 +90,7 @@ select {
   align-items: center;
   justify-content: center;
   transform-origin: center;
-  animation: backdrop-gift-spin .52s cubic-bezier(.38,.02,.58,.98) infinite;
+  animation: backdrop-gift-spin 1.05s cubic-bezier(.38,.02,.58,.98) infinite;
   will-change: transform, filter;
 }
 
