@@ -27,6 +27,7 @@ import { useOrbitLanguage, type OrbitLanguage } from "../../components/OrbitLang
 import LanguageChoiceList from "../../components/LanguageChoiceList";
 import ThemeToggle from "../../components/ThemeToggle";
 import { useOrbitTheme } from "../../components/OrbitThemeContext";
+import { DEMO_BACKDROP_UPDATE_EVENT, readDemoBackdrops, saveDemoBackdrops, type DemoBackdrop } from "../../lib/demoBackdrops";
 
 type Gift = {
   id: string;
@@ -84,6 +85,19 @@ export default function ProfilePage() {
   const [languageOpen, setLanguageOpen] = useState(false);
   const [pendingLanguage, setPendingLanguage] = useState<OrbitLanguage | null>(null);
   const [languageChanging, setLanguageChanging] = useState(false);
+  const [demoBackdropInventory, setDemoBackdropInventory] = useState<DemoBackdrop[]>([]);
+  const [demoSaleNotice, setDemoSaleNotice] = useState("");
+
+  useEffect(() => {
+    const syncDemoInventory = () => setDemoBackdropInventory(readDemoBackdrops());
+    syncDemoInventory();
+    window.addEventListener(DEMO_BACKDROP_UPDATE_EVENT, syncDemoInventory);
+    window.addEventListener("storage", syncDemoInventory);
+    return () => {
+      window.removeEventListener(DEMO_BACKDROP_UPDATE_EVENT, syncDemoInventory);
+      window.removeEventListener("storage", syncDemoInventory);
+    };
+  }, []);
 
   const refresh = useCallback(async (options?: { silent?: boolean }) => {
     if (!connectionRestored) return;
@@ -172,6 +186,14 @@ export default function ProfilePage() {
       setPriceEditor(null);
       void refreshHistoryQuietly();
     });
+  }
+
+  function sellDemoBackdrop(backdrop: DemoBackdrop) {
+    const remaining = demoBackdropInventory.filter((item) => item.id !== backdrop.id);
+    saveDemoBackdrops(remaining);
+    setDemoBackdropInventory(remaining);
+    setDemoSaleNotice(t("Demo sale complete · 0.30 TON was not credited"));
+    window.setTimeout(() => setDemoSaleNotice(""), 4000);
   }
 
   async function removeListing(gift: Gift) {
@@ -297,6 +319,21 @@ export default function ProfilePage() {
           <>
             {tab === "owned" && (
               <section className="mt-5">
+                <div className="mb-5">
+                  <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{t("Demo backdrops")}</h2><span className="text-xs text-slate-500">{demoBackdropInventory.length} {t("items")}</span></div>
+                  <p className="mb-3 text-xs leading-5 text-slate-500">{t("Demo items stay on this device and never change your balance or history.")}</p>
+                  {demoSaleNotice && <p role="status" className="mb-3 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">{demoSaleNotice}</p>}
+                  {demoBackdropInventory.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-5 text-center text-xs text-slate-400">{t("Backdrop drops you win will appear here.")}</div> : (
+                    <div className="grid grid-cols-2 gap-3">
+                      {demoBackdropInventory.map((backdrop) => <article key={backdrop.id} className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+                        <div className="flex h-28 items-center justify-center text-5xl" style={{ backgroundColor: backdrop.color }}>{backdrop.emoji}</div>
+                        <div className="p-3"><h3 className="truncate text-sm font-semibold">{backdrop.name}</h3><p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-blue-600">{t("Demo backdrop")}</p>
+                          <button type="button" disabled={Boolean(busy)} onClick={() => sellDemoBackdrop(backdrop)} className="mt-3 w-full rounded-xl bg-blue-700 py-2 text-xs font-semibold text-white disabled:opacity-50">{t("Sell · 0.30 TON · demo")}</button>
+                        </div>
+                      </article>)}
+                    </div>
+                  )}
+                </div>
                 <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{t("My gifts")}</h2><span className="text-xs text-slate-500">{owned.length} {t("items")}</span></div>
                 {owned.length === 0 ? <EmptyState icon="🎁" title={t("No gifts yet")} detail={t("Gifts you own will appear here.")} /> : (
                   <div className="grid grid-cols-2 gap-3">
