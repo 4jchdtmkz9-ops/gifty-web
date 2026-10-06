@@ -1,4 +1,5 @@
 import { getTelegramInitData } from './telegram';
+import type { DemoBackdrop } from './demoBackdrops';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://gifty-api-75hj.onrender.com').replace(/\/+$/, '');
 
@@ -373,6 +374,35 @@ if (!response.ok) {
 }
 
   return response.json();
+}
+
+async function demoBackdropRequest<T>(path: string, body: Record<string, unknown>) {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Open ORBIT inside Telegram to manage demo backdrops');
+  const response = await fetch(`${API_URL}/demo/backdrops/${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...body, initData }),
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'Demo backdrop action failed'));
+  return response.json() as Promise<T>;
+}
+
+export function syncDemoBackdropInventory(items: DemoBackdrop[]) {
+  return demoBackdropRequest<DemoBackdrop[]>('sync', { items: items.map(({ id, name }) => ({ id, name })) });
+}
+
+export function createDemoBackdropDrop(name: string) {
+  return demoBackdropRequest<DemoBackdrop[]>('drop', { name });
+}
+
+export function transferDemoBackdrop(itemId: string, recipientUsername: string) {
+  return demoBackdropRequest<{ transferred: boolean }>('transfer', { itemId, recipientUsername });
+}
+
+export function sellDemoBackdrop(itemId: string) {
+  return demoBackdropRequest<{ sold: boolean; creditedTon: string }>('sell', { itemId });
 }
 
 export async function createTransaction(data: {

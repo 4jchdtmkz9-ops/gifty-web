@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { getGifts } from '../../lib/api';
+import { createDemoBackdropDrop as createDemoBackdropDropApi, getGifts, syncDemoBackdropInventory as syncDemoBackdropInventoryApi } from '../../lib/api';
 import BottomNav from '../../components/BottomNav';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
 import GramIcon from '../../components/GramIcon';
@@ -9,7 +9,7 @@ import OrbitWordmark from '../../components/OrbitWordmark';
 import TelegramTgsSticker from '../../components/TelegramTgsSticker';
 import { useOrbitLanguage } from '../../components/OrbitLanguageContext';
 import { giftCollectionImage, normalizeGiftName, telegramGiftCollections } from '../../lib/telegramGiftCollections';
-import { chooseDemoBackdrop, createDemoBackdropDrop, demoBackdrops, DEMO_BACKDROP_UPDATE_EVENT, readDemoBackdrops, saveDemoBackdrops, type DemoBackdrop } from '../../lib/demoBackdrops';
+import { chooseDemoBackdrop, demoBackdrops, DEMO_BACKDROP_UPDATE_EVENT, readDemoBackdrops, saveDemoBackdrops, type DemoBackdrop } from '../../lib/demoBackdrops';
 
 type StockGift = {
   id: string;
@@ -107,6 +107,7 @@ export default function MarketPage() {
   const [backdropInventory, setBackdropInventory] = useState<DemoBackdrop[]>([]);
   const [spinOpen, setSpinOpen] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [isRewardSaving, setIsRewardSaving] = useState(false);
   const [spinStarted, setSpinStarted] = useState(false);
   const [spinTiles, setSpinTiles] = useState<typeof demoBackdrops[number][]>([]);
   const [spinWinnerIndex, setSpinWinnerIndex] = useState(0);
@@ -118,11 +119,20 @@ export default function MarketPage() {
   const pendingSpinResult = useRef<typeof demoBackdrops[number] | null>(null);
 
   useEffect(() => {
+    let active = true;
     const syncInventory = () => setBackdropInventory(readDemoBackdrops());
     syncInventory();
+    void syncDemoBackdropInventoryApi(readDemoBackdrops()).then((items) => {
+      if (!active) return;
+      saveDemoBackdrops(items);
+      setBackdropInventory(items);
+    }).catch((error: unknown) => {
+      if (active) console.warn('Could not sync ORBIT demo backdrops:', error);
+    });
     window.addEventListener(DEMO_BACKDROP_UPDATE_EVENT, syncInventory);
     window.addEventListener('storage', syncInventory);
     return () => {
+      active = false;
       window.removeEventListener(DEMO_BACKDROP_UPDATE_EVENT, syncInventory);
       window.removeEventListener('storage', syncInventory);
     };
@@ -153,11 +163,18 @@ export default function MarketPage() {
     if (spinTimeout.current !== null) window.clearTimeout(spinTimeout.current);
     spinTimeout.current = null;
     pendingSpinResult.current = null;
-    const dropped = createDemoBackdropDrop(reward, '');
-    saveDemoBackdrops([dropped, ...readDemoBackdrops()]);
-    setBackdropInventory(readDemoBackdrops());
     setIsSpinning(false);
-    setDropNotice(t('Backdrop added to demo inventory'));
+    setIsRewardSaving(true);
+    void createDemoBackdropDropApi(reward.name).then((items) => {
+      saveDemoBackdrops(items);
+      setBackdropInventory(items);
+      setIsRewardSaving(false);
+      setDropNotice(t('Backdrop added to demo inventory'));
+    }).catch((error: unknown) => {
+      setIsRewardSaving(false);
+      setSpinOpen(false);
+      setDropNotice(error instanceof Error ? error.message : t('Could not perform action'));
+    });
   }
 
   function startBackdropDemoPurchase() {
@@ -173,6 +190,7 @@ export default function MarketPage() {
     setSpinOffset(-35);
     setSpinOpen(true);
     setIsSpinning(true);
+    setIsRewardSaving(false);
     setDropNotice('');
     spinFinalized.current = false;
     pendingSpinResult.current = reward;
@@ -530,13 +548,13 @@ export default function MarketPage() {
         )}
 
         {spinOpen && (
-          <div className="fixed inset-0 z-[130] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-md" onClick={() => { if (!isSpinning) setSpinOpen(false); }}>
+          <div className="fixed inset-0 z-[130] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-md" onClick={() => { if (!isSpinning && !isRewardSaving) setSpinOpen(false); }}>
             <section role="dialog" aria-modal="true" aria-labelledby="backdrop-spin-title" onClick={(event) => event.stopPropagation()} className="backdrop-spin-dialog w-full max-w-[420px] overflow-hidden rounded-[30px] border border-slate-200 bg-white p-5 shadow-2xl">
               <div className="flex items-start justify-between gap-3">
-                <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 id="backdrop-spin-title" className="mt-1 text-lg font-bold">{isSpinning ? t('Opening backdrop…') : t('Congratulations!')}</h2></div>
-                {!isSpinning && <button type="button" onClick={() => setSpinOpen(false)} aria-label={t('Close')} className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>}
+                <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 id="backdrop-spin-title" className="mt-1 text-lg font-bold">{isSpinning ? t('Opening backdrop…') : isRewardSaving ? t('Saving…') : t('Congratulations!')}</h2></div>
+                {!isSpinning && !isRewardSaving && <button type="button" onClick={() => setSpinOpen(false)} aria-label={t('Close')} className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>}
               </div>
-              {isSpinning ? <div className="backdrop-roulette-stage relative mt-5 h-[260px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+              {isSpinning || isRewardSaving ? <div className="backdrop-roulette-stage relative mt-5 h-[260px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
                 <div onTransitionEnd={(event) => {
                   if (event.propertyName === 'transform' && spinStarted && isSpinning && pendingSpinResult.current) finishBackdropSpin(pendingSpinResult.current);
                 }} className="absolute left-1/2 top-[26px] flex h-[232px] items-start gap-[9px] will-change-transform" style={{ transform: `translateX(${spinOffset}px)`, transition: spinStarted ? 'transform 4s cubic-bezier(.08,.74,.11,1)' : 'none' }}>
