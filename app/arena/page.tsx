@@ -541,10 +541,10 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
           <button disabled={controlsDisabled || !stake.trim() || !Number.isFinite(Number(stake)) || Number(stake) <= 0} onClick={onEnter} className="shrink-0 rounded-xl bg-blue-700 px-4 py-3 text-[10px] font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : room?.viewerIsParticipant ? t('Add more') : t('Join')}</button>
         </div>}
 
-        {(!room || room.isPublic) && !room?.viewerIsParticipant && ownedBackdrops.length > 0 && <section className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3">
-          <div className="mb-2 flex items-center justify-between"><h3 className="text-[11px] font-extrabold text-blue-950">{t('Enter with an NFT')}</h3><span className="text-[9px] text-slate-500">{t('No GRAM stake required')}</span></div>
+        {(!room || room.isPublic) && ownedBackdrops.length > 0 && (!room?.viewerIsParticipant || room.status === 'WAITING' || room.status === 'COUNTDOWN') && <section className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3">
+          <div className="mb-2 flex items-center justify-between"><h3 className="text-[11px] font-extrabold text-blue-950">{room?.viewerIsParticipant ? t('Add an NFT stake') : t('Enter with an NFT')}</h3><span className="text-[9px] text-slate-500">{room?.viewerIsParticipant ? t('NFT value adds to your win chance') : t('No GRAM stake required')}</span></div>
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {ownedBackdrops.map((item) => <button key={item.id} type="button" disabled={busy || controlsDisabled} onClick={() => onEnterWithBackdrop(item.id)} className="flex w-[94px] shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white text-left shadow-sm transition active:scale-[.97] disabled:opacity-50">
+            {ownedBackdrops.map((item) => <button key={item.id} type="button" disabled={busy || controlsDisabled} onClick={() => room?.viewerIsParticipant ? onStakeBackdrop(item.id) : onEnterWithBackdrop(item.id)} className="flex w-[94px] shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white text-left shadow-sm transition active:scale-[.97] disabled:opacity-50">
               <span className="flex h-[70px] w-full items-center justify-center" style={{ backgroundColor: item.color }}><TelegramTgsSticker src={getDemoBackdropSticker(item.packId)} size={60} className="h-[60px] w-[60px]" autoplay={false} fallback={<span />} /></span>
               <span className="w-full truncate px-2 pt-1.5 text-[9px] font-bold text-slate-700">{item.name}</span><span className="inline-flex items-center gap-1 px-2 pb-1.5 text-[9px] font-extrabold text-blue-800"><GramIcon size={10} />{item.priceTon ?? '0.25'} GRAM</span>
             </button>)}
@@ -577,16 +577,6 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
                 <span className="shrink-0 text-right"><span className="block text-[8px] font-semibold uppercase tracking-wide text-slate-400">{t('Total stake')}</span><span className="text-[11px] font-extrabold tabular-nums text-slate-800">{formatGram(player.stakeGram)} <span className="text-[8px] text-slate-500">GRAM</span></span></span>
               </div>;
             })}
-          </div>
-        </section>}
-
-        {room?.viewerIsParticipant && (room.status === 'WAITING' || room.status === 'COUNTDOWN') && ownedBackdrops.length > 0 && <section className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3">
-          <div className="mb-2 flex items-center justify-between"><h3 className="text-[11px] font-extrabold text-blue-950">{t('Add an NFT stake')}</h3><span className="text-[9px] text-slate-500">{t('NFT value adds to your win chance')}</span></div>
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {ownedBackdrops.map((item) => <button key={item.id} type="button" disabled={busy || controlsDisabled} onClick={() => onStakeBackdrop(item.id)} className="flex w-[94px] shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white text-left shadow-sm transition active:scale-[.97] disabled:opacity-50">
-              <span className="flex h-[70px] w-full items-center justify-center" style={{ backgroundColor: item.color }}><TelegramTgsSticker src={getDemoBackdropSticker(item.packId)} size={60} className="h-[60px] w-[60px]" autoplay={false} fallback={<span />} /></span>
-              <span className="w-full truncate px-2 pt-1.5 text-[9px] font-bold text-slate-700">{item.name}</span><span className="inline-flex items-center gap-1 px-2 pb-1.5 text-[9px] font-extrabold text-blue-800"><GramIcon size={10} />{item.priceTon ?? '0.25'} GRAM</span>
-            </button>)}
           </div>
         </section>}
 
