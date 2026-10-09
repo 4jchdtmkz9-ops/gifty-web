@@ -519,7 +519,6 @@ export default function MarketPage() {
               {(() => { const supply = packSupply?.[selectedBackdropPack.id] ?? { limit: 500, sold: 0, remaining: 500 }; const remainingPercent = supply.remaining / supply.limit * 100; return <section className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/55 p-3.5" aria-label={t('Pack supply')}>
                 <div className="mb-2 flex items-center justify-between gap-3"><h3 className="text-xs font-bold text-slate-800">{t('Limited supply')}</h3><span className="text-xs font-extrabold tabular-nums text-blue-800">{supply.remaining}/{supply.limit} {t('left')}</span></div>
                 <div className="h-2.5 overflow-hidden rounded-full bg-blue-100"><div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-[width] duration-500" style={{ width: `${remainingPercent}%` }} /></div>
-                <p className="mt-1.5 text-right text-[10px] text-slate-500">{supply.sold}/{supply.limit} {t('sold')}</p>
               </section>; })()}
               <div className="mb-3 mt-4 flex items-center justify-between"><h3 className="font-semibold">{t('Possible backgrounds')}</h3><span className="text-xs text-slate-400">{demoBackdrops.length} {t('colors')}</span></div>
               <div className="grid grid-cols-3 gap-2.5">
