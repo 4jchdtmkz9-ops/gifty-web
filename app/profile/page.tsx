@@ -357,7 +357,6 @@ export default function ProfilePage() {
               <section className="mt-5">
                 <div className="mb-5">
                   <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{t("ORBIT NFTs")}</h2><span className="text-xs text-slate-500">{demoBackdropInventory.length} {t("items")}</span></div>
-                  <p className="mb-3 text-xs leading-5 text-slate-500">{t("Your ORBIT collectibles. Quick sale credits your balance; transfer moves the collectible to another ORBIT user.")}</p>
                   {demoSaleNotice && <p role="status" className="mb-3 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">{demoSaleNotice}</p>}
                   {demoTransferNotice && <p role="status" className="mb-3 rounded-xl bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800">{demoTransferNotice}</p>}
                   {demoBackdropInventory.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-5 text-center text-xs text-slate-400">{t("Backdrop drops you win will appear here.")}</div> : (
@@ -371,17 +370,6 @@ export default function ProfilePage() {
                     </div>
                   )}
                 </div>
-                <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{t("My gifts")}</h2><span className="text-xs text-slate-500">{owned.length} {t("items")}</span></div>
-                {owned.length === 0 ? <EmptyState icon="🎁" title={t("No gifts yet")} detail={t("Gifts you own will appear here.")} /> : (
-                  <div className="grid grid-cols-2 gap-3">
-                    {owned.map((gift) => <article key={gift.id} className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
-                      <div className="flex h-36 items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 text-6xl">{gift.emoji || "🎁"}</div>
-                      <div className="p-3"><h3 className="truncate text-sm font-semibold">{gift.name}</h3><p className="mt-1 truncate text-xs text-slate-500">{gift.collection}</p>
-                        <button type="button" disabled={Boolean(busy)} onClick={() => openPriceEditor(gift, false)} className="mt-3 w-full rounded-xl bg-blue-700 py-2 text-xs font-semibold text-white disabled:opacity-50">{t("Sell")}</button>
-                      </div>
-                    </article>)}
-                  </div>
-                )}
               </section>
             )}
 
