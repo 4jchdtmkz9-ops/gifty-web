@@ -221,6 +221,30 @@ export function spinLuckyForBalance(requestId: string) {
   return gameRequest('lucky/spin', requestId);
 }
 
+export async function purchaseCryptanCase(requestId: string) {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Open ORBIT inside Telegram to buy a case');
+  const response = await fetch(`${API_URL}/games/cases/cryptan/purchase`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initData, requestId }), cache: 'no-store',
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'Could not purchase case'));
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('orbit-balance-updated'));
+  return response.json() as Promise<{ purchaseId: string; balanceGram: string }>;
+}
+
+export async function openCryptanCase(purchaseId: string) {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Open ORBIT inside Telegram to open a case');
+  const response = await fetch(`${API_URL}/games/cases/cryptan/open`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initData, purchaseId }), cache: 'no-store',
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'Could not open case'));
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('orbit-balance-updated'));
+  return response.json() as Promise<GameSettlement>;
+}
+
 export type BotDepositIntent = {
   id: string;
   amountTon: string;
@@ -384,14 +408,14 @@ if (!response.ok) {
 
 async function demoBackdropRequest<T>(path: string, body: Record<string, unknown>) {
   const initData = getTelegramInitData();
-  if (!initData) throw new Error('Open ORBIT inside Telegram to manage demo backdrops');
-  const response = await fetch(`${API_URL}/demo/backdrops/${path}`, {
+  if (!initData) throw new Error('Open ORBIT inside Telegram to manage ORBIT NFTs');
+  const response = await fetch(`${API_URL}/orbit-nft/${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...body, initData }),
     cache: 'no-store',
   });
-  if (!response.ok) throw new Error(await responseError(response, 'Demo backdrop action failed'));
+  if (!response.ok) throw new Error(await responseError(response, 'ORBIT NFT action failed'));
   if (typeof window !== 'undefined') window.dispatchEvent(new Event('orbit-balance-updated'));
   return response.json() as Promise<T>;
 }
@@ -401,7 +425,7 @@ export function syncDemoBackdropInventory(items: DemoBackdrop[]) {
 }
 
 export async function getDemoBackdropSupply() {
-  const response = await fetch(`${API_URL}/demo/backdrops/supply`, { cache: 'no-store' });
+  const response = await fetch(`${API_URL}/orbit-nft/supply`, { cache: 'no-store' });
   if (!response.ok) throw new Error(await responseError(response, 'Could not load pack supply'));
   return response.json() as Promise<Record<DemoBackdropPackId, { limit: number; sold: number; remaining: number }>>;
 }
@@ -415,7 +439,7 @@ export function transferDemoBackdrop(itemId: string, recipientUsername: string) 
 }
 
 export function sellDemoBackdrop(itemId: string) {
-  return demoBackdropRequest<{ sold: boolean; creditedTon: string }>('sell', { itemId });
+  return demoBackdropRequest<{ sold: boolean; creditedGram: string; balanceGram: string; name: string }>('sell', { itemId });
 }
 
 export async function createTransaction(data: {

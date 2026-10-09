@@ -52,14 +52,3 @@ export function saveDemoBackdrops(items: DemoBackdrop[]) {
   window.localStorage.setItem(DEMO_BACKDROP_STORAGE_KEY, JSON.stringify(items));
   window.dispatchEvent(new Event(DEMO_BACKDROP_UPDATE_EVENT));
 }
-
-export function chooseDemoBackdrop() {
-  // Demo odds: Black is 80%; the remaining 20% is split evenly across other colors.
-  if (Math.random() < 0.8) return demoBackdrops.find((item) => item.name === 'Black')!;
-  const otherColors = demoBackdrops.filter((item) => item.name !== 'Black');
-  return otherColors[Math.floor(Math.random() * otherColors.length)];
-}
-
-export function createDemoBackdropDrop(backdrop: (typeof demoBackdrops)[number], emoji: string): DemoBackdrop {
-  return { id: crypto.randomUUID(), name: backdrop.name, color: backdrop.color, emoji, obtainedAt: Date.now() };
-}

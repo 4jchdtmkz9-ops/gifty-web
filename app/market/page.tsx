@@ -46,6 +46,20 @@ const backdropPacks: { id: DemoBackdropPackId; name: string; price: string; stic
   { id: 'orbit-dog', name: 'Orbit Dog', price: '0.35', sticker: getDemoBackdropSticker('orbit-dog') },
 ];
 
+function orbitNftDropChance(name: string) {
+  if (name === 'Black') return '2%';
+  if (name === 'Onyx Black') return '3%';
+  if (name === 'Midnight Blue') return '5%';
+  return null;
+}
+
+function orbitNftResaleValue(name: string, packId: DemoBackdropPackId) {
+  if (name === 'Black') return '1';
+  if (name === 'Onyx Black') return '0.50';
+  if (name === 'Midnight Blue') return packId === 'orbit-dog' ? '0.40' : '0.30';
+  return '0.15';
+}
+
 const giftBackdrops = [
   ['Black', '#17191d'], ['Onyx Black', '#202329'], ['Gunmetal', '#30363d'], ['Mint Green', '#a8e6cf'],
   ['Camo Green', '#596b3a'], ['Mexican Pink', '#e94b9b'], ['Ivory White', '#f5f0df'], ['Lemongrass', '#d9e978'],
@@ -142,7 +156,7 @@ export default function MarketPage() {
       saveDemoBackdrops(items);
       setBackdropInventory(items);
     }).catch((error: unknown) => {
-      if (active) console.warn('Could not sync ORBIT demo backdrops:', error);
+      if (active) console.warn('Could not sync ORBIT NFT inventory:', error);
     });
     window.addEventListener(DEMO_BACKDROP_UPDATE_EVENT, syncInventory);
     window.addEventListener('storage', syncInventory);
@@ -255,7 +269,7 @@ export default function MarketPage() {
     else setIsRewardSaving(false);
   }
 
-  async function startBackdropDemoPurchase() {
+  async function startBackdropPurchase() {
     if (isSpinning || isRewardSaving) return;
     setIsRewardSaving(true);
     setDropNotice('');
@@ -489,7 +503,7 @@ export default function MarketPage() {
                   </div>
                   <div className="p-3">
                     <h3 className="truncate text-sm font-bold">{pack.name}</h3>
-                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5"><span className="text-[10px] text-slate-400">{t('Price')}</span><span className="text-sm font-bold tabular-nums text-slate-900">{pack.price} TON</span></div>
+                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5"><span className="text-[10px] text-slate-400">{t('Price')}</span><span className="text-sm font-bold tabular-nums text-slate-900">{pack.price} GRAM</span></div>
                   </div>
                 </button>)}
               </div>
@@ -498,7 +512,7 @@ export default function MarketPage() {
               <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div className="relative flex h-44 items-center justify-center bg-[#17191d]"><TelegramTgsSticker src={selectedBackdropPack.sticker} size={150} className="h-[150px] w-[150px]" autoplay={false} fallback={<span />}/></div>
                 <div className="p-4"><h2 className="text-xl font-bold">{selectedBackdropPack.name}</h2><p className="mt-1 text-xs leading-5 text-slate-500">{t('Purchase a collectible pack. A random background will be added to your inventory.')}</p>
-                  <button type="button" disabled={isSpinning || isRewardSaving || packSupply?.[selectedBackdropPack.id]?.remaining === 0} onClick={() => void startBackdropDemoPurchase()} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{isRewardSaving ? t('Processing…') : t('Buy & spin')} <span className="rounded-full bg-white/15 px-2 py-0.5">{selectedBackdropPack.price} TON</span></button>
+                  <button type="button" disabled={isSpinning || isRewardSaving || packSupply?.[selectedBackdropPack.id]?.remaining === 0} onClick={() => void startBackdropPurchase()} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{isRewardSaving ? t('Processing…') : t('Buy & spin')} <span className="rounded-full bg-white/15 px-2 py-0.5">{selectedBackdropPack.price} GRAM</span></button>
                   <p className="mt-2 text-center text-[11px] leading-4 text-slate-500">{t('Payment is deducted from your ORBIT balance.')}</p>
                 </div>
               </div>
@@ -508,10 +522,12 @@ export default function MarketPage() {
                 <p className="mt-1.5 text-right text-[10px] text-slate-500">{supply.sold}/{supply.limit} {t('sold')}</p>
               </section>; })()}
               <div className="mb-3 mt-4 flex items-center justify-between"><h3 className="font-semibold">{t('Possible backgrounds')}</h3><span className="text-xs text-slate-400">{demoBackdrops.length} {t('colors')}</span></div>
+              <p className="mb-3 text-[10px] leading-4 text-slate-500">{t('Rare backgrounds')}: Midnight Blue 5% · Onyx Black 3% · Black 2% · {t('Other backgrounds')} 90%</p>
               <div className="grid grid-cols-3 gap-2.5">
                 {demoBackdrops.map((backdrop) => <article key={backdrop.name} className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
-                  <div className="relative flex aspect-square items-center justify-center rounded-xl text-3xl shadow-inner" style={{ backgroundColor: backdrop.color }}><TelegramTgsSticker src={selectedBackdropPack.sticker} size={57} className="h-[57px] w-[57px]" autoplay={false} fallback={<span />}/>{backdrop.name === 'Black' && <span className="absolute right-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-extrabold text-slate-900">80%</span>}</div>
+                  <div className="relative flex aspect-square items-center justify-center rounded-xl text-3xl shadow-inner" style={{ backgroundColor: backdrop.color }}><TelegramTgsSticker src={selectedBackdropPack.sticker} size={57} className="h-[57px] w-[57px]" autoplay={false} fallback={<span />}/>{orbitNftDropChance(backdrop.name) && <span className="absolute right-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-extrabold text-slate-900">{orbitNftDropChance(backdrop.name)}</span>}</div>
                   <p className="mt-2 truncate text-center text-[11px] font-semibold text-slate-700">{backdrop.name}</p>
+                  <p className="mt-1 text-center text-[9px] font-semibold text-blue-700">{t('Quick sale value')} · {orbitNftResaleValue(backdrop.name, selectedBackdropPack.id)} GRAM</p>
                 </article>)}
               </div>
             </>}
@@ -651,7 +667,7 @@ export default function MarketPage() {
           <div className="fixed inset-0 z-[130] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-md" onClick={() => { if (!isSpinning && !isRewardSaving) setSpinOpen(false); }}>
             <section role="dialog" aria-modal="true" aria-labelledby="backdrop-spin-title" onClick={(event) => event.stopPropagation()} className="backdrop-spin-dialog w-full max-w-[420px] overflow-hidden rounded-[30px] border border-slate-200 bg-white p-5 shadow-2xl">
               <div className="flex items-start justify-between gap-3">
-                <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 id="backdrop-spin-title" className="mt-1 text-lg font-bold">{isSpinning ? t('Opening backdrop…') : isRewardSaving ? t('Saving…') : t('Your win')}</h2></div>
+                <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT NFT</p><h2 id="backdrop-spin-title" className="mt-1 text-lg font-bold">{isSpinning ? t('Opening backdrop…') : isRewardSaving ? t('Saving…') : t('Your win')}</h2></div>
                 {!isSpinning && !isRewardSaving && <button type="button" onClick={() => setSpinOpen(false)} aria-label={t('Close')} className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">×</button>}
               </div>
               {isSpinning || isRewardSaving ? <div className={`backdrop-roulette-stage relative mt-5 h-[260px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50${spinSlowdown ? ' is-slowing' : ''}`}>

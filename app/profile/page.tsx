@@ -206,11 +206,12 @@ export default function ProfilePage() {
 
   async function sellDemoBackdrop(backdrop: DemoBackdrop) {
     await runAction(`demo-sell:${backdrop.id}`, async () => {
-      await sellDemoBackdropApi(backdrop.id);
+      const result = await sellDemoBackdropApi(backdrop.id);
       const remaining = demoBackdropInventory.filter((item) => item.id !== backdrop.id);
       saveDemoBackdrops(remaining);
       setDemoBackdropInventory(remaining);
-      setDemoSaleNotice(t("Demo sale complete · 0.30 TON was not credited"));
+      setDemoSaleNotice(t("Quick sale complete · {amount} GRAM added").replace("{amount}", result.creditedGram));
+      void refreshHistoryQuietly();
       window.setTimeout(() => setDemoSaleNotice(""), 4000);
     });
   }
@@ -227,7 +228,7 @@ export default function ProfilePage() {
       setDemoBackdropInventory(remaining);
       setDemoTransferEditor(null);
       setDemoTransferUsername("");
-      setDemoTransferNotice(t("Demo backdrop transferred to @{username}").replace("{username}", username));
+      setDemoTransferNotice(t("ORBIT NFT transferred to @{username}").replace("{username}", username));
     });
   }
 
@@ -355,16 +356,16 @@ export default function ProfilePage() {
             {tab === "owned" && (
               <section className="mt-5">
                 <div className="mb-5">
-                  <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{t("Demo backdrops")}</h2><span className="text-xs text-slate-500">{demoBackdropInventory.length} {t("items")}</span></div>
-                  <p className="mb-3 text-xs leading-5 text-slate-500">{t("Demo items stay in your ORBIT inventory. Sales and transfers do not change balance or history.")}</p>
+                  <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{t("ORBIT NFTs")}</h2><span className="text-xs text-slate-500">{demoBackdropInventory.length} {t("items")}</span></div>
+                  <p className="mb-3 text-xs leading-5 text-slate-500">{t("Your ORBIT collectibles. Quick sale credits your balance; transfer moves the collectible to another ORBIT user.")}</p>
                   {demoSaleNotice && <p role="status" className="mb-3 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">{demoSaleNotice}</p>}
                   {demoTransferNotice && <p role="status" className="mb-3 rounded-xl bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800">{demoTransferNotice}</p>}
                   {demoBackdropInventory.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-5 text-center text-xs text-slate-400">{t("Backdrop drops you win will appear here.")}</div> : (
                     <div className="grid grid-cols-2 gap-3">
                       {demoBackdropInventory.map((backdrop) => <article key={backdrop.id} className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
                         <div className="relative flex h-28 items-center justify-center" style={{ backgroundColor: backdrop.color }}><TelegramTgsSticker src={getDemoBackdropSticker(backdrop.packId)} size={102} className="h-[102px] w-[102px]" autoplay={false} fallback={<span />}/><span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-slate-950/75 px-2 py-1 text-[10px] font-bold tabular-nums text-white">{backdrop.priceTon ?? '0.30'}<GramIcon size={12} className="text-white" /></span></div>
-                        <div className="p-3"><h3 className="truncate text-sm font-semibold">{backdrop.name}</h3><p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-blue-600">{t("Demo backdrop")}</p>
-                          <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" disabled={Boolean(busy)} onClick={() => void sellDemoBackdrop(backdrop)} className="rounded-xl bg-blue-700 py-2 text-xs font-semibold text-white disabled:opacity-50">{t("Sell")}</button><button type="button" disabled={Boolean(busy)} onClick={() => { setDemoTransferEditor(backdrop); setDemoTransferUsername(""); }} className="rounded-xl bg-slate-100 py-2 text-xs font-semibold text-slate-700 disabled:opacity-50">{t("Transfer")}</button></div>
+                        <div className="p-3"><h3 className="truncate text-sm font-semibold">{backdrop.name}</h3><p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-blue-600">{t("ORBIT collectible")}</p>
+                          <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" disabled={Boolean(busy)} onClick={() => void sellDemoBackdrop(backdrop)} className="rounded-xl bg-blue-700 py-2 text-xs font-semibold text-white disabled:opacity-50">{backdrop.name === 'Black' ? `${t("Quick sale")} · ${backdrop.priceTon ?? '1'} GRAM` : `${t("Sell")} · ${backdrop.priceTon ?? '0.15'} GRAM`}</button><button type="button" disabled={Boolean(busy)} onClick={() => { setDemoTransferEditor(backdrop); setDemoTransferUsername(""); }} className="rounded-xl bg-slate-100 py-2 text-xs font-semibold text-slate-700 disabled:opacity-50">{t("Transfer")}</button></div>
                         </div>
                       </article>)}
                     </div>
@@ -443,9 +444,9 @@ export default function ProfilePage() {
         {demoTransferEditor && (
           <div className="fixed inset-0 z-[90] flex items-end justify-center bg-slate-950/40 p-4 sm:items-center" onClick={() => !busy && setDemoTransferEditor(null)}>
             <form role="dialog" aria-modal="true" aria-labelledby="demo-transfer-title" onSubmit={(event) => { event.preventDefault(); void transferDemoBackdrop(); }} onClick={(event) => event.stopPropagation()} className="w-full max-w-[440px] rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl">
-              <h2 id="demo-transfer-title" className="text-lg font-semibold">{t("Transfer demo backdrop")}</h2>
+              <h2 id="demo-transfer-title" className="text-lg font-semibold">{t("Transfer ORBIT NFT")}</h2>
               <p className="mt-1 text-sm text-slate-500">{demoTransferEditor.name}</p>
-              <p className="mt-3 text-xs leading-5 text-slate-500">{t("The recipient must have opened ORBIT at least once. This demo transfer does not use Telegram or TON.")}</p>
+              <p className="mt-3 text-xs leading-5 text-slate-500">{t("This collectible transfers inside ORBIT to another user.")}</p>
               <label htmlFor="demo-transfer-username" className="mt-4 block text-xs font-medium text-slate-600">{t("Recipient username")}</label>
               <input id="demo-transfer-username" autoComplete="off" autoCapitalize="none" spellCheck={false} value={demoTransferUsername} onChange={(event) => setDemoTransferUsername(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-blue-400" placeholder="@username" />
               <div className="mt-5 grid grid-cols-2 gap-3">

@@ -20,10 +20,7 @@ export default function CasesPage() {
             <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-blue-950">{t('Cases')}</h1>
             <p className="mt-1 text-xs text-slate-500">{t('Pick a case and see what’s inside.')}</p>
           </div>
-          <div className="flex shrink-0 flex-col items-end gap-2">
-            <TonBalanceBadge />
-            <span className="rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-[10px] font-semibold text-yellow-800">{t('DEMO')}</span>
-          </div>
+          <div className="flex shrink-0 flex-col items-end gap-2"><TonBalanceBadge /></div>
         </header>
 
         <section aria-label={t('Available cases')} className="grid grid-cols-2 gap-3">
