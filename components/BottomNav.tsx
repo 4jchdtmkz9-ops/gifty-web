@@ -40,7 +40,7 @@ export default function BottomNav({ active }: { active: NavTab | null }) {
                 : 'text-slate-500 hover:bg-white/70'
             }`}
           >
-            {tab.id === 'home' && <span className="nav-sticker-float h-5 w-[26px] overflow-hidden"><Image src="/orbit-logo.png" alt="" width={970} height={249} className="h-5 w-[78px] max-w-none object-contain" /></span>}
+            {tab.id === 'home' && <span className="nav-sticker-float"><Image src="/orbit-planet.png" alt="" width={330} height={249} className="h-5 w-[26px] object-contain" /></span>}
             {tab.id === 'market' && (
               <TelegramTgsSticker
                 src="/stickers/market.json"
