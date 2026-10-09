@@ -568,7 +568,10 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
                   <p className="truncate text-sm font-bold text-slate-800">{nameOf(player.user)}</p>
                   <p className="mt-0.5 text-[11px] font-medium text-slate-500">{chance < 0.01 ? '<0.01%' : `${chance.toFixed(chance < 1 ? 2 : 1)}%`}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                    {cashStake > 0 && <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-bold tabular-nums text-blue-800"><GramIcon size={13} className="text-blue-600" />{formatGram(cashStake)} GRAM</span>}
+                    {cashStake > 0 && <span className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-blue-200 bg-gradient-to-br from-sky-400 to-blue-600 shadow-sm">
+                      <GramIcon size={20} className="text-white" />
+                      <span className="absolute bottom-0.5 left-0 right-0 text-center text-[8px] font-extrabold tabular-nums leading-none text-white drop-shadow">{formatGram(cashStake)}</span>
+                    </span>}
                     {(player.gifts ?? []).map(({ id, gift, valueGram }) => <span key={id} title={`${gift.backdropName ?? gift.name} · ${formatGram(valueGram)} GRAM`} className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-slate-200 shadow-sm" style={gift.backdropColor ? { backgroundColor: gift.backdropColor } : undefined}>
                       {gift.backdropColor ? <TelegramTgsSticker src={getDemoBackdropSticker(gift.emoji ?? undefined)} size={32} className="h-8 w-8" autoplay={false} fallback={<span />} /> : gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name} className="h-full w-full object-cover" /> : <span className="text-lg">{gift.emoji || '🎁'}</span>}
                     </span>)}
