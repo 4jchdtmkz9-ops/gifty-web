@@ -549,8 +549,8 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
 
         {(!room || room.isPublic) && (!room?.viewerIsParticipant || room.status === 'WAITING' || room.status === 'COUNTDOWN') && <section className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3">
           <div className="mb-2 flex items-center justify-between"><h3 className="text-[11px] font-extrabold text-blue-950">{room?.viewerIsParticipant ? t('Add an NFT stake') : t('Enter with an NFT')}</h3></div>
-          {ownedBackdrops.length ? <div className="flex gap-2 overflow-x-auto pb-1">
-            {ownedBackdrops.map((item) => <button key={item.id} type="button" disabled={busy || controlsDisabled} onClick={() => room?.viewerIsParticipant ? onStakeBackdrop(item.id) : onEnterWithBackdrop(item.id)} className="flex w-[94px] shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white text-left shadow-sm transition active:scale-[.97] disabled:opacity-50">
+          {ownedBackdrops.length ? <div className="grid grid-cols-3 gap-2 pb-1">
+            {ownedBackdrops.map((item) => <button key={item.id} type="button" disabled={busy || controlsDisabled} onClick={() => room?.viewerIsParticipant ? onStakeBackdrop(item.id) : onEnterWithBackdrop(item.id)} className="flex w-full min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white text-left shadow-sm transition active:scale-[.97] disabled:opacity-50">
               <span className="flex h-[70px] w-full items-center justify-center" style={{ backgroundColor: item.color }}><TelegramTgsSticker src={getDemoBackdropSticker(item.packId)} size={66} className="h-[66px] w-[66px]" autoplay={false} fallback={<span />} /></span>
               <span className="w-full truncate px-2 pt-1.5 text-[9px] font-bold text-slate-700">{item.name}</span><span className="inline-flex items-center gap-1 px-2 pb-1.5 text-[9px] font-extrabold text-blue-800"><GramIcon size={10} />{item.priceTon ?? '0.25'} GRAM</span>
             </button>)}
