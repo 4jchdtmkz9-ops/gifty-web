@@ -16,6 +16,7 @@ import {
   getPvpShareLink,
   getPublicArenaRooms,
   getBotBalance,
+  getOwnedGifts,
   joinPublicArena,
   joinPublicArenaWithGifts,
   joinPvpRoom,
@@ -28,6 +29,24 @@ import {
   type PvpRoom,
 } from '../../lib/api';
 import { getDemoBackdropSticker, type DemoBackdrop } from '../../lib/demoBackdrops';
+
+type ArenaStakeItem = Omit<DemoBackdrop, 'priceTon'> & { imageUrl?: string | null; backdropName?: string | null; backdropColor?: string | null; priceTon?: string | number };
+
+async function loadArenaStakeInventory(): Promise<ArenaStakeItem[]> {
+  const [backdrops, ownedGifts] = await Promise.all([syncDemoBackdropInventory([]), (getOwnedGifts() as Promise<Array<{ id: string; name: string; emoji?: string | null; imageUrl?: string | null; backdropName?: string | null; backdropColor?: string | null; priceTon: string | number; createdAt?: string }>>).catch(() => [])]);
+  const realGifts: ArenaStakeItem[] = ownedGifts.map((gift) => ({
+    id: gift.id,
+    name: gift.backdropName ?? gift.name,
+    color: gift.backdropColor ?? '#e7eef9',
+    emoji: gift.emoji ?? '🎁',
+    obtainedAt: gift.createdAt ? Date.parse(gift.createdAt) : Date.now(),
+    priceTon: gift.priceTon,
+    imageUrl: gift.imageUrl,
+    backdropName: gift.backdropName,
+    backdropColor: gift.backdropColor,
+  }));
+  return [...backdrops, ...realGifts];
+}
 
 function nameOf(player?: PvpPlayer | null) {
   return player?.username ? `@${player.username}` : player?.firstName || 'Player';
@@ -404,7 +423,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
   busy: boolean; stake: string; setStake: (stake: string) => void; onEnter: () => void;
   onEnterAmount: (amount: string) => void; botBalance: string; roundCoolingDown: boolean;
   rollPhase: RollPhase; t: (key: string) => string;
-  ownedBackdrops: DemoBackdrop[]; onStakeBackdrop: (id: string) => void; onEnterWithBackdrop: (id: string) => void;
+  ownedBackdrops: ArenaStakeItem[]; onStakeBackdrop: (id: string) => void; onEnterWithBackdrop: (id: string) => void;
 }) {
   const participants = room?.participants ?? [];
   const roomMode = room?.arenaMode ?? arenaMode;
@@ -541,14 +560,14 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
           <button disabled={controlsDisabled || !stake.trim() || !Number.isFinite(Number(stake)) || Number(stake) <= 0} onClick={onEnter} className="shrink-0 rounded-xl bg-blue-700 px-4 py-3 text-[10px] font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : room?.viewerIsParticipant ? t('Add more') : t('Join')}</button>
         </div>}
 
-        {(!room || room.isPublic) && ownedBackdrops.length > 0 && (!room?.viewerIsParticipant || room.status === 'WAITING' || room.status === 'COUNTDOWN') && <section className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3">
+        {(!room || room.isPublic) && (!room?.viewerIsParticipant || room.status === 'WAITING' || room.status === 'COUNTDOWN') && <section className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3">
           <div className="mb-2 flex items-center justify-between"><h3 className="text-[11px] font-extrabold text-blue-950">{room?.viewerIsParticipant ? t('Add an NFT stake') : t('Enter with an NFT')}</h3><span className="text-[9px] text-slate-500">{room?.viewerIsParticipant ? t('NFT value adds to your win chance') : t('No GRAM stake required')}</span></div>
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          {ownedBackdrops.length ? <div className="flex gap-2 overflow-x-auto pb-1">
             {ownedBackdrops.map((item) => <button key={item.id} type="button" disabled={busy || controlsDisabled} onClick={() => room?.viewerIsParticipant ? onStakeBackdrop(item.id) : onEnterWithBackdrop(item.id)} className="flex w-[94px] shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white text-left shadow-sm transition active:scale-[.97] disabled:opacity-50">
-              <span className="flex h-[70px] w-full items-center justify-center" style={{ backgroundColor: item.color }}><TelegramTgsSticker src={getDemoBackdropSticker(item.packId)} size={60} className="h-[60px] w-[60px]" autoplay={false} fallback={<span />} /></span>
+              <span className="flex h-[70px] w-full items-center justify-center" style={{ backgroundColor: item.color }}>{item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-cover" /> : item.backdropColor ? <TelegramTgsSticker src={getDemoBackdropSticker(item.emoji ?? item.packId)} size={60} className="h-[60px] w-[60px]" autoplay={false} fallback={<span />} /> : <span className="text-3xl">{item.emoji || '🎁'}</span>}</span>
               <span className="w-full truncate px-2 pt-1.5 text-[9px] font-bold text-slate-700">{item.name}</span><span className="inline-flex items-center gap-1 px-2 pb-1.5 text-[9px] font-extrabold text-blue-800"><GramIcon size={10} />{item.priceTon ?? '0.25'} GRAM</span>
             </button>)}
-          </div>
+          </div> : <p className="rounded-xl border border-dashed border-blue-200 px-3 py-3 text-center text-[10px] font-medium text-slate-500">{t('No NFTs available in your inventory')}</p>}
         </section>}
 
         {participants.length > 0 && <section className="arena-player-list mt-4 overflow-hidden rounded-[20px] border border-slate-200 bg-white" aria-label={t('PLAYERS')}>
@@ -560,21 +579,23 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
             {participants.map((player) => {
               const chance = totalStake > 0 ? Number(player.stakeGram) / totalStake * 100 : 0;
               const cashStake = Number(player.cashStakeGram ?? player.stakeGram);
-              return <div key={player.id} className="flex items-center gap-3 px-4 py-3">
-                {player.user.photoUrl
-                  ? <img src={player.user.photoUrl} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-blue-50" />
-                  : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-700">{nameOf(player.user).replace(/^@/, '').slice(0, 1).toUpperCase()}</span>}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold text-slate-800">{nameOf(player.user)}</p>
-                  <p className="mt-0.5 text-[11px] font-medium text-slate-500">{chance < 0.01 ? '<0.01%' : `${chance.toFixed(chance < 1 ? 2 : 1)}%`}</p>
-                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                    {cashStake > 0 && <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-bold tabular-nums text-blue-800"><GramIcon size={13} className="text-blue-600" />{formatGram(cashStake)} GRAM</span>}
-                    {(player.gifts ?? []).map(({ id, gift, valueGram }) => <span key={id} title={`${gift.backdropName ?? gift.name} · ${formatGram(valueGram)} GRAM`} className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-slate-200 shadow-sm" style={gift.backdropColor ? { backgroundColor: gift.backdropColor } : undefined}>
-                      {gift.backdropColor ? <TelegramTgsSticker src={getDemoBackdropSticker(gift.emoji ?? undefined)} size={32} className="h-8 w-8" autoplay={false} fallback={<span />} /> : gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name} className="h-full w-full object-cover" /> : <span className="text-lg">{gift.emoji || '🎁'}</span>}
-                    </span>)}
+              return <div key={player.id} className="px-3 py-3">
+                <div className="flex items-center gap-3">
+                  {player.user.photoUrl
+                    ? <img src={player.user.photoUrl} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-blue-50" />
+                    : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-700">{nameOf(player.user).replace(/^@/, '').slice(0, 1).toUpperCase()}</span>}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-slate-800">{nameOf(player.user)}</p>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-500"><span className="h-2 w-2 rounded-full bg-fuchsia-500" />{chance < 0.01 ? '<0.01%' : `${chance.toFixed(chance < 1 ? 2 : 1)}%`}</p>
                   </div>
+                  <span className="shrink-0 text-right text-[15px] font-extrabold tabular-nums text-slate-800">{formatGram(player.stakeGram)} GRAM</span>
                 </div>
-                <span className="shrink-0 text-right"><span className="block text-[8px] font-semibold uppercase tracking-wide text-slate-400">{t('Total stake')}</span><span className="text-[11px] font-extrabold tabular-nums text-slate-800">{formatGram(player.stakeGram)} <span className="text-[8px] text-slate-500">GRAM</span></span></span>
+                {(cashStake > 0 || (player.gifts ?? []).length > 0) && <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-2.5">
+                  {cashStake > 0 && <span title={`${formatGram(cashStake)} GRAM`} className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-b from-sky-400 to-blue-600 shadow-sm"><GramIcon size={30} className="text-white" /><span className="absolute inset-x-0 bottom-0 bg-blue-950/60 py-0.5 text-center text-[9px] font-extrabold leading-none text-white">{formatGram(cashStake)}</span></span>}
+                  {(player.gifts ?? []).map(({ id, gift, valueGram }) => <span key={id} title={`${gift.backdropName ?? gift.name} · ${formatGram(valueGram)} GRAM`} className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 shadow-sm" style={gift.backdropColor ? { backgroundColor: gift.backdropColor } : undefined}>
+                    {gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name} className="h-full w-full object-cover" /> : gift.backdropColor ? <TelegramTgsSticker src={getDemoBackdropSticker(gift.emoji ?? undefined)} size={43} className="h-[43px] w-[43px]" autoplay={false} fallback={<span />} /> : <span className="text-2xl">{gift.emoji || '🎁'}</span>}
+                  </span>)}
+                </div>}
               </div>;
             })}
           </div>
@@ -595,7 +616,7 @@ export default function ArenaPage() {
   const { t } = useOrbitLanguage();
   const [arenaMode, setArenaMode] = useState<'CLASSIC' | 'WHEEL'>('CLASSIC');
   const [botBalance, setBotBalance] = useState('0');
-  const [ownedBackdrops, setOwnedBackdrops] = useState<DemoBackdrop[]>([]);
+  const [ownedBackdrops, setOwnedBackdrops] = useState<ArenaStakeItem[]>([]);
   const [initData, setInitData] = useState('');
   const [authReady, setAuthReady] = useState(false);
   const [publicRooms, setPublicRooms] = useState<PvpRoom[]>([]);
@@ -638,7 +659,7 @@ export default function ArenaPage() {
   useEffect(() => {
     if (!initData) return;
     let cancelled = false;
-    const refresh = () => void syncDemoBackdropInventory([]).then((items) => { if (!cancelled) setOwnedBackdrops(items); }).catch((cause) => console.warn('Could not load NFT stakes for arena:', cause));
+    const refresh = () => void loadArenaStakeInventory().then((items) => { if (!cancelled) setOwnedBackdrops(items); }).catch((cause) => console.warn('Could not load NFT stakes for arena:', cause));
     refresh();
     if (activeRoom?.status === 'COMPLETED') refresh();
     return () => { cancelled = true; };
@@ -802,7 +823,7 @@ export default function ArenaPage() {
     try {
       const updated = await stakePvpGifts(activeRoom.code, [giftId], initData);
       setRoom(updated);
-      const inventory = await syncDemoBackdropInventory([]);
+      const inventory = await loadArenaStakeInventory();
       setOwnedBackdrops(inventory);
     } catch (cause) { setError(cause instanceof Error ? cause.message : t('Could not add NFT stake')); }
     finally { setBusy(false); }
@@ -815,7 +836,7 @@ export default function ArenaPage() {
       const joined = await joinPublicArenaWithGifts([giftId], initData, arenaMode);
       setRoom(joined); setRollPhase('idle');
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(joined.code)}`);
-      setOwnedBackdrops(await syncDemoBackdropInventory([]));
+      setOwnedBackdrops(await loadArenaStakeInventory());
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : t('Could not enter with NFT'));
     } finally { setBusy(false); }
