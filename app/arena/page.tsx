@@ -20,10 +20,13 @@ import {
   joinPvpRoom,
   searchPvpUsers,
   startPvpRound,
+  stakePvpGifts,
+  syncDemoBackdropInventory,
   type PvpInvitation,
   type PvpPlayer,
   type PvpRoom,
 } from '../../lib/api';
+import { getDemoBackdropSticker, type DemoBackdrop } from '../../lib/demoBackdrops';
 
 function nameOf(player?: PvpPlayer | null) {
   return player?.username ? `@${player.username}` : player?.firstName || 'Player';
@@ -392,7 +395,7 @@ function WheelBoard({ sectors, rotation, spinning, winnerId, t }: {
   </div>;
 }
 
-function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJoin, busy, stake, setStake, onEnter, onEnterAmount, botBalance, roundCoolingDown, rollPhase, t }: {
+function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJoin, busy, stake, setStake, onEnter, onEnterAmount, botBalance, roundCoolingDown, rollPhase, t, ownedBackdrops, onStakeBackdrop }: {
   room: PvpRoom | null; rollingSeconds: number | null; onShare: () => void;
   arenaMode: 'CLASSIC' | 'WHEEL';
   lastWinner: PvpRoom | null;
@@ -400,6 +403,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
   busy: boolean; stake: string; setStake: (stake: string) => void; onEnter: () => void;
   onEnterAmount: (amount: string) => void; botBalance: string; roundCoolingDown: boolean;
   rollPhase: RollPhase; t: (key: string) => string;
+  ownedBackdrops: DemoBackdrop[]; onStakeBackdrop: (id: string) => void;
 }) {
   const participants = room?.participants ?? [];
   const roomMode = room?.arenaMode ?? arenaMode;
@@ -409,7 +413,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
   const wheelSectors = useMemo(() => makeWheelSectors(participants, palette), [wheelDataKey, palette]);
   const totalStake = participants.reduce((sum, player) => sum + Number(player.stakeGram), 0);
   const winnerTile = tiles.find(({ player }) => player.userId === room?.winnerId);
-  const pot = room ? Number(room.stakeGram) * (room.isPublic ? 1 : Math.max(1, participants.length)) : 0;
+  const pot = room ? Number(room.stakeGram) : 0;
   const [ballMotion, setBallMotion] = useState<ArenaMotion | null>(null);
   const [wheelRotation, setWheelRotation] = useState(0);
   const wheelSpinRoomRef = useRef<string | null>(null);
@@ -479,7 +483,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
         <div className="flex min-w-0 shrink-0 items-center gap-1.5">
           <div className="arena-last-winner flex w-[188px] min-w-0 items-center gap-2 rounded-2xl border border-blue-100 bg-blue-50/70 px-2 py-1.5 shadow-[0_3px_12px_rgba(31,73,125,.06)] max-[400px]:w-[132px] max-[400px]:gap-1.5 max-[400px]:px-1.5">
             {lastWinner?.winner?.photoUrl ? <img src={lastWinner.winner.photoUrl} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-blue-50 max-[400px]:h-7 max-[400px]:w-7" /> : <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold text-blue-800 max-[400px]:h-7 max-[400px]:w-7">{lastWinner?.winner ? nameOf(lastWinner.winner).replace(/^@/, '').slice(0, 1).toUpperCase() : '—'}</span>}
-            <span className="min-w-0 flex-1"><span className="block text-[7px] font-extrabold uppercase tracking-[.12em] text-slate-400">{t('Last winner')}</span><span className="block max-w-[92px] truncate text-[9px] font-bold text-blue-950 max-[400px]:max-w-[66px]">{lastWinner?.winner ? nameOf(lastWinner.winner) : t('No winner yet')}</span><span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold tabular-nums text-blue-800"><GramIcon size={11} className="text-blue-600" />{lastWinner?.winner ? formatGram(lastWinner.isPublic ? lastWinner.stakeGram : Number(lastWinner.stakeGram) * lastWinner.participants.length) : '—'}</span></span>
+            <span className="min-w-0 flex-1"><span className="block text-[7px] font-extrabold uppercase tracking-[.12em] text-slate-400">{t('Last winner')}</span><span className="block max-w-[92px] truncate text-[9px] font-bold text-blue-950 max-[400px]:max-w-[66px]">{lastWinner?.winner ? nameOf(lastWinner.winner) : t('No winner yet')}</span><span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold tabular-nums text-blue-800"><GramIcon size={11} className="text-blue-600" />{lastWinner?.winner ? formatGram(lastWinner.stakeGram) : '—'}</span></span>
             {lastWinner?.winner && <span className="ml-0.5 border-l border-blue-100 pl-2 text-right max-[400px]:hidden"><span className="block text-[7px] font-bold uppercase tracking-wide text-slate-400">{t('Chance')}</span><span className="text-[10px] font-bold tabular-nums text-slate-500">{winnerChance(lastWinner).toFixed(2)}%</span></span>}
           </div>
           {room?.isPublic === false && <button onClick={onShare} aria-label={t('Share room')} title={t('Share room')} className="arena-room-share flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-blue-200/80 bg-white/90 text-blue-700 shadow-sm transition hover:bg-blue-50 active:scale-[.97]">
@@ -544,6 +548,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
           <div className="divide-y divide-slate-100">
             {participants.map((player) => {
               const chance = totalStake > 0 ? Number(player.stakeGram) / totalStake * 100 : 0;
+              const cashStake = Number(player.cashStakeGram ?? player.stakeGram);
               return <div key={player.id} className="flex items-center gap-3 px-4 py-3">
                 {player.user.photoUrl
                   ? <img src={player.user.photoUrl} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-blue-50" />
@@ -551,10 +556,26 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold text-slate-800">{nameOf(player.user)}</p>
                   <p className="mt-0.5 text-[11px] font-medium text-slate-500">{chance < 0.01 ? '<0.01%' : `${chance.toFixed(chance < 1 ? 2 : 1)}%`}</p>
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    {cashStake > 0 && <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-bold tabular-nums text-blue-800"><GramIcon size={13} className="text-blue-600" />{formatGram(cashStake)} GRAM</span>}
+                    {(player.gifts ?? []).map(({ id, gift, valueGram }) => <span key={id} title={`${gift.backdropName ?? gift.name} · ${formatGram(valueGram)} GRAM`} className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-slate-200 shadow-sm" style={gift.backdropColor ? { backgroundColor: gift.backdropColor } : undefined}>
+                      {gift.backdropColor ? <TelegramTgsSticker src={getDemoBackdropSticker(gift.emoji ?? undefined)} size={32} className="h-8 w-8" autoplay={false} fallback={<span />} /> : gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name} className="h-full w-full object-cover" /> : <span className="text-lg">{gift.emoji || '🎁'}</span>}
+                    </span>)}
+                  </div>
                 </div>
-                <span className="inline-flex shrink-0 items-center gap-1 text-sm font-bold tabular-nums text-slate-800"><GramIcon size={17} className="text-blue-600" />{formatGram(player.stakeGram)} <span className="text-[10px] font-semibold text-slate-500">GRAM</span></span>
+                <span className="shrink-0 text-right"><span className="block text-[8px] font-semibold uppercase tracking-wide text-slate-400">{t('Total stake')}</span><span className="text-[11px] font-extrabold tabular-nums text-slate-800">{formatGram(player.stakeGram)} <span className="text-[8px] text-slate-500">GRAM</span></span></span>
               </div>;
             })}
+          </div>
+        </section>}
+
+        {room?.viewerIsParticipant && (room.status === 'WAITING' || room.status === 'COUNTDOWN') && ownedBackdrops.length > 0 && <section className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3">
+          <div className="mb-2 flex items-center justify-between"><h3 className="text-[11px] font-extrabold text-blue-950">{t('Add an NFT stake')}</h3><span className="text-[9px] text-slate-500">{t('NFT value adds to your win chance')}</span></div>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {ownedBackdrops.map((item) => <button key={item.id} type="button" disabled={busy || controlsDisabled} onClick={() => onStakeBackdrop(item.id)} className="flex w-[94px] shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white text-left shadow-sm transition active:scale-[.97] disabled:opacity-50">
+              <span className="flex h-[70px] w-full items-center justify-center" style={{ backgroundColor: item.color }}><TelegramTgsSticker src={getDemoBackdropSticker(item.packId)} size={60} className="h-[60px] w-[60px]" autoplay={false} fallback={<span />} /></span>
+              <span className="w-full truncate px-2 pt-1.5 text-[9px] font-bold text-slate-700">{item.name}</span><span className="inline-flex items-center gap-1 px-2 pb-1.5 text-[9px] font-extrabold text-blue-800"><GramIcon size={10} />{item.priceTon ?? '0.25'} GRAM</span>
+            </button>)}
           </div>
         </section>}
 
@@ -573,6 +594,7 @@ export default function ArenaPage() {
   const { t } = useOrbitLanguage();
   const [arenaMode, setArenaMode] = useState<'CLASSIC' | 'WHEEL'>('CLASSIC');
   const [botBalance, setBotBalance] = useState('0');
+  const [ownedBackdrops, setOwnedBackdrops] = useState<DemoBackdrop[]>([]);
   const [initData, setInitData] = useState('');
   const [authReady, setAuthReady] = useState(false);
   const [publicRooms, setPublicRooms] = useState<PvpRoom[]>([]);
@@ -611,6 +633,15 @@ export default function ArenaPage() {
     const interval = window.setInterval(() => void refresh(), 15_000);
     return () => { cancelled = true; window.clearInterval(interval); };
   }, []);
+
+  useEffect(() => {
+    if (!initData) return;
+    let cancelled = false;
+    const refresh = () => void syncDemoBackdropInventory([]).then((items) => { if (!cancelled) setOwnedBackdrops(items); }).catch((cause) => console.warn('Could not load NFT stakes for arena:', cause));
+    refresh();
+    if (activeRoom?.status === 'COMPLETED') refresh();
+    return () => { cancelled = true; };
+  }, [activeRoom?.id, activeRoom?.status, initData]);
 
   useEffect(() => {
     const current = getTelegramInitData();
@@ -764,6 +795,18 @@ export default function ArenaPage() {
     finally { setBusy(false); }
   };
 
+  const stakeBackdrop = async (giftId: string) => {
+    if (!initData || !activeRoom?.viewerIsParticipant) return;
+    setBusy(true); setError('');
+    try {
+      const updated = await stakePvpGifts(activeRoom.code, [giftId], initData);
+      setRoom(updated);
+      const inventory = await syncDemoBackdropInventory([]);
+      setOwnedBackdrops(inventory);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : t('Could not add NFT stake')); }
+    finally { setBusy(false); }
+  };
+
   const joinExactRoom = async (room: PvpRoom) => {
     if (!initData) return;
     setBusy(true); setError('');
@@ -862,7 +905,7 @@ export default function ArenaPage() {
             })}
           </div>
 
-          <SquareRoom room={activeRoom} arenaMode={arenaMode} lastWinner={lastWinners[arenaMode]} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount)} botBalance={botBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} />
+          <SquareRoom room={activeRoom} arenaMode={arenaMode} lastWinner={lastWinners[arenaMode]} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount)} botBalance={botBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} ownedBackdrops={ownedBackdrops} onStakeBackdrop={(id) => void stakeBackdrop(id)} />
 
           {activeRoom?.isPublic === false && activeRoom.status === 'WAITING' && activeRoom.viewerIsCreator && <section className="mt-3 rounded-2xl border border-blue-100 bg-white p-3"><p className="mb-2 text-center text-[10px] text-slate-500">{t('Waiting for invited players to accept.')}</p><button disabled={busy || activeRoom.participants.length < 2} onClick={() => void startPrivateRound()} className="w-full rounded-xl bg-blue-700 py-2.5 text-xs font-bold text-white disabled:bg-slate-300">{t('Start round')}</button></section>}
 
@@ -893,6 +936,13 @@ export default function ArenaPage() {
             {activeRoom.winner?.photoUrl && <img src={activeRoom.winner.photoUrl} alt="" className="mx-auto mt-4 h-20 w-20 rounded-full border-4 border-yellow-300 object-cover" />}
             <h2 id="arena-result-title" className="mt-3 text-2xl font-black text-blue-950">{nameOf(activeRoom.winner)}</h2>
             <p className="mt-3 inline-flex items-center text-lg font-extrabold text-blue-900"><GramIcon size={20} className="mr-2 text-blue-600" />{formatGram(activeRoom.stakeGram)} GRAM</p>
+            {activeRoom.participants.find(({ userId }) => userId === activeRoom.winnerId)?.gifts?.length ? <div className="mt-4 grid grid-cols-2 gap-2">
+              {Number(activeRoom.participants.find(({ userId }) => userId === activeRoom.winnerId)?.cashStakeGram ?? 0) > 0 && <div className="flex aspect-square flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-sky-400 to-blue-600 p-3 text-white shadow-lg"><GramIcon size={46} className="text-white"/><span className="mt-2 rounded-full bg-black/20 px-3 py-1 text-sm font-extrabold">{formatGram(activeRoom.participants.find(({ userId }) => userId === activeRoom.winnerId)!.cashStakeGram!)} GRAM</span></div>}
+              {activeRoom.participants.find(({ userId }) => userId === activeRoom.winnerId)!.gifts!.map(({ id, gift, valueGram }) => <div key={id} className="relative flex aspect-square flex-col items-center justify-center overflow-hidden rounded-3xl p-3 shadow-lg" style={gift.backdropColor ? { backgroundColor: gift.backdropColor } : undefined}>
+                {gift.backdropColor ? <TelegramTgsSticker src={getDemoBackdropSticker(gift.emoji ?? undefined)} size={112} className="h-[112px] w-[112px]" autoplay={false} fallback={<span />} /> : gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name} className="h-[112px] w-[112px] rounded-2xl object-cover" /> : <span className="text-6xl">{gift.emoji || '🎁'}</span>}
+                <span className="absolute bottom-3 rounded-full bg-black/30 px-3 py-1 text-xs font-extrabold text-white">{formatGram(valueGram)} <GramIcon size={13} className="inline text-white" /></span>
+              </div>)}
+            </div> : null}
             <p className="mt-1 text-[10px] text-slate-500">{t('The full pot was credited to the winner’s ORBIT balance.')}</p>
             <button onClick={() => { setRollPhase('idle'); setRoom(null); window.history.replaceState(null, '', '/arena'); }} className="mt-5 w-full rounded-2xl bg-blue-700 py-3 text-sm font-bold text-white">{t('Continue')}</button>
           </section>

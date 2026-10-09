@@ -7,7 +7,7 @@ export type PvpPlayer = { id: string; telegramId?: string; username: string | nu
 export type PvpRoom = {
   id: string; code: string; stakeGram: string; status: 'WAITING' | 'COUNTDOWN' | 'COMPLETED' | 'CANCELLED'; creatorId: string;
   isPublic?: boolean; arenaMode?: 'CLASSIC' | 'WHEEL'; countdownEndsAt?: string | null; completedAt?: string | null;
-  winnerId: string | null; participants: Array<{ id: string; userId: string; stakeGram: string; user: PvpPlayer }>;
+  winnerId: string | null; participants: Array<{ id: string; userId: string; stakeGram: string; cashStakeGram?: string; user: PvpPlayer; gifts?: Array<{ id: string; valueGram: string; gift: { id: string; name: string; imageUrl?: string | null; backdropName?: string | null; backdropColor?: string | null; emoji?: string | null; collection?: string; priceTon: string | number } }> }>;
   invitations: Array<{ id: string; status: string; recipient: PvpPlayer }>;
   creator: PvpPlayer; winner: PvpPlayer | null;
   notificationStats?: { sent: number; failed: number };
@@ -62,6 +62,9 @@ export async function getPvpInvitations(initData: string) {
 }
 export async function answerPvpInvitation(invitationId: string, accept: boolean, initData: string) {
   return pvpRequest<PvpRoom>('invitations/answer', initData, { invitationId, accept });
+}
+export async function stakePvpGifts(code: string, giftIds: string[], initData: string) {
+  return pvpRequest<PvpRoom>('stake-gifts', initData, { code, giftIds });
 }
 
 async function responseError(response: Response, fallback: string) {
@@ -386,6 +389,7 @@ async function demoBackdropRequest<T>(path: string, body: Record<string, unknown
     cache: 'no-store',
   });
   if (!response.ok) throw new Error(await responseError(response, 'Demo backdrop action failed'));
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('orbit-balance-updated'));
   return response.json() as Promise<T>;
 }
 
@@ -393,8 +397,14 @@ export function syncDemoBackdropInventory(items: DemoBackdrop[]) {
   return demoBackdropRequest<DemoBackdrop[]>('sync', { items: items.map(({ id, name, packId }) => ({ id, name, packId: packId ?? 'sweeties' })) });
 }
 
-export function createDemoBackdropDrop(name: string, packId: DemoBackdropPackId) {
-  return demoBackdropRequest<DemoBackdrop[]>('drop', { name, packId });
+export async function getDemoBackdropSupply() {
+  const response = await fetch(`${API_URL}/demo/backdrops/supply`, { cache: 'no-store' });
+  if (!response.ok) throw new Error(await responseError(response, 'Could not load pack supply'));
+  return response.json() as Promise<Record<DemoBackdropPackId, { limit: number; sold: number; remaining: number }>>;
+}
+
+export function purchaseDemoBackdropPack(packId: DemoBackdropPackId) {
+  return demoBackdropRequest<{ item: DemoBackdrop; supply: { limit: number; sold: number; remaining: number }; balanceGram: string }>('purchase', { packId, requestId: crypto.randomUUID() });
 }
 
 export function transferDemoBackdrop(itemId: string, recipientUsername: string) {

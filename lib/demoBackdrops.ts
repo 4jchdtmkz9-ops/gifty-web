@@ -5,6 +5,7 @@ export type DemoBackdrop = {
   emoji: string;
   obtainedAt: number;
   packId?: DemoBackdropPackId;
+  priceTon?: string;
 };
 
 export type DemoBackdropPackId = 'sweeties' | 'orbit-dog';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { createDemoBackdropDrop as createDemoBackdropDropApi, getGifts, syncDemoBackdropInventory as syncDemoBackdropInventoryApi } from '../../lib/api';
+import { getDemoBackdropSupply, getGifts, purchaseDemoBackdropPack, syncDemoBackdropInventory as syncDemoBackdropInventoryApi } from '../../lib/api';
 import BottomNav from '../../components/BottomNav';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
 import GramIcon from '../../components/GramIcon';
@@ -9,7 +9,7 @@ import OrbitWordmark from '../../components/OrbitWordmark';
 import TelegramTgsSticker from '../../components/TelegramTgsSticker';
 import { useOrbitLanguage } from '../../components/OrbitLanguageContext';
 import { giftCollectionImage, normalizeGiftName, telegramGiftCollections } from '../../lib/telegramGiftCollections';
-import { chooseDemoBackdrop, demoBackdrops, DEMO_BACKDROP_UPDATE_EVENT, getDemoBackdropSticker, readDemoBackdrops, saveDemoBackdrops, type DemoBackdrop, type DemoBackdropPackId } from '../../lib/demoBackdrops';
+import { demoBackdrops, DEMO_BACKDROP_UPDATE_EVENT, getDemoBackdropSticker, readDemoBackdrops, saveDemoBackdrops, type DemoBackdrop, type DemoBackdropPackId } from '../../lib/demoBackdrops';
 
 type StockGift = {
   id: string;
@@ -111,6 +111,7 @@ export default function MarketPage() {
   const [selectedCollection, setSelectedCollection] = useState('all');
   const [sortBy, setSortBy] = useState<SortKey>('price-asc');
   const [backdropInventory, setBackdropInventory] = useState<DemoBackdrop[]>([]);
+  const [packSupply, setPackSupply] = useState<Record<DemoBackdropPackId, { limit: number; sold: number; remaining: number }> | null>(null);
   const [backdropPackOpen, setBackdropPackOpen] = useState(false);
   const [selectedBackdropPackId, setSelectedBackdropPackId] = useState<DemoBackdropPackId>('sweeties');
   const [spinOpen, setSpinOpen] = useState(false);
@@ -129,6 +130,7 @@ export default function MarketPage() {
   const spinWindMotionRef = useRef<HTMLSpanElement | null>(null);
   const spinFinalized = useRef(true);
   const pendingSpinResult = useRef<typeof demoBackdrops[number] | null>(null);
+  const pendingPurchasedItem = useRef<DemoBackdrop | null>(null);
   const selectedBackdropPack = backdropPacks.find((pack) => pack.id === selectedBackdropPackId) ?? backdropPacks[0];
 
   useEffect(() => {
@@ -149,6 +151,14 @@ export default function MarketPage() {
       window.removeEventListener(DEMO_BACKDROP_UPDATE_EVENT, syncInventory);
       window.removeEventListener('storage', syncInventory);
     };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const refresh = () => void getDemoBackdropSupply().then((supply) => { if (active) setPackSupply(supply); }).catch((error: unknown) => console.warn('Could not load ORBIT NFT supply:', error));
+    refresh();
+    const interval = window.setInterval(refresh, 15_000);
+    return () => { active = false; window.clearInterval(interval); };
   }, []);
 
   useEffect(() => () => {
@@ -228,39 +238,53 @@ export default function MarketPage() {
     spinTimeout.current = null;
     pendingSpinResult.current = null;
     setIsSpinning(false);
-    setIsRewardSaving(true);
-    void createDemoBackdropDropApi(reward.name, selectedBackdropPack.id).then((items) => {
-      saveDemoBackdrops(items);
-      setBackdropInventory(items);
-      setIsRewardSaving(false);
-      setDropNotice(t('Backdrop added to demo inventory'));
-    }).catch((error: unknown) => {
-      setIsRewardSaving(false);
-      setSpinOpen(false);
-      setDropNotice(error instanceof Error ? error.message : t('Could not perform action'));
-    });
+    const purchased = pendingPurchasedItem.current;
+    if (purchased) {
+      pendingPurchasedItem.current = null;
+      setDropNotice(t('Backdrop added to inventory'));
+      setIsRewardSaving(true);
+      void syncDemoBackdropInventoryApi([]).then((items) => {
+        saveDemoBackdrops(items);
+        setBackdropInventory(items);
+      }).catch(() => {
+        const items = [purchased, ...readDemoBackdrops().filter(({ id }) => id !== purchased.id)];
+        saveDemoBackdrops(items);
+        setBackdropInventory(items);
+      }).finally(() => setIsRewardSaving(false));
+    }
+    else setIsRewardSaving(false);
   }
 
-  function startBackdropDemoPurchase() {
-    if (isSpinning) return;
-    const reward = chooseDemoBackdrop();
-    const winnerIndex = 18;
-    const tiles = Array.from({ length: 24 }, () => demoBackdrops[Math.floor(Math.random() * demoBackdrops.length)]);
-    tiles[winnerIndex] = reward;
-    setSpinResult(reward);
-    setSpinTiles(tiles);
-    setSpinWinnerIndex(winnerIndex);
-    setSpinStarted(false);
-    setSpinSlowdown(false);
-    setSpinOffset(-35);
-    setSpinOpen(true);
-    setIsSpinning(true);
-    setIsRewardSaving(false);
+  async function startBackdropDemoPurchase() {
+    if (isSpinning || isRewardSaving) return;
+    setIsRewardSaving(true);
     setDropNotice('');
-    spinFinalized.current = false;
-    pendingSpinResult.current = reward;
-    if (spinTimeout.current !== null) window.clearTimeout(spinTimeout.current);
-    spinTimeout.current = window.setTimeout(() => finishBackdropSpin(reward), 6200);
+    try {
+      const purchase = await purchaseDemoBackdropPack(selectedBackdropPack.id);
+      const reward = demoBackdrops.find(({ name }) => name === purchase.item.name);
+      if (!reward) throw new Error(t('Could not perform action'));
+      pendingPurchasedItem.current = purchase.item;
+      setPackSupply((current) => current ? { ...current, [selectedBackdropPack.id]: purchase.supply } : { sweeties: selectedBackdropPack.id === 'sweeties' ? purchase.supply : { limit: 500, sold: 0, remaining: 500 }, 'orbit-dog': selectedBackdropPack.id === 'orbit-dog' ? purchase.supply : { limit: 500, sold: 0, remaining: 500 } });
+      const winnerIndex = 18;
+      const tiles = Array.from({ length: 24 }, () => demoBackdrops[Math.floor(Math.random() * demoBackdrops.length)]);
+      tiles[winnerIndex] = reward;
+      setSpinResult(reward);
+      setSpinTiles(tiles);
+      setSpinWinnerIndex(winnerIndex);
+      setSpinStarted(false);
+      setSpinSlowdown(false);
+      setSpinOffset(-35);
+      setSpinOpen(true);
+      setIsSpinning(true);
+      setIsRewardSaving(false);
+      spinFinalized.current = false;
+      pendingSpinResult.current = reward;
+      if (spinTimeout.current !== null) window.clearTimeout(spinTimeout.current);
+      spinTimeout.current = window.setTimeout(() => finishBackdropSpin(reward), 6200);
+    } catch (error) {
+      setIsRewardSaving(false);
+      setDropNotice(error instanceof Error ? error.message : t('Could not perform action'));
+    }
   }
 
   useEffect(() => {
@@ -455,14 +479,13 @@ export default function MarketPage() {
           <section className="pb-6">
             {!backdropPackOpen ? <>
               <div className="mb-4 flex items-center justify-between">
-                <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT · {t('DEMO')}</p><h2 className="mt-1 text-lg font-bold">{t('ORBIT NFT')}</h2></div>
+                <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-700">ORBIT · COLLECTIBLES</p><h2 className="mt-1 text-lg font-bold">{t('ORBIT NFT')}</h2></div>
                 <span className="text-xs text-slate-400">{backdropPacks.length} {t('items')}</span>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {backdropPacks.map((pack) => <button key={pack.id} type="button" onClick={() => { setSelectedBackdropPackId(pack.id); setBackdropPackOpen(true); }} className="overflow-hidden rounded-3xl border border-slate-200 bg-white text-left shadow-sm transition hover:border-blue-300 hover:shadow-md active:scale-[0.98]">
                   <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[#17191d]">
                     <TelegramTgsSticker src={pack.sticker} size={150} className="h-[150px] w-[150px]" autoplay={false} fallback={<span />}/>
-                    <span className="absolute left-2.5 top-2.5 rounded-full bg-blue-700/90 px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white">{t('DEMO')}</span>
                   </div>
                   <div className="p-3">
                     <h3 className="truncate text-sm font-bold">{pack.name}</h3>
@@ -473,13 +496,18 @@ export default function MarketPage() {
             </> : <>
               <button type="button" onClick={() => setBackdropPackOpen(false)} className="mb-4 inline-flex items-center gap-2 rounded-xl px-1 py-2 text-sm font-semibold text-slate-600"><span aria-hidden="true">←</span>{t('ORBIT NFT')}</button>
               <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                <div className="relative flex h-44 items-center justify-center bg-[#17191d]"><TelegramTgsSticker src={selectedBackdropPack.sticker} size={150} className="h-[150px] w-[150px]" autoplay={false} fallback={<span />}/><span className="absolute left-3 top-3 rounded-full bg-blue-700/90 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white">{t('DEMO')}</span></div>
-                <div className="p-4"><h2 className="text-xl font-bold">{selectedBackdropPack.name}</h2><p className="mt-1 text-xs leading-5 text-slate-500">{t('Open a demo drop to collect a gift backdrop.')}</p>
-                  <button type="button" disabled={isSpinning || isRewardSaving} onClick={startBackdropDemoPurchase} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{t('Spin')} <span className="rounded-full bg-white/15 px-2 py-0.5">{selectedBackdropPack.price} TON</span></button>
-                  <p className="mt-2 text-center text-[11px] leading-4 text-slate-500">{t('Demo only — no TON is charged and no sale proceeds are credited.')}</p>
+                <div className="relative flex h-44 items-center justify-center bg-[#17191d]"><TelegramTgsSticker src={selectedBackdropPack.sticker} size={150} className="h-[150px] w-[150px]" autoplay={false} fallback={<span />}/></div>
+                <div className="p-4"><h2 className="text-xl font-bold">{selectedBackdropPack.name}</h2><p className="mt-1 text-xs leading-5 text-slate-500">{t('Purchase a collectible pack. A random background will be added to your inventory.')}</p>
+                  <button type="button" disabled={isSpinning || isRewardSaving || packSupply?.[selectedBackdropPack.id]?.remaining === 0} onClick={() => void startBackdropDemoPurchase()} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{isRewardSaving ? t('Processing…') : t('Buy & spin')} <span className="rounded-full bg-white/15 px-2 py-0.5">{selectedBackdropPack.price} TON</span></button>
+                  <p className="mt-2 text-center text-[11px] leading-4 text-slate-500">{t('Payment is deducted from your ORBIT balance.')}</p>
                 </div>
               </div>
-              <div className="mb-3 mt-5 flex items-center justify-between"><h3 className="font-semibold">{t('Possible backgrounds')}</h3><span className="text-xs text-slate-400">{demoBackdrops.length} {t('colors')}</span></div>
+              {(() => { const supply = packSupply?.[selectedBackdropPack.id] ?? { limit: 500, sold: 0, remaining: 500 }; const remainingPercent = supply.remaining / supply.limit * 100; return <section className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/55 p-3.5" aria-label={t('Pack supply')}>
+                <div className="mb-2 flex items-center justify-between gap-3"><h3 className="text-xs font-bold text-slate-800">{t('Limited supply')}</h3><span className="text-xs font-extrabold tabular-nums text-blue-800">{supply.remaining}/{supply.limit} {t('left')}</span></div>
+                <div className="h-2.5 overflow-hidden rounded-full bg-blue-100"><div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-[width] duration-500" style={{ width: `${remainingPercent}%` }} /></div>
+                <p className="mt-1.5 text-right text-[10px] text-slate-500">{supply.sold}/{supply.limit} {t('sold')}</p>
+              </section>; })()}
+              <div className="mb-3 mt-4 flex items-center justify-between"><h3 className="font-semibold">{t('Possible backgrounds')}</h3><span className="text-xs text-slate-400">{demoBackdrops.length} {t('colors')}</span></div>
               <div className="grid grid-cols-3 gap-2.5">
                 {demoBackdrops.map((backdrop) => <article key={backdrop.name} className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
                   <div className="relative flex aspect-square items-center justify-center rounded-xl text-3xl shadow-inner" style={{ backgroundColor: backdrop.color }}><TelegramTgsSticker src={selectedBackdropPack.sticker} size={57} className="h-[57px] w-[57px]" autoplay={false} fallback={<span />}/>{backdrop.name === 'Black' && <span className="absolute right-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-extrabold text-slate-900">80%</span>}</div>
