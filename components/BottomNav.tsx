@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import HomeIcon from './HomeIcon';
+import Image from 'next/image';
 import MarketIcon from './MarketIcon';
 import NavStickerIcon from './NavStickerIcon';
 import TelegramTgsSticker from './TelegramTgsSticker';
@@ -40,7 +40,7 @@ export default function BottomNav({ active }: { active: NavTab | null }) {
                 : 'text-slate-500 hover:bg-white/70'
             }`}
           >
-            {tab.id === 'home' && <span className="nav-sticker-float"><HomeIcon /></span>}
+            {tab.id === 'home' && <span className="nav-sticker-float"><Image src="/orbit-logo.png" alt="" width={970} height={249} className="h-[16px] w-[62px] object-contain" /></span>}
             {tab.id === 'market' && (
               <TelegramTgsSticker
                 src="/stickers/market.json"

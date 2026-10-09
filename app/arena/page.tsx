@@ -549,7 +549,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
 
         {(!room || room.isPublic) && (!room?.viewerIsParticipant || room.status === 'WAITING' || room.status === 'COUNTDOWN') && <section className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3">
           <div className="mb-2 flex items-center justify-between"><h3 className="text-[11px] font-extrabold text-blue-950">{room?.viewerIsParticipant ? t('Add an NFT stake') : t('Enter with an NFT')}</h3></div>
-          {ownedBackdrops.length ? <div className="grid grid-cols-3 gap-2 pb-1">
+          {ownedBackdrops.length ? <div className="grid max-h-[244px] grid-cols-3 gap-2 overflow-y-auto overscroll-contain pb-1 pr-1">
             {ownedBackdrops.map((item) => <button key={item.id} type="button" disabled={busy || controlsDisabled} onClick={() => room?.viewerIsParticipant ? onStakeBackdrop(item.id) : onEnterWithBackdrop(item.id)} className="flex w-full min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white text-left shadow-sm transition active:scale-[.97] disabled:opacity-50">
               <span className="flex h-[70px] w-full items-center justify-center" style={{ backgroundColor: item.color }}><TelegramTgsSticker src={getDemoBackdropSticker(item.packId)} size={66} className="h-[66px] w-[66px]" autoplay={false} fallback={<span />} /></span>
               <span className="w-full truncate px-2 pt-1.5 text-[9px] font-bold text-slate-700">{item.name}</span><span className="inline-flex items-center gap-1 px-2 pb-1.5 text-[9px] font-extrabold text-blue-800"><GramIcon size={10} />{item.priceTon ?? '0.25'} GRAM</span>
@@ -626,6 +626,9 @@ export default function ArenaPage() {
   const refreshBusy = useRef(false);
   const setRoom = useCallback((room: PvpRoom | null) => { activeRoomRef.current = room; setActiveRoom(room); }, []);
   const winnerPrize = activeRoom ? Number(activeRoom.stakeGram) : 0;
+  const winnerNfts = activeRoom?.winnerId
+    ? activeRoom.participants.flatMap((participant) => participant.gifts ?? [])
+    : [];
 
   useEffect(() => {
     let cancelled = false;
@@ -943,7 +946,7 @@ export default function ArenaPage() {
           </section>}
         </>}
         {rollPhase === 'result' && activeRoom?.status === 'COMPLETED' && <div className="arena-result-backdrop fixed inset-0 z-50 flex items-center justify-center p-5" role="dialog" aria-modal="true" aria-labelledby="arena-result-title">
-          <section className="arena-result-modal relative w-full max-w-[340px] rounded-[28px] border border-yellow-300 bg-white p-6 text-center shadow-2xl">
+          <section className="arena-result-modal relative max-h-[88vh] w-full max-w-[340px] overflow-y-auto overscroll-contain rounded-[28px] border border-yellow-300 bg-white p-6 text-center shadow-2xl">
             <button type="button" aria-label={t('Close')} onClick={() => { setRollPhase('idle'); setRoom(null); window.history.replaceState(null, '', '/arena'); }} className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-lg font-semibold text-slate-500">×</button>
             <p className="text-[10px] font-bold uppercase tracking-[.2em] text-yellow-700">{t('ARENA WINNER')}</p>
             <div className="mx-auto mt-3 flex h-[104px] w-[104px] items-center justify-center rounded-[30px] border border-blue-100 bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.98),rgba(232,241,255,0.9)_68%,rgba(255,244,211,0.9))] shadow-[0_12px_30px_rgba(28,73,145,0.14)]">
@@ -957,13 +960,12 @@ export default function ArenaPage() {
             {activeRoom.winner?.photoUrl && <img src={activeRoom.winner.photoUrl} alt="" className="mx-auto mt-4 h-20 w-20 rounded-full border-4 border-yellow-300 object-cover" />}
             <h2 id="arena-result-title" className="mt-3 text-2xl font-black text-blue-950">{nameOf(activeRoom.winner)}</h2>
             <p className="mt-3 inline-flex items-center text-lg font-extrabold text-blue-900"><GramIcon size={20} className="mr-2 text-blue-600" />{formatGram(activeRoom.stakeGram)} GRAM</p>
-            {activeRoom.participants.find(({ userId }) => userId === activeRoom.winnerId)?.gifts?.length ? <div className="mt-4 grid grid-cols-2 gap-2">
-              {Number(activeRoom.participants.find(({ userId }) => userId === activeRoom.winnerId)?.cashStakeGram ?? 0) > 0 && <div className="flex aspect-square flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-sky-400 to-blue-600 p-3 text-white shadow-lg"><GramIcon size={46} className="text-white"/><span className="mt-2 rounded-full bg-black/20 px-3 py-1 text-sm font-extrabold">{formatGram(activeRoom.participants.find(({ userId }) => userId === activeRoom.winnerId)!.cashStakeGram!)} GRAM</span></div>}
-              {activeRoom.participants.find(({ userId }) => userId === activeRoom.winnerId)!.gifts!.map(({ id, gift, valueGram }) => <div key={id} className="relative flex aspect-square flex-col items-center justify-center overflow-hidden rounded-3xl p-3 shadow-lg" style={gift.backdropColor ? { backgroundColor: gift.backdropColor } : undefined}>
-                {gift.collection === 'ORBIT_NFT' && gift.backdropColor ? <TelegramTgsSticker src={getDemoBackdropSticker(gift.emoji ?? undefined)} size={112} className="h-[112px] w-[112px]" autoplay={false} fallback={<span />} /> : gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name} className="h-[112px] w-[112px] rounded-2xl object-cover" /> : <span className="text-sm font-black text-white">NFT</span>}
-                <span className="absolute bottom-3 rounded-full bg-black/30 px-3 py-1 text-xs font-extrabold text-white">{formatGram(valueGram)} <GramIcon size={13} className="inline text-white" /></span>
+            {winnerNfts.length > 0 && <div className="mt-4 grid grid-cols-3 gap-2">
+              {winnerNfts.map(({ id, gift, valueGram }) => <div key={id} title={`${gift.backdropName ?? gift.name} · ${formatGram(valueGram)} GRAM`} className="relative flex aspect-square min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl p-1.5 shadow-sm" style={gift.backdropColor ? { backgroundColor: gift.backdropColor } : undefined}>
+                {gift.collection === 'ORBIT_NFT' && gift.backdropColor ? <TelegramTgsSticker src={getDemoBackdropSticker(gift.emoji ?? undefined)} size={76} className="h-[76px] w-[76px]" autoplay={false} fallback={<span />} /> : gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name} className="h-[76px] w-[76px] rounded-xl object-cover" /> : <span className="text-sm font-black text-white">NFT</span>}
+                <span className="absolute bottom-1.5 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-extrabold text-white">{formatGram(valueGram)} <GramIcon size={11} className="inline text-white" /></span>
               </div>)}
-            </div> : null}
+            </div>}
             <p className="mt-1 text-[10px] text-slate-500">{t('The full pot was credited to the winner’s ORBIT balance.')}</p>
             <button onClick={() => { setRollPhase('idle'); setRoom(null); window.history.replaceState(null, '', '/arena'); }} className="mt-5 w-full rounded-2xl bg-blue-700 py-3 text-sm font-bold text-white">{t('Continue')}</button>
           </section>
