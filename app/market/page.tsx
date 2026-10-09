@@ -50,7 +50,7 @@ function orbitNftDropChance(name: string) {
   if (name === 'Black') return '2%';
   if (name === 'Onyx Black') return '3%';
   if (name === 'Midnight Blue') return '5%';
-  return null;
+  return '10%';
 }
 
 function orbitNftResaleValue(name: string, packId: DemoBackdropPackId) {
@@ -511,7 +511,7 @@ export default function MarketPage() {
               <button type="button" onClick={() => setBackdropPackOpen(false)} className="mb-4 inline-flex items-center gap-2 rounded-xl px-1 py-2 text-sm font-semibold text-slate-600"><span aria-hidden="true">←</span>{t('ORBIT NFT')}</button>
               <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div className="relative flex h-44 items-center justify-center bg-[#17191d]"><TelegramTgsSticker src={selectedBackdropPack.sticker} size={150} className="h-[150px] w-[150px]" autoplay={false} fallback={<span />}/></div>
-                <div className="p-4"><h2 className="text-xl font-bold">{selectedBackdropPack.name}</h2><p className="mt-1 text-xs leading-5 text-slate-500">{t('Purchase a collectible pack. A random background will be added to your inventory.')}</p>
+                <div className="p-4"><h2 className="text-xl font-bold">{selectedBackdropPack.name}</h2>
                   <button type="button" disabled={isSpinning || isRewardSaving || packSupply?.[selectedBackdropPack.id]?.remaining === 0} onClick={() => void startBackdropPurchase()} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{isRewardSaving ? t('Processing…') : t('Buy & spin')} <span className="rounded-full bg-white/15 px-2 py-0.5">{selectedBackdropPack.price} GRAM</span></button>
                   <p className="mt-2 text-center text-[11px] leading-4 text-slate-500">{t('Payment is deducted from your ORBIT balance.')}</p>
                 </div>
@@ -522,12 +522,10 @@ export default function MarketPage() {
                 <p className="mt-1.5 text-right text-[10px] text-slate-500">{supply.sold}/{supply.limit} {t('sold')}</p>
               </section>; })()}
               <div className="mb-3 mt-4 flex items-center justify-between"><h3 className="font-semibold">{t('Possible backgrounds')}</h3><span className="text-xs text-slate-400">{demoBackdrops.length} {t('colors')}</span></div>
-              <p className="mb-3 text-[10px] leading-4 text-slate-500">{t('Rare backgrounds')}: Midnight Blue 5% · Onyx Black 3% · Black 2% · {t('Other backgrounds')} 90%</p>
               <div className="grid grid-cols-3 gap-2.5">
                 {demoBackdrops.map((backdrop) => <article key={backdrop.name} className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
-                  <div className="relative flex aspect-square items-center justify-center rounded-xl text-3xl shadow-inner" style={{ backgroundColor: backdrop.color }}><TelegramTgsSticker src={selectedBackdropPack.sticker} size={57} className="h-[57px] w-[57px]" autoplay={false} fallback={<span />}/>{orbitNftDropChance(backdrop.name) && <span className="absolute right-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-extrabold text-slate-900">{orbitNftDropChance(backdrop.name)}</span>}</div>
+                  <div className="relative flex aspect-square items-center justify-center rounded-xl text-3xl shadow-inner" style={{ backgroundColor: backdrop.color }}><TelegramTgsSticker src={selectedBackdropPack.sticker} size={57} className="h-[57px] w-[57px]" autoplay={false} fallback={<span />}/><span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-extrabold text-slate-900">{orbitNftDropChance(backdrop.name)}</span></div>
                   <p className="mt-2 truncate text-center text-[11px] font-semibold text-slate-700">{backdrop.name}</p>
-                  <p className="mt-1 text-center text-[9px] font-semibold text-blue-700">{t('Quick sale value')} · {orbitNftResaleValue(backdrop.name, selectedBackdropPack.id)} GRAM</p>
                 </article>)}
               </div>
             </>}
