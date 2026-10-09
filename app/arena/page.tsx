@@ -548,7 +548,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
         </div>}
 
         {(!room || room.isPublic) && (!room?.viewerIsParticipant || room.status === 'WAITING' || room.status === 'COUNTDOWN') && <section className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3">
-          <div className="mb-2 flex items-center justify-between"><h3 className="text-[11px] font-extrabold text-blue-950">{room?.viewerIsParticipant ? t('Add an NFT stake') : t('Enter with an NFT')}</h3><span className="text-[9px] text-slate-500">{room?.viewerIsParticipant ? t('NFT value adds to your win chance') : t('No GRAM stake required')}</span></div>
+          <div className="mb-2 flex items-center justify-between"><h3 className="text-[11px] font-extrabold text-blue-950">{room?.viewerIsParticipant ? t('Add an NFT stake') : t('Enter with an NFT')}</h3></div>
           {ownedBackdrops.length ? <div className="flex gap-2 overflow-x-auto pb-1">
             {ownedBackdrops.map((item) => <button key={item.id} type="button" disabled={busy || controlsDisabled} onClick={() => room?.viewerIsParticipant ? onStakeBackdrop(item.id) : onEnterWithBackdrop(item.id)} className="flex w-[94px] shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white text-left shadow-sm transition active:scale-[.97] disabled:opacity-50">
               <span className="flex h-[70px] w-full items-center justify-center" style={{ backgroundColor: item.color }}><TelegramTgsSticker src={getDemoBackdropSticker(item.packId)} size={66} className="h-[66px] w-[66px]" autoplay={false} fallback={<span />} /></span>
@@ -588,7 +588,6 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
           </div>
         </section>}
 
-        {(!room || room.isPublic) && <p className="mt-2 text-center text-[10px] text-slate-500">{t('Your square size and win chance match your stake.')} · {t('Stakes and winnings are settled from your ORBIT balance.')}</p>}
         {room?.isPublic === false && !room.viewerIsParticipant && room.status === 'WAITING' && <button onClick={onJoin} disabled={busy} className="mt-3 w-full rounded-xl bg-blue-700 py-3 text-xs font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : t('Join private room')} · {formatGram(room.stakeGram)} GRAM</button>}
 
         {(!room || room.status === 'WAITING') && <div className="arena-waiting-status mt-3 flex items-center justify-center gap-2 rounded-xl py-2.5 text-center"><span className="arena-waiting-dot h-2 w-2 shrink-0 rounded-full"/><p className="text-[10px] font-semibold">{!room ? t('Waiting for players') : participants.length < 2 ? t('Waiting for one more player') : t('Waiting for players')}</p></div>}
