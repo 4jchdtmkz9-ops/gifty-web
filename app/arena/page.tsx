@@ -17,6 +17,7 @@ import {
   getPublicArenaRooms,
   getBotBalance,
   joinPublicArena,
+  joinPublicArenaWithGifts,
   joinPvpRoom,
   searchPvpUsers,
   startPvpRound,
@@ -395,7 +396,7 @@ function WheelBoard({ sectors, rotation, spinning, winnerId, t }: {
   </div>;
 }
 
-function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJoin, busy, stake, setStake, onEnter, onEnterAmount, botBalance, roundCoolingDown, rollPhase, t, ownedBackdrops, onStakeBackdrop }: {
+function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJoin, busy, stake, setStake, onEnter, onEnterAmount, botBalance, roundCoolingDown, rollPhase, t, ownedBackdrops, onStakeBackdrop, onEnterWithBackdrop }: {
   room: PvpRoom | null; rollingSeconds: number | null; onShare: () => void;
   arenaMode: 'CLASSIC' | 'WHEEL';
   lastWinner: PvpRoom | null;
@@ -403,7 +404,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
   busy: boolean; stake: string; setStake: (stake: string) => void; onEnter: () => void;
   onEnterAmount: (amount: string) => void; botBalance: string; roundCoolingDown: boolean;
   rollPhase: RollPhase; t: (key: string) => string;
-  ownedBackdrops: DemoBackdrop[]; onStakeBackdrop: (id: string) => void;
+  ownedBackdrops: DemoBackdrop[]; onStakeBackdrop: (id: string) => void; onEnterWithBackdrop: (id: string) => void;
 }) {
   const participants = room?.participants ?? [];
   const roomMode = room?.arenaMode ?? arenaMode;
@@ -539,6 +540,16 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
           <span className="text-[10px] font-bold text-blue-700">GRAM</span>
           <button disabled={controlsDisabled || !stake.trim() || !Number.isFinite(Number(stake)) || Number(stake) <= 0} onClick={onEnter} className="shrink-0 rounded-xl bg-blue-700 px-4 py-3 text-[10px] font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : room?.viewerIsParticipant ? t('Add more') : t('Join')}</button>
         </div>}
+
+        {(!room || room.isPublic) && !room?.viewerIsParticipant && ownedBackdrops.length > 0 && <section className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3">
+          <div className="mb-2 flex items-center justify-between"><h3 className="text-[11px] font-extrabold text-blue-950">{t('Enter with an NFT')}</h3><span className="text-[9px] text-slate-500">{t('No GRAM stake required')}</span></div>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {ownedBackdrops.map((item) => <button key={item.id} type="button" disabled={busy || controlsDisabled} onClick={() => onEnterWithBackdrop(item.id)} className="flex w-[94px] shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white text-left shadow-sm transition active:scale-[.97] disabled:opacity-50">
+              <span className="flex h-[70px] w-full items-center justify-center" style={{ backgroundColor: item.color }}><TelegramTgsSticker src={getDemoBackdropSticker(item.packId)} size={60} className="h-[60px] w-[60px]" autoplay={false} fallback={<span />} /></span>
+              <span className="w-full truncate px-2 pt-1.5 text-[9px] font-bold text-slate-700">{item.name}</span><span className="inline-flex items-center gap-1 px-2 pb-1.5 text-[9px] font-extrabold text-blue-800"><GramIcon size={10} />{item.priceTon ?? '0.25'} GRAM</span>
+            </button>)}
+          </div>
+        </section>}
 
         {participants.length > 0 && <section className="arena-player-list mt-4 overflow-hidden rounded-[20px] border border-slate-200 bg-white" aria-label={t('PLAYERS')}>
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
@@ -807,6 +818,19 @@ export default function ArenaPage() {
     finally { setBusy(false); }
   };
 
+  const enterWithBackdrop = async (giftId: string) => {
+    if (!initData) return;
+    setBusy(true); setError('');
+    try {
+      const joined = await joinPublicArenaWithGifts([giftId], initData, arenaMode);
+      setRoom(joined); setRollPhase('idle');
+      window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(joined.code)}`);
+      setOwnedBackdrops(await syncDemoBackdropInventory([]));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t('Could not enter with NFT'));
+    } finally { setBusy(false); }
+  };
+
   const joinExactRoom = async (room: PvpRoom) => {
     if (!initData) return;
     setBusy(true); setError('');
@@ -905,7 +929,7 @@ export default function ArenaPage() {
             })}
           </div>
 
-          <SquareRoom room={activeRoom} arenaMode={arenaMode} lastWinner={lastWinners[arenaMode]} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount)} botBalance={botBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} ownedBackdrops={ownedBackdrops} onStakeBackdrop={(id) => void stakeBackdrop(id)} />
+          <SquareRoom room={activeRoom} arenaMode={arenaMode} lastWinner={lastWinners[arenaMode]} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount)} botBalance={botBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} ownedBackdrops={ownedBackdrops} onStakeBackdrop={(id) => void stakeBackdrop(id)} onEnterWithBackdrop={(id) => void enterWithBackdrop(id)} />
 
           {activeRoom?.isPublic === false && activeRoom.status === 'WAITING' && activeRoom.viewerIsCreator && <section className="mt-3 rounded-2xl border border-blue-100 bg-white p-3"><p className="mb-2 text-center text-[10px] text-slate-500">{t('Waiting for invited players to accept.')}</p><button disabled={busy || activeRoom.participants.length < 2} onClick={() => void startPrivateRound()} className="w-full rounded-xl bg-blue-700 py-2.5 text-xs font-bold text-white disabled:bg-slate-300">{t('Start round')}</button></section>}
 

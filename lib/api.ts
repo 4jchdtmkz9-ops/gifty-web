@@ -38,6 +38,9 @@ export async function createPvpRoom(stakeGram: string, inviteeIds: string[], ini
 export async function joinPublicArena(stakeGram: string, initData: string, arenaMode: 'CLASSIC' | 'WHEEL' = 'CLASSIC') {
   return pvpRequest<PvpRoom>('public-join', initData, { stakeGram, arenaMode });
 }
+export async function joinPublicArenaWithGifts(giftIds: string[], initData: string, arenaMode: 'CLASSIC' | 'WHEEL' = 'CLASSIC') {
+  return pvpRequest<PvpRoom>('public-join-gift', initData, { giftIds, arenaMode });
+}
 export async function getPublicArenaRooms(initData: string, arenaMode: 'CLASSIC' | 'WHEEL' = 'CLASSIC') {
   return pvpRequest<PvpRoom[]>(`public-rooms?mode=${arenaMode}`, initData);
 }
