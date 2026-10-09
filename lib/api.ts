@@ -221,30 +221,6 @@ export function spinLuckyForBalance(requestId: string) {
   return gameRequest('lucky/spin', requestId);
 }
 
-export async function purchaseCryptanCase(requestId: string) {
-  const initData = getTelegramInitData();
-  if (!initData) throw new Error('Open ORBIT inside Telegram to buy a case');
-  const response = await fetch(`${API_URL}/games/cases/cryptan/purchase`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ initData, requestId }), cache: 'no-store',
-  });
-  if (!response.ok) throw new Error(await responseError(response, 'Could not purchase case'));
-  if (typeof window !== 'undefined') window.dispatchEvent(new Event('orbit-balance-updated'));
-  return response.json() as Promise<{ purchaseId: string; balanceGram: string }>;
-}
-
-export async function openCryptanCase(purchaseId: string) {
-  const initData = getTelegramInitData();
-  if (!initData) throw new Error('Open ORBIT inside Telegram to open a case');
-  const response = await fetch(`${API_URL}/games/cases/cryptan/open`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ initData, purchaseId }), cache: 'no-store',
-  });
-  if (!response.ok) throw new Error(await responseError(response, 'Could not open case'));
-  if (typeof window !== 'undefined') window.dispatchEvent(new Event('orbit-balance-updated'));
-  return response.json() as Promise<GameSettlement>;
-}
-
 export type BotDepositIntent = {
   id: string;
   amountTon: string;

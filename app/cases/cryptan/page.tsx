@@ -8,11 +8,8 @@ import CaseRewardCard from '../../../components/CaseRewardCard';
 import GramIcon from '../../../components/GramIcon';
 import OrbitWordmark from '../../../components/OrbitWordmark';
 import { cryptanCase, cryptanRewards, type CaseReward } from '../../../lib/caseData';
-import { openCryptanCase, purchaseCryptanCase } from '../../../lib/api';
 import { useOrbitLanguage } from '../../../components/OrbitLanguageContext';
 
-const PURCHASE_STORAGE_KEY = 'orbit-case-cryptan-purchase-id';
-const REQUEST_STORAGE_KEY = 'orbit-case-cryptan-purchase-request';
 const WINNING_INDEX = 18;
 
 function randomReward() {
@@ -21,8 +18,7 @@ function randomReward() {
 
 export default function CryptanCasePage() {
   const { t } = useOrbitLanguage();
-  const [purchaseId, setPurchaseId] = useState<string | null>(null);
-  const [purchasing, setPurchasing] = useState(false);
+  const [purchased, setPurchased] = useState(false);
   const [opening, setOpening] = useState(false);
   const [notice, setNotice] = useState('');
   const [wonReward, setWonReward] = useState<CaseReward | null>(null);
@@ -33,48 +29,25 @@ export default function CryptanCasePage() {
   const animationTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    setPurchaseId(window.sessionStorage.getItem(PURCHASE_STORAGE_KEY));
     return () => {
       if (animationFrameRef.current !== null) window.cancelAnimationFrame(animationFrameRef.current);
       if (animationTimerRef.current !== null) window.clearTimeout(animationTimerRef.current);
     };
   }, []);
 
-  async function buyCase() {
-    if (purchasing || purchaseId) return;
-    setPurchasing(true);
+  function buyCase() {
+    if (purchased || opening) return;
     setNotice('');
-    try {
-      const requestId = window.sessionStorage.getItem(REQUEST_STORAGE_KEY) ?? crypto.randomUUID();
-      window.sessionStorage.setItem(REQUEST_STORAGE_KEY, requestId);
-      const result = await purchaseCryptanCase(requestId);
-      window.sessionStorage.removeItem(REQUEST_STORAGE_KEY);
-      window.sessionStorage.setItem(PURCHASE_STORAGE_KEY, result.purchaseId);
-      setPurchaseId(result.purchaseId);
-      setNotice(t('Case purchased. Open it to reveal your prize.'));
-    } catch (cause) {
-      setNotice(cause instanceof Error ? cause.message : t('Could not purchase case'));
-    } finally {
-      setPurchasing(false);
-    }
+    setPurchased(true);
+    setNotice(t('Demo case ready. No GRAM was charged.'));
   }
 
-  async function openCase() {
-    if (!purchaseId || opening) return;
+  function openCase() {
+    if (!purchased || opening) return;
     setOpening(true);
     setWonReward(null);
     setNotice('');
-    let reward: CaseReward;
-    try {
-      const result = await openCryptanCase(purchaseId);
-      const actualReward = cryptanRewards.find((item) => item.id === result.reward.id);
-      if (!actualReward) throw new Error(t('Could not open case'));
-      reward = actualReward;
-    } catch (cause) {
-      setNotice(cause instanceof Error ? cause.message : t('Could not open case'));
-      setOpening(false);
-      return;
-    }
+    const reward = randomReward();
 
     const items = [...Array.from({ length: WINNING_INDEX }, randomReward), reward, ...Array.from({ length: 5 }, randomReward)];
     setRollItems(items);
@@ -84,8 +57,7 @@ export default function CryptanCasePage() {
     if (!viewport) {
       setOpening(false);
       setWonReward(reward);
-      setPurchaseId(null);
-      window.sessionStorage.removeItem(PURCHASE_STORAGE_KEY);
+      setPurchased(false);
       return;
     }
 
@@ -108,8 +80,7 @@ export default function CryptanCasePage() {
           animationFrameRef.current = window.requestAnimationFrame(animate);
           return;
         }
-        window.sessionStorage.removeItem(PURCHASE_STORAGE_KEY);
-        setPurchaseId(null);
+        setPurchased(false);
         setOpening(false);
         setWonReward(reward);
       };
@@ -129,8 +100,8 @@ export default function CryptanCasePage() {
         </header>
 
         <section className="overflow-hidden rounded-[28px] border border-blue-100 bg-white shadow-[0_12px_32px_rgba(21,87,213,0.09)]">
-          <div className={`relative flex h-[220px] items-center overflow-hidden ${purchaseId || opening ? 'case-roulette-stage' : 'case-art-stage bg-white'}`}>
-            {purchaseId || opening ? (
+          <div className={`relative flex h-[220px] items-center overflow-hidden ${purchased || opening ? 'case-roulette-stage' : 'case-art-stage bg-white'}`}>
+            {purchased || opening ? (
               <div className="relative h-full w-full">
                 <div ref={rouletteRef} className="case-roulette-track absolute inset-0 z-10 flex items-center gap-2.5 overflow-hidden px-3">
                   {rollItems.map((reward, index) => <div key={`${reward.id}-${index}`} data-roll-index={index}><CaseRewardCard reward={reward} compact /></div>)}
@@ -140,21 +111,21 @@ export default function CryptanCasePage() {
             ) : <Image src={cryptanCase.image} alt="Кейс Криптан" fill sizes="(max-width: 480px) 100vw, 448px" className="object-contain p-2" priority />}
           </div>
 
-          {purchaseId && <div className="px-4 pt-3"><button type="button" onClick={() => void openCase()} disabled={opening} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{t(opening ? 'Opening…' : 'Open')}</button></div>}
+          {purchased && <div className="px-4 pt-3"><button type="button" onClick={openCase} disabled={opening} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{t(opening ? 'Opening…' : 'Open')}</button></div>}
 
           <div className="p-4 pt-3">
             <div className="flex items-center justify-between gap-3">
               <div><h2 className="text-lg font-bold text-blue-950">Криптан</h2><p className="mt-0.5 text-xs text-slate-500">{t('5 collectible Telegram gifts')}</p></div>
-              <span className="rounded-full bg-blue-50 px-3 py-1.5 text-sm font-bold text-blue-800"><GramIcon size={15} className="mr-1" />30 GRAM</span>
+              <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800">{t('DEMO')}</span>
             </div>
 
             <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50/70 px-3 py-2.5">
-              <p className="text-[11px] font-bold text-blue-950">{t('Real balance')}</p>
-              <p className="mt-0.5 text-[10px] leading-4 text-blue-800">{t('The case costs 30 GRAM. Prize value is credited to your ORBIT balance.')}</p>
+              <p className="text-[11px] font-bold text-blue-950">{t('Demo only')}</p>
+              <p className="mt-0.5 text-[10px] leading-4 text-blue-800">{t('No GRAM is charged and demo prizes are not added to your balance or inventory.')}</p>
             </div>
             {notice && <p role="status" className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">{notice}</p>}
 
-            {!purchaseId && <button type="button" onClick={() => void buyCase()} disabled={purchasing || opening} className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{purchasing ? t('Processing…') : t('Buy case ·')} <GramIcon size={14} className="mx-1" />30 GRAM</button>}
+            {!purchased && <button type="button" onClick={buyCase} disabled={opening} className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{t('Try demo')}</button>}
           </div>
         </section>
 
@@ -171,7 +142,7 @@ export default function CryptanCasePage() {
           <p className="text-[10px] font-bold tracking-[0.2em] text-blue-700">{t('CASE PRIZE')}</p>
           <h2 className="mt-1 text-xl font-bold text-blue-950">{t('You got {name}!').replace('{name}', wonReward.name)}</h2>
           <div className="mx-auto mt-4 max-w-[210px]"><CaseRewardCard reward={wonReward} /></div>
-          <p className="mt-3 text-xs font-semibold text-slate-600">{t('Credited to ORBIT balance')}: {wonReward.price}</p>
+          <p className="mt-3 text-xs font-semibold text-slate-600">{t('Demo prize only · no balance or inventory changes')}</p>
           <button type="button" onClick={() => setWonReward(null)} className="mt-4 min-h-12 w-full rounded-2xl bg-blue-700 text-sm font-semibold text-white">{t('Continue')}</button>
         </div>
       </div>}
