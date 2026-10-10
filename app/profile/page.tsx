@@ -9,6 +9,7 @@ import {
   getOffers,
   getOwnedGifts,
   getProfileHistory,
+  getRoseGiveawayStatus,
   releaseOfferAcceptance,
   rejectOffer,
   sellGift,
@@ -80,6 +81,9 @@ export default function ProfilePage() {
   const [listed, setListed] = useState<Gift[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [incomingOffers, setIncomingOffers] = useState<Offer[]>([]);
+  const [referralLink, setReferralLink] = useState<string | null>(null);
+  const [referralVisitCount, setReferralVisitCount] = useState(0);
+  const [referralCopied, setReferralCopied] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -130,18 +134,23 @@ export default function ProfilePage() {
     try {
       const currentAccount = await syncTelegramProfile(walletAddress || undefined);
       setAccount(currentAccount);
-      const [ownedGifts, listedGifts, myOffers, receivedOffers, activity] = await Promise.all([
+      const [ownedGifts, listedGifts, myOffers, receivedOffers, activity, giveawayStatus] = await Promise.all([
         getOwnedGifts(),
         getListedGifts(),
         getOffers(),
         getIncomingOffers(),
         getProfileHistory(),
+        getRoseGiveawayStatus().catch(() => null),
       ]);
       setOwned(ownedGifts);
       setListed(listedGifts);
       setOffers(myOffers);
       setIncomingOffers(receivedOffers);
       setHistory(activity);
+      if (giveawayStatus) {
+        setReferralLink(giveawayStatus.referralLink);
+        setReferralVisitCount(giveawayStatus.referralVisitCount);
+      }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : t("Could not load profile"));
     } finally {
@@ -154,6 +163,17 @@ export default function ProfilePage() {
       setHistory(await getProfileHistory());
     } catch (cause) {
       console.error("Could not refresh profile history:", cause);
+    }
+  }
+
+  async function copyReferralLink() {
+    if (!referralLink) return;
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      setReferralCopied(true);
+      window.setTimeout(() => setReferralCopied(false), 1800);
+    } catch {
+      setError(t("Could not perform action"));
     }
   }
 
@@ -341,6 +361,23 @@ export default function ProfilePage() {
             </span>
           </div>
         </section>
+
+        {referralLink && <section className="mt-4 rounded-3xl border border-rose-100 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-bold uppercase tracking-[.1em] text-rose-700">ORBIT · GIVEAWAY</p>
+              <p className="mt-1 text-sm font-semibold text-slate-900">{language === "uk" ? "Твоє реферальне посилання" : language === "ru" ? "Твоя реферальная ссылка" : "Your referral link"}</p>
+              <p className="mt-1 truncate text-[11px] text-slate-500">{referralLink.replace("https://", "")}</p>
+            </div>
+            <button type="button" onClick={() => void copyReferralLink()} className="shrink-0 rounded-xl bg-[#b51f3d] px-3 py-2 text-xs font-bold text-white transition hover:brightness-95">
+              {referralCopied ? (language === "uk" ? "Скопійовано" : language === "ru" ? "Скопировано" : "Copied") : (language === "uk" ? "Копіювати" : language === "ru" ? "Копировать" : "Copy")}
+            </button>
+          </div>
+          <div className="mt-3 flex items-center justify-between rounded-2xl bg-rose-50 px-3 py-2.5">
+            <span className="text-xs font-medium text-rose-800">Referrals</span>
+            <span className="text-sm font-bold tabular-nums text-rose-800">{referralVisitCount}</span>
+          </div>
+        </section>}
 
         <div className="profile-tabs mt-5 grid grid-cols-3 gap-1 rounded-2xl p-1.5" role="tablist">
           {tabs.map((item) => (
