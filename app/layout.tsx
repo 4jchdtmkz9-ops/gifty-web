@@ -1,6 +1,14 @@
 import type { Metadata } from 'next';
+import { Source_Sans_3 } from 'next/font/google';
 import './globals.css';
 import Providers from './providers';
+
+const orbitSans = Source_Sans_3({
+  variable: '--font-orbit-sans',
+  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'ORBIT — Digital Collectibles',
@@ -16,7 +24,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme="dark"
-      className="h-full antialiased"
+      className={`${orbitSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
