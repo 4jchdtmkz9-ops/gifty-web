@@ -93,7 +93,6 @@ export default function RoseGiveawayCard() {
               @orbit_market_official <span aria-hidden="true" className="text-[11px]">↗</span>
             </a>
           </div>
-          <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-sm text-blue-600">↗</span>
         </div>
         {winner ? (
           <div aria-live="polite" className="mt-3 flex items-center gap-3 rounded-[17px] border border-amber-200 bg-amber-50/70 px-3 py-3">
@@ -121,7 +120,7 @@ export default function RoseGiveawayCard() {
             {entered && !winner && <span className="font-semibold text-emerald-600">{text.entered}</span>}
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-rose-50" role="progressbar" aria-valuemin={0} aria-valuemax={10} aria-valuenow={participants ?? 0} aria-label={`${participants ?? 0} of 10 participants`}>
-            <div className="h-full rounded-full bg-[linear-gradient(90deg,#fb7185,#e11d48)] transition-[width] duration-500" style={{ width: `${Math.min(100, ((participants ?? 0) / 10) * 100)}%` }} />
+            <div className="h-full rounded-full bg-[linear-gradient(90deg,#b51f3d_0%,#d52f4d_58%,#a91f46_100%)] transition-[width] duration-500" style={{ width: `${Math.min(100, ((participants ?? 0) / 10) * 100)}%` }} />
           </div>
         </div>
       </div>
