@@ -19,6 +19,9 @@ import {
   useTonAddress,
 } from '@tonconnect/ui-react';
 
+// These homepage gift showcases are retained as drafts and intentionally hidden in the bot for now.
+const SHOW_HOME_GIFT_DRAFTS = false;
+
 const gifts = [
   {
     name: 'Diamond Ring',
@@ -165,7 +168,8 @@ export default function Home() {
 
         </div>
 
-        {/* Featured */}
+        {SHOW_HOME_GIFT_DRAFTS && <>
+        {/* Featured draft — hidden in the live bot until real marketplace inventory is ready. */}
         <section className="mb-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold">{t('Featured')}</h2>
@@ -259,6 +263,7 @@ export default function Home() {
             ))}
           </div>
         </section>
+        </>}
 
         {/* Bottom navigation */}
         <BottomNav active="home" />
