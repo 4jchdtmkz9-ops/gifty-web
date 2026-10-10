@@ -362,20 +362,33 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {referralLink && <section className="mt-4 rounded-3xl border border-rose-100 bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-bold uppercase tracking-[.1em] text-rose-700">ORBIT · GIVEAWAY</p>
-              <p className="mt-1 text-sm font-semibold text-slate-900">{language === "uk" ? "Твоє реферальне посилання" : language === "ru" ? "Твоя реферальная ссылка" : "Your referral link"}</p>
-              <p className="mt-1 truncate text-[11px] text-slate-500">{referralLink.replace("https://", "")}</p>
+        {referralLink && <section className="profile-referral-card mt-4 overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-sm">
+          <div className="flex items-center justify-between gap-3 bg-blue-50 px-4 py-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-700 text-white shadow-sm">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-6 w-6">
+                  <circle cx="12" cy="12" r="3" fill="currentColor" />
+                  <ellipse cx="12" cy="12" rx="9" ry="4.5" stroke="currentColor" strokeWidth="1.5" transform="rotate(-32 12 12)" />
+                  <circle cx="19.2" cy="7.3" r="1.4" fill="currentColor" />
+                </svg>
+              </span>
+              <div className="min-w-0">
+                <p className="text-[11px] font-black tracking-[.18em] text-blue-700">ORBIT</p>
+                <p className="mt-0.5 truncate text-xs font-semibold text-slate-800">{language === "uk" ? "Реферальне посилання" : language === "ru" ? "Реферальная ссылка" : "Referral link"}</p>
+              </div>
             </div>
-            <button type="button" onClick={() => void copyReferralLink()} className="shrink-0 rounded-xl bg-[#b51f3d] px-3 py-2 text-xs font-bold text-white transition hover:brightness-95">
-              {referralCopied ? (language === "uk" ? "Скопійовано" : language === "ru" ? "Скопировано" : "Copied") : (language === "uk" ? "Копіювати" : language === "ru" ? "Копировать" : "Copy")}
-            </button>
+            <div className="flex shrink-0 items-center gap-2 rounded-full border border-blue-100 bg-white px-3 py-1.5">
+              <span className="text-[10px] font-semibold text-slate-500">Referrals</span>
+              <span className="text-xs font-bold tabular-nums text-blue-700">{referralVisitCount}</span>
+            </div>
           </div>
-          <div className="mt-3 flex items-center justify-between rounded-2xl bg-rose-50 px-3 py-2.5">
-            <span className="text-xs font-medium text-rose-800">Referrals</span>
-            <span className="text-sm font-bold tabular-nums text-rose-800">{referralVisitCount}</span>
+          <div className="flex min-w-0 items-center gap-2 p-3">
+            <a href={referralLink} title={referralLink} className="min-w-0 flex-1 truncate rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-[11px] font-medium text-slate-700">
+              {referralLink.replace("https://", "")}
+            </a>
+            <button type="button" onClick={() => void copyReferralLink()} aria-label={referralCopied ? (language === "uk" ? "Скопійовано" : language === "ru" ? "Скопировано" : "Copied") : (language === "uk" ? "Копіювати посилання" : language === "ru" ? "Копировать ссылку" : "Copy link")} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-700 text-white transition hover:bg-blue-800 active:scale-95">
+              {referralCopied ? <span aria-hidden="true" className="text-sm font-bold">✓</span> : <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-4 w-4"><rect x="8" y="8" width="11" height="12" rx="2" stroke="currentColor" strokeWidth="1.7"/><path d="M16 8V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>}
+            </button>
           </div>
         </section>}
 
