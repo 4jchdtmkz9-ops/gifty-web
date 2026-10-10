@@ -366,8 +366,8 @@ export default function ProfilePage() {
         {referralLink && <section className="profile-referral-card mt-4 overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-sm">
           <div className="flex items-center justify-between gap-3 bg-blue-50 px-4 py-3">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-700 text-white shadow-sm">
-                <Image src="/orbit-planet.png" alt="" width={330} height={249} className="h-6 w-8 object-contain" />
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center">
+                <Image src="/orbit-planet.png" alt="" width={330} height={249} className="h-7 w-9 object-contain" />
               </span>
               <div className="min-w-0">
                 <p className="text-[11px] font-black tracking-[.18em] text-blue-700">ORBIT</p>
