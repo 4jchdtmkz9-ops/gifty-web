@@ -254,6 +254,7 @@ export async function getBotBalance() {
 export type RoseGiveawayWinner = { username: string | null; firstName: string | null; lastName: string | null; photoUrl: string | null };
 export type RoseGiveawayStatus = {
   entered: boolean;
+  applicationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
   participants: number;
   winner: RoseGiveawayWinner | null;
   full: boolean;
@@ -263,7 +264,7 @@ export type RoseGiveawayStatus = {
   referralBonusPercent: number;
 };
 
-async function roseGiveawayRequest(path: 'status' | 'enter') {
+async function roseGiveawayRequest(path: 'status' | 'enter', profileConditionConfirmed = false) {
   const initData = getTelegramInitData();
   if (!initData) throw new Error('Open ORBIT inside Telegram to enter');
   const referralCode = typeof window !== 'undefined' ? window.sessionStorage.getItem('orbit-rose-referral-code') : null;
@@ -271,12 +272,15 @@ async function roseGiveawayRequest(path: 'status' | 'enter') {
     method: path === 'enter' ? 'POST' : 'GET',
     headers: {
       'X-Telegram-Init-Data': initData,
+      ...(path === 'enter' ? { 'Content-Type': 'application/json' } : {}),
       ...(referralCode ? { 'X-Rose-Referral-Code': referralCode } : {}),
     },
+    ...(path === 'enter' ? { body: JSON.stringify({ profileConditionConfirmed }) } : {}),
     cache: 'no-store',
   });
   if (!response.ok) throw new Error(await responseError(response, 'Could not load the rose giveaway'));
-  if (path === 'status' && referralCode) window.sessionStorage.removeItem('orbit-rose-referral-code');
+  // Only remove referral code after enter action, not on status checks
+  // to preserve the referral bonus across status refreshes
   return response.json() as Promise<RoseGiveawayStatus>;
 }
 
@@ -284,8 +288,8 @@ export function getRoseGiveawayStatus() {
   return roseGiveawayRequest('status');
 }
 
-export function enterRoseGiveaway() {
-  return roseGiveawayRequest('enter');
+export function enterRoseGiveaway(profileConditionConfirmed = false) {
+  return roseGiveawayRequest('enter', profileConditionConfirmed);
 }
 
 export async function createBotDepositIntent(amountTon: string, walletAddress: string) {
