@@ -108,7 +108,7 @@ export default function RoseGiveawayCard() {
           </div>
         ) : (
           <div className="mt-4">
-            <button type="button" onClick={participate} disabled={loading || entered || full} className="flex h-12 w-full items-center justify-center gap-2 rounded-[14px] bg-blue-700 px-3 text-[13px] font-bold text-white transition hover:bg-blue-800 active:scale-[.99] disabled:cursor-default disabled:bg-emerald-600">
+            <button type="button" onClick={participate} disabled={loading || entered || full} className="flex h-12 w-full items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(90deg,#b51f3d_0%,#d52f4d_58%,#a91f46_100%)] px-3 text-[13px] font-bold text-white transition hover:brightness-95 active:scale-[.99] disabled:cursor-default disabled:bg-emerald-600">
               {loading ? text.checking : entered ? <><span aria-hidden="true">✓</span>{text.entered}</> : full ? text.full : text.enter}
             </button>
           </div>
