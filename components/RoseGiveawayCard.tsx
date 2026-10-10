@@ -8,13 +8,13 @@ const CHANNEL_URL = 'https://t.me/orbit_market_official';
 
 const copy = {
   en: {
-    giveaway: 'GIVEAWAY', title: 'Eternal Rose', subtitle: 'One Telegram collectible · one winner', condition: 'Entry requirement', referralTitle: 'Your referral link', referralHint: 'Each verified invite adds +10% draw weight.', referralCount: 'verified invites', referralBonus: 'bonus weight', referralUnavailable: 'Open this Mini App in Telegram to get your personal link.', copyLink: 'Copy', copied: 'Copied', enter: 'Participate', entered: "You're in the draw", checking: 'Checking…', verify: 'We could not verify your subscription. Make sure you joined the channel and try again.', unavailable: 'Subscription check is unavailable right now. Please try again shortly.', openTelegram: 'Open ORBIT in Telegram to enter.', winnerLabel: 'WINNER', winnerFallback: 'ORBIT participant', full: 'The draw is complete',
+    giveaway: 'GIVEAWAY', title: 'Eternal Rose', subtitle: 'One Telegram collectible · one winner', condition: 'Entry requirement', referralTitle: 'Your referral link', referralHint: 'Each verified invite adds +10% draw weight.', referralCount: 'entered the giveaway', referralVisitCount: 'opened from your link', referralBonus: 'bonus weight', referralUnavailable: 'Open this Mini App in Telegram to get your personal link.', copyLink: 'Copy', copied: 'Copied', enter: 'Participate', entered: "You're in the draw", checking: 'Checking…', verify: 'We could not verify your subscription. Make sure you joined the channel and try again.', unavailable: 'Subscription check is unavailable right now. Please try again shortly.', openTelegram: 'Open ORBIT in Telegram to enter.', winnerLabel: 'WINNER', winnerFallback: 'ORBIT participant', full: 'The draw is complete',
   },
   uk: {
-    giveaway: 'РОЗІГРАШ', title: 'Eternal Rose', subtitle: 'Один колекційний подарунок Telegram · один переможець', condition: 'Умова участі', referralTitle: 'Твоє реферальне посилання', referralHint: 'Кожне підтверджене запрошення додає +10% ваги в розіграші.', referralCount: 'підтверджених запрошень', referralBonus: 'бонус до ваги', referralUnavailable: 'Відкрий Mini App у Telegram, щоб отримати особисте посилання.', copyLink: 'Копіювати', copied: 'Скопійовано', enter: 'Брати участь', entered: 'Ти береш участь', checking: 'Перевіряємо…', verify: 'Не вдалося підтвердити підписку. Переконайся, що підписався на канал, і спробуй ще раз.', unavailable: 'Зараз не вдалося перевірити підписку. Спробуй трохи пізніше.', openTelegram: 'Відкрий ORBIT у Telegram, щоб взяти участь.', winnerLabel: 'ПЕРЕМОЖЕЦЬ', winnerFallback: 'Учасник ORBIT', full: 'Розіграш завершено',
+    giveaway: 'РОЗІГРАШ', title: 'Eternal Rose', subtitle: 'Один колекційний подарунок Telegram · один переможець', condition: 'Умова участі', referralTitle: 'Твоє реферальне посилання', referralHint: 'Кожне підтверджене запрошення додає +10% ваги в розіграші.', referralCount: 'взяли участь', referralVisitCount: 'перейшли за твоїм посиланням', referralBonus: 'бонус до ваги', referralUnavailable: 'Відкрий Mini App у Telegram, щоб отримати особисте посилання.', copyLink: 'Копіювати', copied: 'Скопійовано', enter: 'Брати участь', entered: 'Ти береш участь', checking: 'Перевіряємо…', verify: 'Не вдалося підтвердити підписку. Переконайся, що підписався на канал, і спробуй ще раз.', unavailable: 'Зараз не вдалося перевірити підписку. Спробуй трохи пізніше.', openTelegram: 'Відкрий ORBIT у Telegram, щоб взяти участь.', winnerLabel: 'ПЕРЕМОЖЕЦЬ', winnerFallback: 'Учасник ORBIT', full: 'Розіграш завершено',
   },
   ru: {
-    giveaway: 'РОЗЫГРЫШ', title: 'Eternal Rose', subtitle: 'Один коллекционный подарок Telegram · один победитель', condition: 'Условие участия', referralTitle: 'Твоя реферальная ссылка', referralHint: 'Каждое подтверждённое приглашение добавляет +10% веса в розыгрыше.', referralCount: 'подтверждённых приглашений', referralBonus: 'бонус к весу', referralUnavailable: 'Открой Mini App в Telegram, чтобы получить личную ссылку.', copyLink: 'Копировать', copied: 'Скопировано', enter: 'Участвовать', entered: 'Ты участвуешь', checking: 'Проверяем…', verify: 'Не удалось подтвердить подписку. Убедись, что подписался на канал, и попробуй ещё раз.', unavailable: 'Сейчас не удалось проверить подписку. Попробуй немного позже.', openTelegram: 'Открой ORBIT в Telegram, чтобы участвовать.', winnerLabel: 'ПОБЕДИТЕЛЬ', winnerFallback: 'Участник ORBIT', full: 'Розыгрыш завершён',
+    giveaway: 'РОЗЫГРЫШ', title: 'Eternal Rose', subtitle: 'Один коллекционный подарок Telegram · один победитель', condition: 'Условие участия', referralTitle: 'Твоя реферальная ссылка', referralHint: 'Каждое подтверждённое приглашение добавляет +10% веса в розыгрыше.', referralCount: 'участвовали', referralVisitCount: 'перешли по твоей ссылке', referralBonus: 'бонус к весу', referralUnavailable: 'Открой Mini App в Telegram, чтобы получить личную ссылку.', copyLink: 'Копировать', copied: 'Скопировано', enter: 'Участвовать', entered: 'Ты участвуешь', checking: 'Проверяем…', verify: 'Не удалось подтвердить подписку. Убедись, что подписался на канал, и попробуй ещё раз.', unavailable: 'Сейчас не удалось проверить подписку. Попробуй немного позже.', openTelegram: 'Открой ORBIT в Telegram, чтобы участвовать.', winnerLabel: 'ПОБЕДИТЕЛЬ', winnerFallback: 'Участник ORBIT', full: 'Розыгрыш завершён',
   },
 } as const;
 
@@ -26,6 +26,7 @@ export default function RoseGiveawayCard() {
   const [winner, setWinner] = useState<RoseGiveawayWinner | null>(null);
   const [referralLink, setReferralLink] = useState<string | null>(null);
   const [referralCount, setReferralCount] = useState(0);
+  const [referralVisitCount, setReferralVisitCount] = useState(0);
   const [referralBonusPercent, setReferralBonusPercent] = useState(0);
   const [copied, setCopied] = useState(false);
   const [full, setFull] = useState(false);
@@ -49,6 +50,7 @@ export default function RoseGiveawayCard() {
       setFull(result.full);
       setReferralLink(result.referralLink);
       setReferralCount(result.referralCount);
+      setReferralVisitCount(result.referralVisitCount);
       setReferralBonusPercent(result.referralBonusPercent);
     } catch {
       // The card remains useful outside Telegram; the action explains that Telegram is required.
@@ -72,6 +74,7 @@ export default function RoseGiveawayCard() {
       setFull(result.full);
       setReferralLink(result.referralLink);
       setReferralCount(result.referralCount);
+      setReferralVisitCount(result.referralVisitCount);
       setReferralBonusPercent(result.referralBonusPercent);
       setJustEntered(true);
     } catch (cause) {
@@ -140,6 +143,7 @@ export default function RoseGiveawayCard() {
               </button>
             </div>
           ) : <p className="mt-2 text-[10px] text-slate-500">{text.referralUnavailable}</p>}
+          {referralLink && <p className="mt-2 text-[10px] font-semibold text-rose-700">{referralVisitCount} {text.referralVisitCount}</p>}
           {referralCount > 0 && <p className="mt-2 text-[10px] font-semibold text-rose-700">{referralCount} {text.referralCount} · +{referralBonusPercent}% {text.referralBonus}</p>}
         </div>
         {winner ? (

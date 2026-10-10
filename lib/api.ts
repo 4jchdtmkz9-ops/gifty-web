@@ -259,23 +259,24 @@ export type RoseGiveawayStatus = {
   full: boolean;
   referralLink: string | null;
   referralCount: number;
+  referralVisitCount: number;
   referralBonusPercent: number;
 };
 
 async function roseGiveawayRequest(path: 'status' | 'enter') {
   const initData = getTelegramInitData();
   if (!initData) throw new Error('Open ORBIT inside Telegram to enter');
+  const referralCode = typeof window !== 'undefined' ? window.sessionStorage.getItem('orbit-rose-referral-code') : null;
   const response = await fetch(`${API_URL}/giveaways/rose/${path}`, {
     method: path === 'enter' ? 'POST' : 'GET',
     headers: {
       'X-Telegram-Init-Data': initData,
-      ...(typeof window !== 'undefined' && window.sessionStorage.getItem('orbit-rose-referral-code')
-        ? { 'X-Rose-Referral-Code': window.sessionStorage.getItem('orbit-rose-referral-code') as string }
-        : {}),
+      ...(referralCode ? { 'X-Rose-Referral-Code': referralCode } : {}),
     },
     cache: 'no-store',
   });
   if (!response.ok) throw new Error(await responseError(response, 'Could not load the rose giveaway'));
+  if (path === 'status' && referralCode) window.sessionStorage.removeItem('orbit-rose-referral-code');
   return response.json() as Promise<RoseGiveawayStatus>;
 }
 
