@@ -120,8 +120,8 @@ export default function RoseGiveawayCard() {
         <div className="flex items-center justify-between gap-3 rounded-[14px] border border-slate-100 bg-slate-50 px-3 py-2.5">
           <div className="min-w-0">
             <p className="text-[9px] font-semibold uppercase tracking-[.09em] text-slate-500">{text.condition}</p>
-            <a href={CHANNEL_URL} target="_blank" rel="noreferrer" className="mt-0.5 inline-flex max-w-full items-center gap-1 text-[13px] font-semibold text-blue-700 hover:underline">
-              @orbit_market_official <span aria-hidden="true" className="text-[11px]">↗</span>
+            <a href={CHANNEL_URL} target="_blank" rel="noreferrer" className="mt-0.5 inline-flex max-w-full items-center text-[13px] font-semibold text-blue-700 hover:underline">
+              @orbit_market_official
             </a>
           </div>
         </div>
