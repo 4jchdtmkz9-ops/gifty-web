@@ -75,14 +75,14 @@ export default function RoseGiveawayCard() {
   return (
     <section className="rose-giveaway relative mb-6 overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_6px_22px_rgba(15,23,42,.06)]">
       {justEntered && <div className="giveaway-confetti" aria-hidden="true">{Array.from({ length: 14 }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} />)}</div>}
-      <div className="rose-giveaway-header flex items-center gap-3.5 border-b border-slate-100 bg-[#fffafa] px-4 py-4">
+      <div className="rose-giveaway-header flex items-center gap-3.5 border-b border-rose-700 bg-[linear-gradient(115deg,#b51f3d_0%,#d52f4d_58%,#a91f46_100%)] px-4 py-4">
         <div className="rose-giveaway-art flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-[18px] border border-rose-100 bg-white text-[38px]" aria-label="Eternal Rose">🌹</div>
         <div className="min-w-0 flex-1">
-          <p className="text-[9px] font-bold tracking-[.13em] text-rose-600">{text.eyebrow}</p>
-          <h2 className="mt-1 text-[18px] font-bold leading-tight text-slate-900">{text.title}</h2>
-          <p className="mt-1 text-[11px] leading-snug text-slate-500">{text.subtitle}</p>
+          <p className="text-[9px] font-bold tracking-[.13em] text-white/80">{text.eyebrow}</p>
+          <h2 className="mt-1 text-[18px] font-bold leading-tight text-white">{text.title}</h2>
+          <p className="mt-1 text-[11px] leading-snug text-white/80">{text.subtitle}</p>
         </div>
-        <span className="self-start rounded-full border border-rose-100 bg-white px-2 py-1 text-[10px] font-semibold text-rose-700">×1</span>
+        <span className="self-start rounded-full border border-white/25 bg-white/15 px-2 py-1 text-[10px] font-semibold text-white">×1</span>
       </div>
 
       <div className="px-4 pb-4 pt-3.5">
