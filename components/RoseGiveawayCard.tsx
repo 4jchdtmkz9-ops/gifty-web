@@ -8,13 +8,13 @@ const CHANNEL_URL = 'https://t.me/orbit_market_official';
 
 const copy = {
   en: {
-    giveaway: 'GIVEAWAY', title: 'Eternal Rose', subtitle: 'One Telegram collectible · one winner', condition: 'Subscribe to the ORBIT Telegram channel', referralTitle: 'Your referral link', referralHint: 'Each verified invite adds +10% draw weight.', referralCount: 'entered the giveaway', referralVisitCount: 'Referrals', referralBonus: 'bonus weight', referralUnavailable: 'Open this Mini App in Telegram to get your personal link.', copyLink: 'Copy', copied: 'Copied', enter: 'Participate', entered: "You're in the draw", checking: 'Checking…', verify: 'We could not verify your subscription. Make sure you joined the channel and try again.', unavailable: 'Subscription check is unavailable right now. Please try again shortly.', openTelegram: 'Open ORBIT in Telegram to enter.', winnerLabel: 'WINNER', winnerFallback: 'ORBIT participant', full: 'The draw is complete',
+    giveaway: 'GIVEAWAY', title: 'Eternal Rose', subtitle: 'One Telegram collectible · one winner', condition: 'Subscribe to the ORBIT Telegram channel', profileConditionTitle: 'Add to your Telegram profile bio', profileConditionDescription: 'Add @orbit_ton_market_bot or your personal ORBIT referral link.', profileConditionConfirm: 'I added it to my bio', copyBotUsername: 'Copy bot username', botCopied: 'Username copied', referralTitle: 'Your referral link', referralHint: 'Each verified invite adds +10% draw weight.', referralCount: 'entered the giveaway', referralVisitCount: 'Referrals', referralBonus: 'bonus weight', referralUnavailable: 'Open this Mini App in Telegram to get your personal link.', copyLink: 'Copy', copied: 'Copied', enter: 'Participate', entered: "You're in the draw", checking: 'Checking…', verify: 'We could not verify your subscription. Make sure you joined the channel and try again.', unavailable: 'Subscription check is unavailable right now. Please try again shortly.', openTelegram: 'Open ORBIT in Telegram to enter.', winnerLabel: 'WINNER', winnerFallback: 'ORBIT participant', full: 'The draw is complete',
   },
   uk: {
-    giveaway: 'РОЗІГРАШ', title: 'Eternal Rose', subtitle: 'Один колекційний подарунок Telegram · один переможець', condition: 'Підпишись на Telegram-канал ORBIT', referralTitle: 'Твоє реферальне посилання', referralHint: 'Кожне підтверджене запрошення додає +10% ваги в розіграші.', referralCount: 'взяли участь', referralVisitCount: 'Referrals', referralBonus: 'бонус до ваги', referralUnavailable: 'Відкрий Mini App у Telegram, щоб отримати особисте посилання.', copyLink: 'Копіювати', copied: 'Скопійовано', enter: 'Брати участь', entered: 'Ти береш участь', checking: 'Перевіряємо…', verify: 'Не вдалося підтвердити підписку. Переконайся, що підписався на канал, і спробуй ще раз.', unavailable: 'Зараз не вдалося перевірити підписку. Спробуй трохи пізніше.', openTelegram: 'Відкрий ORBIT у Telegram, щоб взяти участь.', winnerLabel: 'ПЕРЕМОЖЕЦЬ', winnerFallback: 'Учасник ORBIT', full: 'Розіграш завершено',
+    giveaway: 'РОЗІГРАШ', title: 'Eternal Rose', subtitle: 'Один колекційний подарунок Telegram · один переможець', condition: 'Підпишись на Telegram-канал ORBIT', profileConditionTitle: 'Додай в опис профілю Telegram', profileConditionDescription: 'Вкажи @orbit_ton_market_bot або своє реферальне посилання ORBIT.', profileConditionConfirm: 'Я додав це в опис профілю', copyBotUsername: 'Копіювати юзернейм бота', botCopied: 'Юзернейм скопійовано', referralTitle: 'Твоє реферальне посилання', referralHint: 'Кожне підтверджене запрошення додає +10% ваги в розіграші.', referralCount: 'взяли участь', referralVisitCount: 'Referrals', referralBonus: 'бонус до ваги', referralUnavailable: 'Відкрий Mini App у Telegram, щоб отримати особисте посилання.', copyLink: 'Копіювати', copied: 'Скопійовано', enter: 'Брати участь', entered: 'Ти береш участь', checking: 'Перевіряємо…', verify: 'Не вдалося підтвердити підписку. Переконайся, що підписався на канал, і спробуй ще раз.', unavailable: 'Зараз не вдалося перевірити підписку. Спробуй трохи пізніше.', openTelegram: 'Відкрий ORBIT у Telegram, щоб взяти участь.', winnerLabel: 'ПЕРЕМОЖЕЦЬ', winnerFallback: 'Учасник ORBIT', full: 'Розіграш завершено',
   },
   ru: {
-    giveaway: 'РОЗЫГРЫШ', title: 'Eternal Rose', subtitle: 'Один коллекционный подарок Telegram · один победитель', condition: 'Подпишись на Telegram-канал ORBIT', referralTitle: 'Твоя реферальная ссылка', referralHint: 'Каждое подтверждённое приглашение добавляет +10% веса в розыгрыше.', referralCount: 'участвовали', referralVisitCount: 'Referrals', referralBonus: 'бонус к весу', referralUnavailable: 'Открой Mini App в Telegram, чтобы получить личную ссылку.', copyLink: 'Копировать', copied: 'Скопировано', enter: 'Участвовать', entered: 'Ты участвуешь', checking: 'Проверяем…', verify: 'Не удалось подтвердить подписку. Убедись, что подписался на канал, и попробуй ещё раз.', unavailable: 'Сейчас не удалось проверить подписку. Попробуй немного позже.', openTelegram: 'Открой ORBIT в Telegram, чтобы участвовать.', winnerLabel: 'ПОБЕДИТЕЛЬ', winnerFallback: 'Участник ORBIT', full: 'Розыгрыш завершён',
+    giveaway: 'РОЗЫГРЫШ', title: 'Eternal Rose', subtitle: 'Один коллекционный подарок Telegram · один победитель', condition: 'Подпишись на Telegram-канал ORBIT', profileConditionTitle: 'Добавь в описание профиля Telegram', profileConditionDescription: 'Укажи @orbit_ton_market_bot или свою реферальную ссылку ORBIT.', profileConditionConfirm: 'Я добавил это в описание профиля', copyBotUsername: 'Скопировать юзернейм бота', botCopied: 'Юзернейм скопирован', referralTitle: 'Твоя реферальная ссылка', referralHint: 'Каждое подтверждённое приглашение добавляет +10% веса в розыгрыше.', referralCount: 'участвовали', referralVisitCount: 'Referrals', referralBonus: 'бонус к весу', referralUnavailable: 'Открой Mini App в Telegram, чтобы получить личную ссылку.', copyLink: 'Копировать', copied: 'Скопировано', enter: 'Участвовать', entered: 'Ты участвуешь', checking: 'Проверяем…', verify: 'Не удалось подтвердить подписку. Убедись, что подписался на канал, и попробуй ещё раз.', unavailable: 'Сейчас не удалось проверить подписку. Попробуй немного позже.', openTelegram: 'Открой ORBIT в Telegram, чтобы участвовать.', winnerLabel: 'ПОБЕДИТЕЛЬ', winnerFallback: 'Участник ORBIT', full: 'Розыгрыш завершён',
   },
 } as const;
 
@@ -29,6 +29,8 @@ export default function RoseGiveawayCard() {
   const [referralVisitCount, setReferralVisitCount] = useState(0);
   const [referralBonusPercent, setReferralBonusPercent] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [botUsernameCopied, setBotUsernameCopied] = useState(false);
+  const [profileConditionConfirmed, setProfileConditionConfirmed] = useState(false);
   const [full, setFull] = useState(false);
   const [loading, setLoading] = useState(false);
   const [justEntered, setJustEntered] = useState(false);
@@ -100,6 +102,16 @@ export default function RoseGiveawayCard() {
     }
   }
 
+  async function copyBotUsername() {
+    try {
+      await navigator.clipboard.writeText('@orbit_ton_market_bot');
+      setBotUsernameCopied(true);
+      window.setTimeout(() => setBotUsernameCopied(false), 1800);
+    } catch {
+      setError(text.unavailable);
+    }
+  }
+
   return (
     <section className="rose-giveaway relative mb-6 overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_6px_22px_rgba(15,23,42,.06)]">
       {justEntered && <div className="giveaway-confetti" aria-hidden="true">{Array.from({ length: 14 }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} />)}</div>}
@@ -118,7 +130,8 @@ export default function RoseGiveawayCard() {
 
       <div className="px-4 pb-4 pt-3.5">
         <div className="flex items-center justify-between gap-3 rounded-[14px] border border-slate-100 bg-slate-50 px-3 py-2.5">
-          <div className="min-w-0">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-[10px] font-bold text-white">1</span>
+          <div className="min-w-0 flex-1">
             <p className="text-[9px] font-semibold uppercase tracking-[.09em] text-slate-500">{text.condition}</p>
             <a href={CHANNEL_URL} target="_blank" rel="noreferrer" className="mt-0.5 inline-flex max-w-full items-center text-[13px] font-semibold text-blue-700 hover:underline">
               @orbit_market_official
@@ -146,6 +159,22 @@ export default function RoseGiveawayCard() {
           {referralLink && <p className="mt-2 text-[10px] font-semibold text-rose-700">{referralVisitCount} {text.referralVisitCount}</p>}
           {referralCount > 0 && <p className="mt-2 text-[10px] font-semibold text-rose-700">{referralCount} {text.referralCount} · +{referralBonusPercent}% {text.referralBonus}</p>}
         </div>
+        <div className="mt-3 rounded-[14px] border border-blue-100 bg-blue-50/60 px-3 py-3">
+          <div className="flex items-start gap-2.5">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-[10px] font-bold text-white">2</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-bold text-slate-900">{text.profileConditionTitle}</p>
+              <p className="mt-1 text-[10px] leading-snug text-slate-600">{text.profileConditionDescription}</p>
+              <button type="button" onClick={() => void copyBotUsername()} className="mt-2 rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-[10px] font-semibold text-blue-700 transition hover:bg-blue-50">
+                {botUsernameCopied ? text.botCopied : text.copyBotUsername}
+              </button>
+              {!entered && <label className="mt-2.5 flex cursor-pointer items-center gap-2 text-[10px] font-medium text-slate-700">
+                <input type="checkbox" checked={profileConditionConfirmed} onChange={(event) => setProfileConditionConfirmed(event.target.checked)} className="h-4 w-4 accent-blue-700" />
+                <span>{text.profileConditionConfirm}</span>
+              </label>}
+            </div>
+          </div>
+        </div>
         {winner ? (
           <div aria-live="polite" className="mt-3 flex items-center gap-3 rounded-[17px] border border-amber-200 bg-amber-50/70 px-3 py-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-sm font-bold text-slate-500 ring-1 ring-amber-200" style={winner.photoUrl ? { backgroundImage: `url("${winner.photoUrl}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
@@ -160,7 +189,7 @@ export default function RoseGiveawayCard() {
           </div>
         ) : (
           <div className="mt-4">
-            <button type="button" onClick={participate} disabled={loading || entered || full} className="flex h-12 w-full items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(90deg,#b51f3d_0%,#d52f4d_58%,#a91f46_100%)] px-3 text-[13px] font-bold text-white transition hover:brightness-95 active:scale-[.99] disabled:cursor-default disabled:bg-emerald-600">
+            <button type="button" onClick={participate} disabled={loading || entered || full || !profileConditionConfirmed} className="flex h-12 w-full items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(90deg,#b51f3d_0%,#d52f4d_58%,#a91f46_100%)] px-3 text-[13px] font-bold text-white transition hover:brightness-95 active:scale-[.99] disabled:cursor-default disabled:bg-emerald-600 disabled:opacity-60">
               {loading ? text.checking : entered ? <><span aria-hidden="true">✓</span>{text.entered}</> : full ? text.full : text.enter}
             </button>
           </div>
