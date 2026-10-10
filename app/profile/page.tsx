@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import {
   acceptOffer,
@@ -366,11 +367,7 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between gap-3 bg-blue-50 px-4 py-3">
             <div className="flex min-w-0 items-center gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-700 text-white shadow-sm">
-                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-6 w-6">
-                  <circle cx="12" cy="12" r="3" fill="currentColor" />
-                  <ellipse cx="12" cy="12" rx="9" ry="4.5" stroke="currentColor" strokeWidth="1.5" transform="rotate(-32 12 12)" />
-                  <circle cx="19.2" cy="7.3" r="1.4" fill="currentColor" />
-                </svg>
+                <Image src="/orbit-planet.png" alt="" width={330} height={249} className="h-6 w-8 object-contain" />
               </span>
               <div className="min-w-0">
                 <p className="text-[11px] font-black tracking-[.18em] text-blue-700">ORBIT</p>
