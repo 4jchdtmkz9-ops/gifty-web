@@ -675,6 +675,17 @@ html[data-theme='dark'] main .rose-giveaway a[href*='t.me'] {
   color: #91baff;
 }
 
+html[data-theme='dark'] main .rose-referral-box {
+  border-color: #593443 !important;
+  background: #2b2026 !important;
+}
+
+html[data-theme='dark'] main .rose-referral-link {
+  border-color: #593443 !important;
+  background: #211d22 !important;
+  color: #e5e7eb !important;
+}
+
 html[data-theme='dark'] main [class*='border-yellow-200'] {
   border-color: #574a2d !important;
 }

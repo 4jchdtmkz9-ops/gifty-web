@@ -8,13 +8,13 @@ const CHANNEL_URL = 'https://t.me/orbit_market_official';
 
 const copy = {
   en: {
-    eyebrow: 'ORBIT GIVEAWAY', title: 'Eternal Rose', subtitle: 'One Telegram collectible · one winner', condition: 'Entry requirement', enter: 'Participate', entered: "You're in the draw", checking: 'Checking…', verify: 'We could not verify your subscription. Make sure you joined the channel and try again.', unavailable: 'Subscription check is unavailable right now. Please try again shortly.', openTelegram: 'Open ORBIT in Telegram to enter.', winnerLabel: 'WINNER', winnerFallback: 'ORBIT participant', full: 'The draw is complete',
+    giveaway: 'GIVEAWAY', title: 'Eternal Rose', subtitle: 'One Telegram collectible · one winner', condition: 'Entry requirement', referralTitle: 'Your referral link', referralHint: 'Each verified invite adds +10% draw weight.', referralCount: 'verified invites', referralBonus: 'bonus weight', referralUnavailable: 'Open this Mini App in Telegram to get your personal link.', copyLink: 'Copy', copied: 'Copied', enter: 'Participate', entered: "You're in the draw", checking: 'Checking…', verify: 'We could not verify your subscription. Make sure you joined the channel and try again.', unavailable: 'Subscription check is unavailable right now. Please try again shortly.', openTelegram: 'Open ORBIT in Telegram to enter.', winnerLabel: 'WINNER', winnerFallback: 'ORBIT participant', full: 'The draw is complete',
   },
   uk: {
-    eyebrow: 'РОЗІГРАШ ORBIT', title: 'Eternal Rose', subtitle: 'Один колекційний подарунок Telegram · один переможець', condition: 'Умова участі', enter: 'Брати участь', entered: 'Ти береш участь', checking: 'Перевіряємо…', verify: 'Не вдалося підтвердити підписку. Переконайся, що підписався на канал, і спробуй ще раз.', unavailable: 'Зараз не вдалося перевірити підписку. Спробуй трохи пізніше.', openTelegram: 'Відкрий ORBIT у Telegram, щоб взяти участь.', winnerLabel: 'ПЕРЕМОЖЕЦЬ', winnerFallback: 'Учасник ORBIT', full: 'Розіграш завершено',
+    giveaway: 'РОЗІГРАШ', title: 'Eternal Rose', subtitle: 'Один колекційний подарунок Telegram · один переможець', condition: 'Умова участі', referralTitle: 'Твоє реферальне посилання', referralHint: 'Кожне підтверджене запрошення додає +10% ваги в розіграші.', referralCount: 'підтверджених запрошень', referralBonus: 'бонус до ваги', referralUnavailable: 'Відкрий Mini App у Telegram, щоб отримати особисте посилання.', copyLink: 'Копіювати', copied: 'Скопійовано', enter: 'Брати участь', entered: 'Ти береш участь', checking: 'Перевіряємо…', verify: 'Не вдалося підтвердити підписку. Переконайся, що підписався на канал, і спробуй ще раз.', unavailable: 'Зараз не вдалося перевірити підписку. Спробуй трохи пізніше.', openTelegram: 'Відкрий ORBIT у Telegram, щоб взяти участь.', winnerLabel: 'ПЕРЕМОЖЕЦЬ', winnerFallback: 'Учасник ORBIT', full: 'Розіграш завершено',
   },
   ru: {
-    eyebrow: 'РОЗЫГРЫШ ORBIT', title: 'Eternal Rose', subtitle: 'Один коллекционный подарок Telegram · один победитель', condition: 'Условие участия', enter: 'Участвовать', entered: 'Ты участвуешь', checking: 'Проверяем…', verify: 'Не удалось подтвердить подписку. Убедись, что подписался на канал, и попробуй ещё раз.', unavailable: 'Сейчас не удалось проверить подписку. Попробуй немного позже.', openTelegram: 'Открой ORBIT в Telegram, чтобы участвовать.', winnerLabel: 'ПОБЕДИТЕЛЬ', winnerFallback: 'Участник ORBIT', full: 'Розыгрыш завершён',
+    giveaway: 'РОЗЫГРЫШ', title: 'Eternal Rose', subtitle: 'Один коллекционный подарок Telegram · один победитель', condition: 'Условие участия', referralTitle: 'Твоя реферальная ссылка', referralHint: 'Каждое подтверждённое приглашение добавляет +10% веса в розыгрыше.', referralCount: 'подтверждённых приглашений', referralBonus: 'бонус к весу', referralUnavailable: 'Открой Mini App в Telegram, чтобы получить личную ссылку.', copyLink: 'Копировать', copied: 'Скопировано', enter: 'Участвовать', entered: 'Ты участвуешь', checking: 'Проверяем…', verify: 'Не удалось подтвердить подписку. Убедись, что подписался на канал, и попробуй ещё раз.', unavailable: 'Сейчас не удалось проверить подписку. Попробуй немного позже.', openTelegram: 'Открой ORBIT в Telegram, чтобы участвовать.', winnerLabel: 'ПОБЕДИТЕЛЬ', winnerFallback: 'Участник ORBIT', full: 'Розыгрыш завершён',
   },
 } as const;
 
@@ -24,6 +24,10 @@ export default function RoseGiveawayCard() {
   const [entered, setEntered] = useState(false);
   const [participants, setParticipants] = useState<number | null>(null);
   const [winner, setWinner] = useState<RoseGiveawayWinner | null>(null);
+  const [referralLink, setReferralLink] = useState<string | null>(null);
+  const [referralCount, setReferralCount] = useState(0);
+  const [referralBonusPercent, setReferralBonusPercent] = useState(0);
+  const [copied, setCopied] = useState(false);
   const [full, setFull] = useState(false);
   const [loading, setLoading] = useState(false);
   const [justEntered, setJustEntered] = useState(false);
@@ -43,12 +47,19 @@ export default function RoseGiveawayCard() {
       setParticipants(result.participants);
       setWinner(result.winner);
       setFull(result.full);
+      setReferralLink(result.referralLink);
+      setReferralCount(result.referralCount);
+      setReferralBonusPercent(result.referralBonusPercent);
     } catch {
       // The card remains useful outside Telegram; the action explains that Telegram is required.
     }
   }, []);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    void refresh();
+    const interval = window.setInterval(() => { void refresh(); }, 15_000);
+    return () => window.clearInterval(interval);
+  }, [refresh]);
 
   async function participate() {
     setLoading(true);
@@ -59,6 +70,9 @@ export default function RoseGiveawayCard() {
       setParticipants(result.participants);
       setWinner(result.winner);
       setFull(result.full);
+      setReferralLink(result.referralLink);
+      setReferralCount(result.referralCount);
+      setReferralBonusPercent(result.referralBonusPercent);
       setJustEntered(true);
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : '';
@@ -72,13 +86,27 @@ export default function RoseGiveawayCard() {
     }
   }
 
+  async function copyReferralLink() {
+    if (!referralLink) return;
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setError(text.unavailable);
+    }
+  }
+
   return (
     <section className="rose-giveaway relative mb-6 overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_6px_22px_rgba(15,23,42,.06)]">
       {justEntered && <div className="giveaway-confetti" aria-hidden="true">{Array.from({ length: 14 }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} />)}</div>}
+      <div className="flex items-baseline gap-2 px-4 pb-2 pt-3">
+        <span className="text-[12px] font-black tracking-[.16em] text-[#1557d5]">ORBIT</span>
+        <span className="text-[10px] font-semibold tracking-[.12em] text-slate-500">{text.giveaway}</span>
+      </div>
       <div className="rose-giveaway-header flex items-center gap-3.5 border-b border-rose-700 bg-[linear-gradient(115deg,#b51f3d_0%,#d52f4d_58%,#a91f46_100%)] px-4 py-4">
         <div className="rose-giveaway-art flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-[18px] border border-rose-100 bg-white text-[38px]" aria-label="Eternal Rose">🌹</div>
         <div className="min-w-0 flex-1">
-          <p className="text-[9px] font-bold tracking-[.13em] text-white/80">{text.eyebrow}</p>
           <h2 className="mt-1 text-[18px] font-bold leading-tight text-white">{text.title}</h2>
           <p className="mt-1 text-[11px] leading-snug text-white/80">{text.subtitle}</p>
         </div>
@@ -93,6 +121,26 @@ export default function RoseGiveawayCard() {
               @orbit_market_official <span aria-hidden="true" className="text-[11px]">↗</span>
             </a>
           </div>
+        </div>
+        <div className="rose-referral-box mt-3 rounded-[14px] border border-rose-100 bg-rose-50/70 px-3 py-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold text-slate-900">{text.referralTitle}</p>
+              <p className="mt-0.5 text-[10px] leading-snug text-slate-600">{text.referralHint}</p>
+            </div>
+            <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[10px] font-bold text-rose-700">+10%</span>
+          </div>
+          {referralLink ? (
+            <div className="mt-2 flex min-w-0 items-center gap-2">
+              <a href={referralLink} title={referralLink} className="rose-referral-link min-w-0 flex-1 truncate rounded-[10px] border border-rose-100 bg-white px-2.5 py-2 text-[10px] font-medium text-slate-700">
+                {referralLink.replace('https://', '')}
+              </a>
+              <button type="button" onClick={copyReferralLink} className="shrink-0 rounded-[10px] bg-[#b51f3d] px-3 py-2 text-[10px] font-bold text-white transition hover:brightness-95">
+                {copied ? text.copied : text.copyLink}
+              </button>
+            </div>
+          ) : <p className="mt-2 text-[10px] text-slate-500">{text.referralUnavailable}</p>}
+          {referralCount > 0 && <p className="mt-2 text-[10px] font-semibold text-rose-700">{referralCount} {text.referralCount} · +{referralBonusPercent}% {text.referralBonus}</p>}
         </div>
         {winner ? (
           <div aria-live="polite" className="mt-3 flex items-center gap-3 rounded-[17px] border border-amber-200 bg-amber-50/70 px-3 py-3">

@@ -27,11 +27,13 @@ export default function MiniAppWelcomeGate({
     const telegramStartParam = search.get('tgWebAppStartParam')
       ?? telegramInitData?.start_param;
     const arenaCode = telegramStartParam?.match(/^arena_(.+)$/)?.[1];
+    const roseReferralCode = telegramStartParam?.match(/^rose_([a-zA-Z0-9_-]+)$/)?.[1];
     if (arenaCode) window.sessionStorage.setItem('orbit-pending-arena-room', arenaCode);
+    if (roseReferralCode) window.sessionStorage.setItem('orbit-rose-referral-code', roseReferralCode);
 
     const hasStarted = window.sessionStorage.getItem(STARTED_KEY) === '1';
     const hasLanguage = ['en', 'uk', 'ru'].includes(window.localStorage.getItem(LANGUAGE_KEY) ?? '');
-    setStage(hasStarted || arenaCode ? (hasLanguage ? 'app' : 'language') : 'welcome');
+    setStage(hasStarted || arenaCode || roseReferralCode ? (hasLanguage ? 'app' : 'language') : 'welcome');
     setReady(true);
   }, []);
 

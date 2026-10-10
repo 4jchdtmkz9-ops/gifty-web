@@ -252,14 +252,27 @@ export async function getBotBalance() {
 }
 
 export type RoseGiveawayWinner = { username: string | null; firstName: string | null; lastName: string | null; photoUrl: string | null };
-export type RoseGiveawayStatus = { entered: boolean; participants: number; winner: RoseGiveawayWinner | null; full: boolean };
+export type RoseGiveawayStatus = {
+  entered: boolean;
+  participants: number;
+  winner: RoseGiveawayWinner | null;
+  full: boolean;
+  referralLink: string | null;
+  referralCount: number;
+  referralBonusPercent: number;
+};
 
 async function roseGiveawayRequest(path: 'status' | 'enter') {
   const initData = getTelegramInitData();
   if (!initData) throw new Error('Open ORBIT inside Telegram to enter');
   const response = await fetch(`${API_URL}/giveaways/rose/${path}`, {
     method: path === 'enter' ? 'POST' : 'GET',
-    headers: { 'X-Telegram-Init-Data': initData },
+    headers: {
+      'X-Telegram-Init-Data': initData,
+      ...(typeof window !== 'undefined' && window.sessionStorage.getItem('orbit-rose-referral-code')
+        ? { 'X-Rose-Referral-Code': window.sessionStorage.getItem('orbit-rose-referral-code') as string }
+        : {}),
+    },
     cache: 'no-store',
   });
   if (!response.ok) throw new Error(await responseError(response, 'Could not load the rose giveaway'));
