@@ -41,9 +41,10 @@ const BACKDROP_TILE_SIZE = 208;
 const BACKDROP_TILE_GAP = 9;
 const backdropConfettiColors = ['#1557d5', '#f4bf28', '#e8505b', '#ffffff', '#4cc9a6'];
 const backdropConfettiPieces = Array.from({ length: 32 }, (_, index) => index);
-const backdropPacks: { id: DemoBackdropPackId; name: string; price: string; sticker: string }[] = [
-  { id: 'sweeties', name: 'Sweeties', price: '0.25', sticker: getDemoBackdropSticker('sweeties') },
-  { id: 'orbit-dog', name: 'Orbit Dog', price: '0.35', sticker: getDemoBackdropSticker('orbit-dog') },
+const backdropPacks: { id: DemoBackdropPackId; name: string; price: string; supply: number; sticker: string }[] = [
+  { id: 'sweeties', name: 'Sweeties', price: '0.25', supply: 500, sticker: getDemoBackdropSticker('sweeties') },
+  { id: 'orbit-dog', name: 'Orbit Dog', price: '0.35', supply: 500, sticker: getDemoBackdropSticker('orbit-dog') },
+  { id: 'durov', name: 'Durov', price: '5', supply: 42, sticker: getDemoBackdropSticker('durov') },
 ];
 
 function orbitNftDropChance(name: string) {
@@ -54,6 +55,12 @@ function orbitNftDropChance(name: string) {
 }
 
 function orbitNftResaleValue(name: string, packId: DemoBackdropPackId) {
+  if (packId === 'durov') {
+    if (name === 'Black') return '15';
+    if (name === 'Onyx Black') return '7.5';
+    if (name === 'Midnight Blue') return '6';
+    return '2.25';
+  }
   if (name === 'Black') return '1';
   if (name === 'Onyx Black') return '0.50';
   if (name === 'Midnight Blue') return packId === 'orbit-dog' ? '0.40' : '0.30';
@@ -125,7 +132,7 @@ export default function MarketPage() {
   const [selectedCollection, setSelectedCollection] = useState('all');
   const [sortBy, setSortBy] = useState<SortKey>('price-asc');
   const [backdropInventory, setBackdropInventory] = useState<DemoBackdrop[]>([]);
-  const [packSupply, setPackSupply] = useState<Record<DemoBackdropPackId, { limit: number; sold: number; remaining: number }> | null>(null);
+  const [packSupply, setPackSupply] = useState<Partial<Record<DemoBackdropPackId, { limit: number; sold: number; remaining: number }>> | null>(null);
   const [backdropPackOpen, setBackdropPackOpen] = useState(false);
   const [selectedBackdropPackId, setSelectedBackdropPackId] = useState<DemoBackdropPackId>('sweeties');
   const [spinOpen, setSpinOpen] = useState(false);
@@ -278,7 +285,7 @@ export default function MarketPage() {
       const reward = demoBackdrops.find(({ name }) => name === purchase.item.name);
       if (!reward) throw new Error(t('Could not perform action'));
       pendingPurchasedItem.current = purchase.item;
-      setPackSupply((current) => current ? { ...current, [selectedBackdropPack.id]: purchase.supply } : { sweeties: selectedBackdropPack.id === 'sweeties' ? purchase.supply : { limit: 500, sold: 0, remaining: 500 }, 'orbit-dog': selectedBackdropPack.id === 'orbit-dog' ? purchase.supply : { limit: 500, sold: 0, remaining: 500 } });
+      setPackSupply((current) => ({ ...current, [selectedBackdropPack.id]: purchase.supply }));
       const winnerIndex = 18;
       const tiles = Array.from({ length: 24 }, () => demoBackdrops[Math.floor(Math.random() * demoBackdrops.length)]);
       tiles[winnerIndex] = reward;
@@ -516,7 +523,7 @@ export default function MarketPage() {
                   <p className="mt-2 text-center text-[11px] leading-4 text-slate-500">{t('Payment is deducted from your ORBIT balance.')}</p>
                 </div>
               </div>
-              {(() => { const supply = packSupply?.[selectedBackdropPack.id] ?? { limit: 500, sold: 0, remaining: 500 }; const remainingPercent = supply.remaining / supply.limit * 100; return <section className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/55 p-3.5" aria-label={t('Pack supply')}>
+              {(() => { const supply = packSupply?.[selectedBackdropPack.id] ?? { limit: selectedBackdropPack.supply, sold: 0, remaining: selectedBackdropPack.supply }; const remainingPercent = supply.remaining / supply.limit * 100; return <section className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/55 p-3.5" aria-label={t('Pack supply')}>
                 <div className="mb-2 flex items-center justify-between gap-3"><h3 className="text-xs font-bold text-slate-800">{t('Limited supply')}</h3><span className="text-xs font-extrabold tabular-nums text-blue-800">{supply.remaining}/{supply.limit} {t('left')}</span></div>
                 <div className="h-2.5 overflow-hidden rounded-full bg-blue-100"><div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-[width] duration-500" style={{ width: `${remainingPercent}%` }} /></div>
               </section>; })()}

@@ -8,10 +8,12 @@ export type DemoBackdrop = {
   priceTon?: string;
 };
 
-export type DemoBackdropPackId = 'sweeties' | 'orbit-dog';
+export type DemoBackdropPackId = 'sweeties' | 'orbit-dog' | 'durov';
 
 export function getDemoBackdropSticker(packId?: string) {
-  return packId === 'orbit-dog' ? '/stickers/orbit-dog.json' : '/stickers/orbit-backdrop-gift.json';
+  if (packId === 'orbit-dog') return '/stickers/orbit-dog.json';
+  if (packId === 'durov') return '/stickers/orbit-durov.json';
+  return '/stickers/orbit-backdrop-gift.json';
 }
 
 export const demoBackdrops = [
