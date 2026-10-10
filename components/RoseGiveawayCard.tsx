@@ -100,7 +100,7 @@ export default function RoseGiveawayCard() {
   return (
     <section className="rose-giveaway relative mb-6 overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_6px_22px_rgba(15,23,42,.06)]">
       {justEntered && <div className="giveaway-confetti" aria-hidden="true">{Array.from({ length: 14 }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} />)}</div>}
-      <div className="flex items-baseline gap-2 px-4 pb-2 pt-3">
+      <div className="flex items-baseline justify-center gap-2 px-4 pb-2 pt-3 text-center">
         <span className="text-[12px] font-black tracking-[.16em] text-[#1557d5]">ORBIT</span>
         <span className="text-[10px] font-semibold tracking-[.12em] text-slate-500">{text.giveaway}</span>
       </div>
