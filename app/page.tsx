@@ -14,6 +14,7 @@ import { formatTonBalance } from '../lib/formatTon';
 import { useOrbitLanguage } from '../components/OrbitLanguageContext';
 import GramIcon from '../components/GramIcon';
 import { getBotBalance } from '../lib/api';
+import RoseGiveawayCard from '../components/RoseGiveawayCard';
 import {
   TonConnectButton,
   useTonAddress,
@@ -167,6 +168,8 @@ export default function Home() {
           </Link>
 
         </div>
+
+        <RoseGiveawayCard />
 
         {SHOW_HOME_GIFT_DRAFTS && <>
         {/* Featured draft — hidden in the live bot until real marketplace inventory is ready. */}

@@ -120,6 +120,7 @@ select {
 @media (prefers-reduced-motion: reduce) {
   .backdrop-wind-vortex,
   .backdrop-wind-gift { animation-duration: 3s; }
+  .giveaway-confetti i { animation-duration: .01ms; }
 }
 
 .profile-tabs {
@@ -653,6 +654,27 @@ html[data-theme='dark'] main [class*='border-red-100'] {
   border-color: var(--orbit-border) !important;
 }
 
+html[data-theme='dark'] main .rose-giveaway {
+  border-color: var(--orbit-border) !important;
+  background-color: var(--orbit-surface) !important;
+}
+
+html[data-theme='dark'] main .rose-giveaway-header {
+  background: linear-gradient(105deg, #352329, #1b293d 68%, #302437) !important;
+}
+
+html[data-theme='dark'] main .rose-giveaway-art {
+  background: #402733 !important;
+}
+
+html[data-theme='dark'] main .rose-giveaway [class*='border-rose-'] {
+  border-color: #593443 !important;
+}
+
+html[data-theme='dark'] main .rose-giveaway a[href*='t.me'] {
+  color: #91baff;
+}
+
 html[data-theme='dark'] main [class*='border-yellow-200'] {
   border-color: #574a2d !important;
 }
@@ -921,6 +943,40 @@ html[data-theme='dark'] main .arena-player-square.is-winner {
   width: 5px;
   height: 8px;
   border-radius: 50%;
+}
+
+.giveaway-confetti {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 5;
+  height: 104px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.giveaway-confetti i {
+  position: absolute;
+  top: 18px;
+  left: calc(5% + var(--i) * 6.8%);
+  width: 7px;
+  height: 11px;
+  border-radius: 2px;
+  background: #f43f5e;
+  animation: giveaway-confetti-pop 1.1s cubic-bezier(.16,.8,.3,1) both;
+}
+
+.giveaway-confetti i:nth-child(3n) { background: #f4bf28; }
+.giveaway-confetti i:nth-child(3n + 1) { background: #3979ee; }
+.giveaway-confetti i:nth-child(4n) { border-radius: 50%; }
+
+@keyframes giveaway-confetti-pop {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(0) scale(.5); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(0, 78px, 0) rotate(380deg) scale(.8); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .giveaway-confetti i { animation: none; }
 }
 
 @keyframes backdrop-confetti-pop {

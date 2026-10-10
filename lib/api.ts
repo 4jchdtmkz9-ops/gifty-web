@@ -251,6 +251,29 @@ export async function getBotBalance() {
   return response.json() as Promise<BotBalance>;
 }
 
+export type RoseGiveawayWinner = { username: string | null; firstName: string | null; lastName: string | null; photoUrl: string | null };
+export type RoseGiveawayStatus = { entered: boolean; participants: number; winner: RoseGiveawayWinner | null; full: boolean };
+
+async function roseGiveawayRequest(path: 'status' | 'enter') {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Open ORBIT inside Telegram to enter');
+  const response = await fetch(`${API_URL}/giveaways/rose/${path}`, {
+    method: path === 'enter' ? 'POST' : 'GET',
+    headers: { 'X-Telegram-Init-Data': initData },
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'Could not load the rose giveaway'));
+  return response.json() as Promise<RoseGiveawayStatus>;
+}
+
+export function getRoseGiveawayStatus() {
+  return roseGiveawayRequest('status');
+}
+
+export function enterRoseGiveaway() {
+  return roseGiveawayRequest('enter');
+}
+
 export async function createBotDepositIntent(amountTon: string, walletAddress: string) {
   const initData = getTelegramInitData();
   if (!initData) throw new Error('Telegram initData is missing');
