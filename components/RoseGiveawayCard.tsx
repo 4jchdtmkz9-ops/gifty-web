@@ -73,29 +73,27 @@ export default function RoseGiveawayCard() {
   }
 
   return (
-    <section className="rose-giveaway relative mb-6 overflow-hidden rounded-[24px] border border-rose-100 bg-white shadow-[0_8px_28px_rgba(15,23,42,.07)]">
+    <section className="rose-giveaway relative mb-6 overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_6px_22px_rgba(15,23,42,.06)]">
       {justEntered && <div className="giveaway-confetti" aria-hidden="true">{Array.from({ length: 14 }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} />)}</div>}
-      <div className="rose-giveaway-header flex items-center gap-3.5 bg-[linear-gradient(115deg,#fff7f7_0%,#fff_72%)] px-4 pb-4 pt-4">
-        <div className="rose-giveaway-art flex h-[76px] w-[76px] shrink-0 items-center justify-center rounded-[20px] border border-rose-100 bg-white text-[42px] shadow-[0_3px_12px_rgba(190,24,93,.08)]" aria-label="Eternal Rose">🌹</div>
+      <div className="rose-giveaway-header flex items-center gap-3.5 border-b border-slate-100 bg-[#fffafa] px-4 py-4">
+        <div className="rose-giveaway-art flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-[18px] border border-rose-100 bg-white text-[38px]" aria-label="Eternal Rose">🌹</div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="text-[9px] font-bold tracking-[.14em] text-rose-600">{text.eyebrow}</p>
-            <span className="rounded-full border border-rose-100 bg-white/80 px-2 py-0.5 text-[9px] font-semibold text-rose-700">×1</span>
-          </div>
-          <h2 className="mt-1 text-[18px] font-bold leading-tight tracking-[-.02em] text-slate-900">{text.title}</h2>
-          <p className="mt-1 text-[11px] leading-snug text-slate-600">{text.subtitle}</p>
+          <p className="text-[9px] font-bold tracking-[.13em] text-rose-600">{text.eyebrow}</p>
+          <h2 className="mt-1 text-[18px] font-bold leading-tight text-slate-900">{text.title}</h2>
+          <p className="mt-1 text-[11px] leading-snug text-slate-500">{text.subtitle}</p>
         </div>
+        <span className="self-start rounded-full border border-rose-100 bg-white px-2 py-1 text-[10px] font-semibold text-rose-700">×1</span>
       </div>
 
-      <div className="px-4 pb-4 pt-3">
-        <div className="flex items-center justify-between gap-3 rounded-[15px] border border-slate-100 bg-slate-50/80 px-3 py-2.5">
+      <div className="px-4 pb-4 pt-3.5">
+        <div className="flex items-center justify-between gap-3 rounded-[14px] border border-slate-100 bg-slate-50 px-3 py-2.5">
           <div className="min-w-0">
-            <p className="text-[9px] font-bold uppercase tracking-[.1em] text-slate-500">{text.condition}</p>
-            <a href={CHANNEL_URL} target="_blank" rel="noreferrer" className="mt-0.5 inline-flex max-w-full items-center gap-1 text-[13px] font-semibold text-blue-700 hover:text-blue-800">
+            <p className="text-[9px] font-semibold uppercase tracking-[.09em] text-slate-500">{text.condition}</p>
+            <a href={CHANNEL_URL} target="_blank" rel="noreferrer" className="mt-0.5 inline-flex max-w-full items-center gap-1 text-[13px] font-semibold text-blue-700 hover:underline">
               @orbit_market_official <span aria-hidden="true" className="text-[11px]">↗</span>
             </a>
           </div>
-          <span aria-hidden="true" className="shrink-0 text-base">✦</span>
+          <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-sm text-blue-600">↗</span>
         </div>
         {winner ? (
           <div aria-live="polite" className="mt-3 flex items-center gap-3 rounded-[17px] border border-amber-200 bg-amber-50/70 px-3 py-3">
@@ -110,16 +108,16 @@ export default function RoseGiveawayCard() {
             <span className="text-lg" aria-hidden="true">🏆</span>
           </div>
         ) : (
-          <div className="mt-3 flex flex-col gap-2">
-            <button type="button" onClick={participate} disabled={loading || entered || full} className="flex h-12 w-full items-center justify-center gap-2 rounded-[15px] bg-blue-700 px-3 text-[13px] font-bold text-white shadow-[0_4px_12px_rgba(29,78,216,.18)] transition hover:bg-blue-800 active:scale-[.99] disabled:cursor-default disabled:bg-emerald-600 disabled:shadow-none">
+          <div className="mt-4">
+            <button type="button" onClick={participate} disabled={loading || entered || full} className="flex h-12 w-full items-center justify-center gap-2 rounded-[14px] bg-blue-700 px-3 text-[13px] font-bold text-white transition hover:bg-blue-800 active:scale-[.99] disabled:cursor-default disabled:bg-emerald-600">
               {loading ? text.checking : entered ? <><span aria-hidden="true">✓</span>{text.entered}</> : full ? text.full : text.enter}
             </button>
-            <p className="text-center text-[10px] leading-snug text-slate-400">{text.drawAtTen}</p>
+            <p className="mt-2 text-center text-[10px] leading-snug text-slate-500">{text.drawAtTen}</p>
           </div>
         )}
         {error && <p role="status" className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-[11px] leading-snug text-rose-700">{error}</p>}
-        <div className="mt-3">
-          <div className="mb-1.5 flex items-center justify-between text-[10px] font-medium text-slate-500">
+        <div className="mt-3.5 rounded-[14px] bg-slate-50 px-3 py-2.5">
+          <div className="mb-2 flex items-center justify-between text-[10px] font-medium text-slate-600">
             <span>{participants === null ? ' ' : `${participants.toLocaleString()} / 10 ${participantsWord(participants)}`}</span>
             {entered && !winner && <span className="font-semibold text-emerald-600">{text.entered}</span>}
           </div>
