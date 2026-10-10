@@ -221,6 +221,10 @@ export function spinLuckyForBalance(requestId: string) {
   return gameRequest('lucky/spin', requestId);
 }
 
+export function openCryptanCaseForBalance(requestId: string) {
+  return gameRequest('cryptan/open', requestId);
+}
+
 export type BotDepositIntent = {
   id: string;
   amountTon: string;
