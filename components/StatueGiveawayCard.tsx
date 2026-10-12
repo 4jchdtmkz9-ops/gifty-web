@@ -6,23 +6,17 @@ const copy = {
   en: {
     hero: 'ACTIVE NOW',
     title: 'NFT · STATUE OF LIBERTY',
-    rule: 'Min. 3 spins (15 ⭐️)',
-    condition: 'Roll 777 · 5 ⭐️ per spin',
-    hint: 'Tap to view rules & enter on Telegram',
+    open: 'OPEN',
   },
   uk: {
     hero: 'АКТИВНИЙ',
     title: 'NFT · СТАТУЯ СВОБОДИ',
-    rule: 'Мін. 3 спіни (15 ⭐️)',
-    condition: 'Вибити 777 · 5 ⭐️ за спін',
-    hint: 'Натисніть для участі в Telegram-каналі',
+    open: 'ВІДКРИТИ',
   },
   ru: {
     hero: 'АКТИВЕН',
     title: 'NFT · СТАТУЯ СВОБОДЫ',
-    rule: 'Мин. 3 спина (15 ⭐️)',
-    condition: 'Выбить 777 · 5 ⭐️ за спин',
-    hint: 'Нажмите для участия в Telegram-канале',
+    open: 'ОТКРЫТЬ',
   },
 } as const;
 
@@ -71,16 +65,16 @@ export default function StatueGiveawayCard() {
           <span className="h-px flex-1 max-w-14 bg-gradient-to-l from-transparent to-emerald-400/40" aria-hidden="true" />
         </div>
 
-        {/* Giveaway condition badge */}
-        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3.5 py-1.5 shadow-[0_0_12px_rgba(16,185,129,0.12)]">
-          <span className="text-[9px] font-bold uppercase tracking-[.18em] text-emerald-300/80">🍀 777</span>
+        {/* Giveaway condition badge: TG roulette slot machine with 777 & Open */}
+        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-4 py-1.5 shadow-[0_0_16px_rgba(16,185,129,0.16)] transition duration-200 group-hover:border-emerald-400/40 group-hover:bg-emerald-500/15">
+          <span className="text-[13px] leading-none" aria-hidden="true">🎰</span>
+          <span className="text-[11px] font-black uppercase tracking-[.18em] text-emerald-300">777</span>
           <span className="h-1 w-1 rounded-full bg-emerald-400" aria-hidden="true" />
-          <span className="text-[12px] font-bold text-white/95">{text.rule}</span>
+          <span className="text-[11px] font-black uppercase tracking-[.2em] text-white/95">{text.open}</span>
+          <svg aria-hidden="true" viewBox="0 0 12 12" fill="none" className="h-2.5 w-2.5 text-emerald-400 transition duration-200 group-hover:translate-x-0.5">
+            <path d="M2.5 9.5 9.5 2.5M9.5 2.5H4.5M9.5 2.5V7.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </div>
-
-        <p className="mt-3 text-[10px] font-medium text-white/45 transition group-hover:text-emerald-300/80">
-          {text.hint} <span aria-hidden="true">→</span>
-        </p>
       </div>
     </a>
   );
