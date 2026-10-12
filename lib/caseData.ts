@@ -50,3 +50,55 @@ export const cryptanCase = {
   price: '30 GRAM',
   image: '/cases/cryptan.png',
 };
+
+export const freeCaseRewards: CaseReward[] = [
+  {
+    id: 'gram-0001',
+    name: '0.001 GRAM',
+    price: '0.001',
+    emoji: '💎',
+    image: '',
+  },
+  {
+    id: 'gram-001',
+    name: '0.01 GRAM',
+    price: '0.01',
+    emoji: '💎',
+    image: '',
+  },
+  {
+    id: 'gram-01',
+    name: '0.1 GRAM',
+    price: '0.1',
+    emoji: '💎',
+    image: '',
+  },
+  {
+    id: 'gram-1',
+    name: '1 GRAM',
+    price: '1',
+    emoji: '💎',
+    image: '',
+  },
+  {
+    id: 'bear',
+    name: 'Telegram Bear',
+    price: '20',
+    emoji: '🧸',
+    image: '',
+  },
+  {
+    id: 'candycane-nft',
+    name: 'Candy Cane NFT',
+    price: '20',
+    emoji: '🍬',
+    image: '/cases/candycane.webp',
+  },
+];
+
+export const freeCase = {
+  id: 'free',
+  name: 'FREE',
+  price: 'FREE',
+  image: '/cases/free.png',
+};

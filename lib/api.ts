@@ -200,6 +200,7 @@ export type BotBalance = { balanceGram: string; depositConfigured: boolean; with
 export type GameSettlement = {
   reward: { id: string; name: string; valueGram: string; kind?: 'gram' | 'nft'; chance?: number };
   balanceGram: string;
+  resolution?: 'SOLD' | 'CLAIMED' | null;
 };
 
 async function gameRequest(path: string, requestId: string): Promise<GameSettlement> {
@@ -223,6 +224,48 @@ export function spinLuckyForBalance(requestId: string) {
 
 export function openCryptanCaseForBalance(requestId: string) {
   return gameRequest('cryptan/open', requestId);
+}
+
+export type FreeCaseStatus = {
+  cooldownEndsAt: string | null;
+  walletConnected?: boolean;
+  subscribed?: boolean;
+  pendingNft?: { requestId: string; reward: { id: string; name: string; valueGram: string } } | null;
+};
+
+export async function getFreeCaseCooldown(): Promise<FreeCaseStatus> {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Open ORBIT inside Telegram to play');
+  const response = await fetch(`${API_URL}/games/free/status`, {
+    headers: { 'X-Telegram-Init-Data': initData },
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'Could not check cooldown'));
+  return response.json() as Promise<FreeCaseStatus>;
+}
+
+export function openFreeCaseForBalance(requestId: string) {
+  return gameRequest('free/open', requestId);
+}
+
+export type FreeCaseNftResolution = {
+  resolution: 'SOLD' | 'CLAIMED';
+  balanceGram: string;
+  gift?: { id: string; name: string; collection: string } | null;
+};
+
+export async function resolveFreeCaseNft(requestId: string, action: 'sell' | 'claim'): Promise<FreeCaseNftResolution> {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Open ORBIT inside Telegram to play');
+  const response = await fetch(`${API_URL}/games/free/nft-resolve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initData, requestId, action }),
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'Could not resolve the NFT'));
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('orbit-balance-updated'));
+  return response.json() as Promise<FreeCaseNftResolution>;
 }
 
 export type BotDepositIntent = {

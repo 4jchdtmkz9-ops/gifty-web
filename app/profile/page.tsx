@@ -418,6 +418,21 @@ export default function ProfilePage() {
                     </div>
                   )}
                 </div>
+
+                <div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{t("My gifts")}</h2><span className="text-xs text-slate-500">{owned.length} {t("items")}</span></div>
+                {owned.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-5 text-center text-xs text-slate-400">{t("Gifts you own will appear here.")}</div> : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {owned.map((gift) => <article key={gift.id} className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+                      <div className="relative flex h-28 items-center justify-center bg-black">
+                        {gift.collection === "FREE CASE NFT"
+                          ? <Image src="/cases/candycane.webp" alt={gift.name} width={90} height={90} className="h-[86px] w-[86px] object-contain" style={{ mixBlendMode: "screen" }} />
+                          : <span className="text-4xl">{gift.emoji || "🎁"}</span>}
+                        <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-slate-950/75 px-2 py-1 text-[10px] font-bold tabular-nums text-white">{formatTon(gift.priceTon)}<GramIcon size={12} className="text-white" /></span>
+                      </div>
+                      <div className="p-3"><h3 className="truncate text-sm font-semibold">{gift.name}</h3><p className="mt-1 truncate text-[10px] font-bold uppercase tracking-wide text-blue-600">{gift.collection}</p></div>
+                    </article>)}
+                  </div>
+                )}
               </section>
             )}
 
