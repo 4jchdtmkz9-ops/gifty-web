@@ -20,6 +20,10 @@ const copy = {
   },
 } as const;
 
+// Winner of the concluded "Eternal Rose" draw. It was decided in the channel,
+// not through the bot, so the database has no entry and we show it here instead.
+const CONCLUDED_WINNER_USERNAME = 'Isiieluu';
+
 export default function RoseGiveawayCard() {
   const { language } = useOrbitLanguage();
   const text = copy[language];
@@ -55,7 +59,7 @@ export default function RoseGiveawayCard() {
         : winner.username
           ? `@${winner.username}`
           : text.winnerFallback)
-    : null;
+    : CONCLUDED_WINNER_USERNAME ? `@${CONCLUDED_WINNER_USERNAME}` : null;
 
   const summary = winnerName
     ? `${text.winnerLabel}: ${winnerName}`
