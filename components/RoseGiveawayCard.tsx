@@ -7,16 +7,16 @@ import { useOrbitLanguage } from './OrbitLanguageContext';
 
 const copy = {
   en: {
-    giveaway: 'GIVEAWAYS', title: 'Eternal Rose', finished: 'Finished', participantsLabel: 'participants',
-    winnerLabel: 'WINNER', winnerFallback: 'ORBIT participant', drawComplete: 'Draw complete',
+    hero: 'FINISHED', title: 'Eternal Rose', winnerLabel: 'Winner',
+    winnerFallback: 'ORBIT participant', drawComplete: 'Draw complete',
   },
   uk: {
-    giveaway: 'РОЗІГРАШІ', title: 'Eternal Rose', finished: 'Завершено', participantsLabel: 'учасників',
-    winnerLabel: 'ПЕРЕМОЖЕЦЬ', winnerFallback: 'Учасник ORBIT', drawComplete: 'Розіграш завершено',
+    hero: 'ЗАВЕРШЕНО', title: 'Eternal Rose', winnerLabel: 'Переможець',
+    winnerFallback: 'Учасник ORBIT', drawComplete: 'Розіграш завершено',
   },
   ru: {
-    giveaway: 'РОЗЫГРЫШИ', title: 'Eternal Rose', finished: 'Завершено', participantsLabel: 'участников',
-    winnerLabel: 'ПОБЕДИТЕЛЬ', winnerFallback: 'Участник ORBIT', drawComplete: 'Розыгрыш завершён',
+    hero: 'ЗАВЕРШЁН', title: 'Eternal Rose', winnerLabel: 'Победитель',
+    winnerFallback: 'Участник ORBIT', drawComplete: 'Розыгрыш завершён',
   },
 } as const;
 
@@ -27,22 +27,12 @@ const CONCLUDED_WINNER_USERNAME = 'Isiieluu';
 export default function RoseGiveawayCard() {
   const { language } = useOrbitLanguage();
   const text = copy[language];
-  const [participants, setParticipants] = useState<number | null>(null);
   const [winner, setWinner] = useState<RoseGiveawayWinner | null>(null);
-
-  const participantsWord = (count: number) => {
-    if (language === 'en') return count === 1 ? text.participantsLabel : text.participantsLabel;
-    const lastTwo = count % 100;
-    const last = count % 10;
-    if (language === 'uk') return last === 1 && lastTwo !== 11 ? 'учасник' : last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14) ? 'учасники' : 'учасників';
-    return last === 1 && lastTwo !== 11 ? 'участник' : last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14) ? 'участника' : 'участников';
-  };
 
   const refresh = useCallback(async () => {
     try {
       await waitForTelegramInitData();
       const result = await getRoseGiveawayStatus();
-      setParticipants(result.participants);
       setWinner(result.winner);
     } catch {
       // Outside Telegram the status is unavailable; the finished card still renders.
@@ -59,33 +49,36 @@ export default function RoseGiveawayCard() {
         : winner.username
           ? `@${winner.username}`
           : text.winnerFallback)
-    : CONCLUDED_WINNER_USERNAME ? `@${CONCLUDED_WINNER_USERNAME}` : null;
-
-  const summary = winnerName
-    ? `${text.winnerLabel}: ${winnerName}`
-    : participants !== null && participants > 0
-      ? `${participants} ${participantsWord(participants)}`
-      : text.drawComplete;
+    : CONCLUDED_WINNER_USERNAME ? `@${CONCLUDED_WINNER_USERNAME}` : text.drawComplete;
 
   return (
-    <section className="rose-giveaway mb-6 overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_6px_22px_rgba(15,23,42,.06)]">
-      <div className="flex items-center justify-center gap-2 bg-slate-50/70 px-4 py-1.5">
-        <span className="text-[10px] font-black tracking-[.16em] text-[#1557d5]">ORBIT</span>
-        <span className="text-[9px] font-semibold tracking-[.12em] text-slate-500">{text.giveaway}</span>
-      </div>
+    <section className="rose-giveaway relative mb-6 overflow-hidden rounded-[22px] border border-white/5 bg-[linear-gradient(150deg,#181420_0%,#241826_45%,#161220_100%)] shadow-[0_16px_40px_rgba(10,8,18,.45)]">
+      {/* Soft rose glow */}
+      <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 h-56 w-56 rounded-full bg-[#d52f4d]/25 blur-3xl" />
+      <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -right-12 h-56 w-56 rounded-full bg-[#7c2d5a]/25 blur-3xl" />
+      {/* Faint diagonal sheen */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,transparent_35%,rgba(255,255,255,.05)_50%,transparent_65%)]" />
 
-      <div className="flex items-center gap-3 px-4 py-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-rose-100 bg-rose-50 text-[22px]" aria-hidden="true">
+      <div className="relative flex flex-col items-center px-5 py-7 text-center">
+        <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-[30px] shadow-[inset_0_1px_0_rgba(255,255,255,.08)] grayscale-[.35]" aria-hidden="true">
           🌹
         </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] font-bold text-slate-900">{text.title}</p>
-          <p className="mt-0.5 truncate text-[11px] text-slate-500">{summary}</p>
+
+        <p className="mt-3.5 text-[11px] font-semibold uppercase tracking-[.32em] text-white/45">{text.title}</p>
+
+        <div className="mt-2.5 flex w-full items-center justify-center gap-3">
+          <span className="h-px flex-1 max-w-14 bg-gradient-to-r from-transparent to-white/25" aria-hidden="true" />
+          <h2 className="text-[20px] font-black uppercase leading-none tracking-[.22em] text-white/90 drop-shadow-[0_2px_12px_rgba(213,47,77,.45)]">
+            {text.hero}
+          </h2>
+          <span className="h-px flex-1 max-w-14 bg-gradient-to-l from-transparent to-white/25" aria-hidden="true" />
         </div>
-        <span className="flex shrink-0 items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">
-          <span aria-hidden="true">✓</span>
-          {text.finished}
-        </span>
+
+        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5">
+          <span className="text-[9px] font-bold uppercase tracking-[.18em] text-white/40">{text.winnerLabel}</span>
+          <span className="h-1 w-1 rounded-full bg-[#d52f4d]" aria-hidden="true" />
+          <span className="text-[12px] font-bold text-white/90">{winnerName}</span>
+        </div>
       </div>
     </section>
   );
