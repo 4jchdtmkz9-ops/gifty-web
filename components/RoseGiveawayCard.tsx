@@ -24,6 +24,9 @@ const copy = {
 // not through the bot, so the database has no entry and we show it here instead.
 const CONCLUDED_WINNER_USERNAME = 'Isiieluu';
 
+// The channel post that announced the concluded rose draw.
+const GIVEAWAY_POST_URL = 'https://t.me/orbit_market_official/37';
+
 export default function RoseGiveawayCard() {
   const { language } = useOrbitLanguage();
   const text = copy[language];
@@ -52,7 +55,13 @@ export default function RoseGiveawayCard() {
     : CONCLUDED_WINNER_USERNAME ? `@${CONCLUDED_WINNER_USERNAME}` : text.drawComplete;
 
   return (
-    <section className="rose-giveaway relative mb-6 overflow-hidden rounded-[22px] border border-white/5 bg-[linear-gradient(150deg,#181420_0%,#241826_45%,#161220_100%)] shadow-[0_16px_40px_rgba(10,8,18,.45)]">
+    <a
+      href={GIVEAWAY_POST_URL}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={`${text.title} — ${text.hero}`}
+      className="rose-giveaway relative mb-6 block overflow-hidden rounded-[22px] border border-white/5 bg-[linear-gradient(150deg,#181420_0%,#241826_45%,#161220_100%)] shadow-[0_16px_40px_rgba(10,8,18,.45)] transition hover:-translate-y-0.5 hover:border-white/10 hover:shadow-[0_20px_48px_rgba(213,47,77,.28)] active:scale-[.99]"
+    >
       {/* Soft rose glow */}
       <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 h-56 w-56 rounded-full bg-[#d52f4d]/25 blur-3xl" />
       <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -right-12 h-56 w-56 rounded-full bg-[#7c2d5a]/25 blur-3xl" />
@@ -80,6 +89,6 @@ export default function RoseGiveawayCard() {
           <span className="text-[12px] font-bold text-white/90">{winnerName}</span>
         </div>
       </div>
-    </section>
+    </a>
   );
 }
