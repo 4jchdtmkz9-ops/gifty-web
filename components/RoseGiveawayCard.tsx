@@ -60,7 +60,7 @@ export default function RoseGiveawayCard() {
       target="_blank"
       rel="noreferrer"
       aria-label={`${text.title} — ${text.hero}`}
-      className="rose-giveaway relative mb-6 block overflow-hidden rounded-[22px] border border-white/5 bg-[linear-gradient(150deg,#181420_0%,#241826_45%,#161220_100%)] shadow-[0_16px_40px_rgba(10,8,18,.45)] transition hover:-translate-y-0.5 hover:border-white/10 hover:shadow-[0_20px_48px_rgba(213,47,77,.28)] active:scale-[.99]"
+      className="rose-giveaway relative block overflow-hidden rounded-[22px] border border-white/5 bg-[linear-gradient(150deg,#181420_0%,#241826_45%,#161220_100%)] shadow-[0_16px_40px_rgba(10,8,18,.45)] transition hover:-translate-y-0.5 hover:border-white/10 hover:shadow-[0_20px_48px_rgba(213,47,77,.28)] active:scale-[.99]"
     >
       {/* Soft rose glow */}
       <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 h-56 w-56 rounded-full bg-[#d52f4d]/25 blur-3xl" />

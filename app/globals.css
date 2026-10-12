@@ -1032,3 +1032,15 @@ html[data-theme='dark'] main .arena-player-square.is-winner {
   12% { opacity: 1; scale: 1; }
   100% { opacity: 0; translate: var(--confetti-x) var(--confetti-y); rotate: var(--confetti-spin); scale: .7; }
 }
+
+.orbit-giveaway-divider-line {
+  height: 1px;
+  flex: 1 1 0%;
+  min-width: 16px;
+  background: linear-gradient(90deg, rgba(21, 87, 213, 0.28) 0%, rgba(203, 213, 225, 0.6) 65%, transparent 100%);
+}
+
+html[data-theme='dark'] .orbit-giveaway-divider-line {
+  background: linear-gradient(90deg, rgba(57, 121, 238, 0.35) 0%, rgba(42, 57, 78, 0.75) 65%, transparent 100%) !important;
+}
+

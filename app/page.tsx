@@ -166,10 +166,42 @@ export default function Home() {
             </span>
             <div className="mt-2 text-xs font-medium text-slate-700">{t('Lucky')}</div>
           </Link>
-
         </div>
 
-        <RoseGiveawayCard />
+        {/* ORBIT Giveaways */}
+        <section className="mb-6" aria-label="ORBIT Giveaway">
+          <div className="mb-3 flex items-center justify-between gap-3 px-1">
+            <div className="flex shrink-0 items-center gap-2.5">
+              <div className="flex items-center gap-1" aria-hidden="true">
+                <span className="h-1.5 w-4 rounded-full bg-blue-700" />
+                <span className="h-1.5 w-1.5 rounded-full bg-yellow-400" />
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+              </div>
+              <h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.2em] text-slate-900">
+                <span className="text-blue-700">ORBIT</span>
+                <span>GIVEAWAY</span>
+              </h2>
+            </div>
+
+            <div className="orbit-giveaway-divider-line" aria-hidden="true" />
+
+            <a
+              href="https://t.me/orbit_market_official"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex shrink-0 items-center gap-1 text-[11px] font-semibold text-slate-500 transition hover:text-blue-700"
+            >
+              <span>{t('Channel')}</span>
+              <svg aria-hidden="true" viewBox="0 0 12 12" fill="none" className="h-2.5 w-2.5">
+                <path d="M2.5 9.5 9.5 2.5M9.5 2.5H4.5M9.5 2.5V7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <RoseGiveawayCard />
+          </div>
+        </section>
 
         {SHOW_HOME_GIFT_DRAFTS && <>
         {/* Featured draft — hidden in the live bot until real marketplace inventory is ready. */}
