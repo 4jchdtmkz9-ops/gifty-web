@@ -92,7 +92,7 @@ export const freeCaseRewards: CaseReward[] = [
     name: 'Candy Cane NFT',
     price: '20',
     emoji: '🍬',
-    image: '/cases/candycane.webp',
+    image: '/cases/candycane.png',
   },
 ];
 

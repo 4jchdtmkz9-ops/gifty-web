@@ -25,16 +25,20 @@ function formatCountdown(ms: number) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+/** Collectible rewards from this case: the player picks a quick sale or claims them into the inventory. */
+const COLLECTIBLE_IDS = new Set(['bear', 'candycane-nft']);
+
 /** Renders a single prize in the "What you can win" grid. */
 function FreeCaseRewardCard({ reward, compact = false }: { reward: CaseReward; compact?: boolean }) {
   const [imageFailed, setImageFailed] = useState(false);
   const isGram = reward.id.startsWith('gram-');
   const isBear = reward.id === 'bear';
   const isNft = reward.id === 'candycane-nft';
+  const isCollectible = COLLECTIBLE_IDS.has(reward.id);
 
   return (
     <div className={`relative block shrink-0 overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-[0_5px_16px_rgba(21,87,213,0.07)] ${compact ? 'w-[112px]' : 'w-full'}`}>
-      <div className={`relative flex items-center justify-center overflow-hidden ${isNft ? 'bg-black' : 'bg-white'} ${compact ? 'h-[112px]' : 'aspect-square'}`}>
+      <div className={`relative flex items-center justify-center overflow-hidden ${isCollectible ? 'bg-black' : 'bg-white'} ${compact ? 'h-[112px]' : 'aspect-square'}`}>
         {isGram ? (
           <span className="flex items-center gap-1.5 text-2xl font-bold text-blue-800">
             <GramIcon size={28} /> {reward.price}
@@ -51,7 +55,6 @@ function FreeCaseRewardCard({ reward, compact = false }: { reward: CaseReward; c
                 referrerPolicy="no-referrer"
                 onError={() => setImageFailed(true)}
                 className="absolute inset-0 h-full w-full object-contain p-3"
-                style={{ mixBlendMode: 'screen' }}
               />
             )}
           </>
@@ -59,7 +62,7 @@ function FreeCaseRewardCard({ reward, compact = false }: { reward: CaseReward; c
           <span className="text-5xl" aria-hidden="true">{reward.emoji}</span>
         )}
 
-        {isNft && (
+        {isCollectible && (
           <span className="absolute right-2 top-2 rounded-full bg-white/95 px-2 py-1 text-[10px] font-bold text-blue-800 shadow-sm backdrop-blur">
             <GramIcon size={12} className="mr-0.5" />20
           </span>
@@ -150,7 +153,7 @@ export default function FreeCasePage() {
       const settledReward = freeCaseRewards.find((item) => item.id === settlement.reward.id);
       if (!settledReward) throw new Error(t('Could not open case'));
       reward = settledReward;
-      if (settledReward.id !== 'candycane-nft') requestIdRef.current = null;
+      if (!COLLECTIBLE_IDS.has(settledReward.id)) requestIdRef.current = null;
       // Set 24h cooldown from now
       setCooldownEnd(Date.now() + 24 * 60 * 60 * 1000);
     } catch (cause) {
@@ -205,7 +208,7 @@ export default function FreeCasePage() {
       setWonReward(null);
       setNotice(action === 'sell'
         ? t('Quick sale — credited to balance')
-        : t('NFT claimed — added to inventory'));
+        : t('Collectible claimed — added to inventory'));
       void result;
     } catch (cause) {
       setNotice(cause instanceof Error ? cause.message : t('Could not open case'));
@@ -214,7 +217,7 @@ export default function FreeCasePage() {
     }
   }, [resolving, t]);
 
-  const isNftWin = wonReward?.id === 'candycane-nft';
+  const isCollectibleWin = Boolean(wonReward && COLLECTIBLE_IDS.has(wonReward.id));
   const conditionsMet = walletConnected && subscribed;
 
   return (
@@ -243,35 +246,49 @@ export default function FreeCasePage() {
           <div className="p-4 pt-3">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h2 className="text-lg font-bold text-blue-950">FREE CASE</h2>
+                <h2 className="text-lg font-bold text-blue-950">{t('FREE CASE')}</h2>
                 <p className="mt-0.5 text-xs text-slate-500">{t('Open every 24 hours')}</p>
               </div>
-              <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">🎁 FREE</span>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50/70 px-3 py-2.5">
-              <p className="text-[11px] font-bold text-blue-950">{t('FREE CASE')}</p>
-              <p className="mt-0.5 text-[10px] leading-4 text-blue-800">{t('Connect wallet and subscribe to channel to open. Available every 24 hours.')}</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <a
-                  href={walletConnected ? undefined : 'https://t.me/wallet'}
-                  target={walletConnected ? undefined : '_blank'}
-                  rel="noreferrer"
-                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold ${walletConnected ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-blue-700 shadow-sm'}`}
-                >
-                  {walletConnected ? '✓' : '🔗'} {t('TON wallet')}
-                </a>
-                <a
-                  href={subscribed ? undefined : 'https://t.me/orbit_market_official'}
-                  target={subscribed ? undefined : '_blank'}
-                  rel="noreferrer"
-                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold ${subscribed ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-blue-700 shadow-sm'}`}
-                >
-                  {subscribed ? '✓' : '📣'} {t('Channel subscription')}
-                </a>
-              </div>
+            {/* Conditions: wallet + channel subscription, verified server-side */}
+            <div className="mt-4 space-y-2">
+              <a
+                href={walletConnected ? undefined : 'https://t.me/wallet'}
+                target={walletConnected ? undefined : '_blank'}
+                rel="noreferrer"
+                className={`flex items-center gap-3 rounded-2xl border px-3.5 py-3 transition ${walletConnected ? 'border-emerald-200 bg-emerald-50/80' : 'border-blue-100 bg-white active:scale-[0.99]'}`}
+              >
+                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base ${walletConnected ? 'bg-emerald-100' : 'bg-blue-50'}`}>
+                  {walletConnected ? '✓' : '🔗'}
+                </span>
+                <span className="flex-1">
+                  <span className="block text-sm font-semibold text-blue-950">{t('TON wallet')}</span>
+                  <span className={`block text-xs ${walletConnected ? 'text-emerald-600' : 'text-slate-400'}`}>
+                    {walletConnected ? t('Connected') : t('Tap to connect')}
+                  </span>
+                </span>
+                {!walletConnected && <span className="text-slate-300">›</span>}
+              </a>
+              <a
+                href={subscribed ? undefined : 'https://t.me/orbit_market_official'}
+                target={subscribed ? undefined : '_blank'}
+                rel="noreferrer"
+                className={`flex items-center gap-3 rounded-2xl border px-3.5 py-3 transition ${subscribed ? 'border-emerald-200 bg-emerald-50/80' : 'border-blue-100 bg-white active:scale-[0.99]'}`}
+              >
+                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base ${subscribed ? 'bg-emerald-100' : 'bg-blue-50'}`}>
+                  {subscribed ? '✓' : '📣'}
+                </span>
+                <span className="flex-1">
+                  <span className="block text-sm font-semibold text-blue-950">{t('ORBIT channel')}</span>
+                  <span className={`block text-xs ${subscribed ? 'text-emerald-600' : 'text-slate-400'}`}>
+                    {subscribed ? t('Subscribed') : t('Tap to subscribe')}
+                  </span>
+                </span>
+                {!subscribed && <span className="text-slate-300">›</span>}
+              </a>
             </div>
-            {notice && <p role="status" className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">{notice}</p>}
+            {notice && <p role="status" className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">{notice}</p>}
 
             <button
               type="button"
@@ -311,15 +328,15 @@ export default function FreeCasePage() {
             <div className="mx-auto mt-4 max-w-[210px]">
               <FreeCaseRewardCard reward={wonReward} />
             </div>
-            {isNftWin ? (
+            {isCollectibleWin ? (
               <>
-                <p className="mt-3 text-xs font-semibold text-slate-600">{t('NFT won! Choose an action:')}</p>
+                <p className="mt-3 text-sm font-semibold text-slate-600">{t('Collectible won! Choose an action:')}</p>
                 <div className="mt-3 flex gap-2">
                   <button
                     type="button"
                     disabled={Boolean(resolving)}
                     onClick={() => void resolveNft('sell')}
-                    className="min-h-10 flex-1 rounded-2xl bg-amber-500 text-sm font-semibold text-white disabled:opacity-60"
+                    className="min-h-11 flex-1 rounded-2xl bg-amber-500 text-sm font-semibold text-white disabled:opacity-60"
                   >
                     {resolving === 'sell' ? '…' : t('Quick sale')}
                   </button>
@@ -327,7 +344,7 @@ export default function FreeCasePage() {
                     type="button"
                     disabled={Boolean(resolving)}
                     onClick={() => void resolveNft('claim')}
-                    className="min-h-10 flex-1 rounded-2xl bg-emerald-600 text-sm font-semibold text-white disabled:opacity-60"
+                    className="min-h-11 flex-1 rounded-2xl bg-emerald-600 text-sm font-semibold text-white disabled:opacity-60"
                   >
                     {resolving === 'claim' ? '…' : t('Claim')}
                   </button>

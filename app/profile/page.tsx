@@ -424,8 +424,8 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-2 gap-3">
                     {owned.map((gift) => <article key={gift.id} className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
                       <div className="relative flex h-28 items-center justify-center bg-black">
-                        {gift.collection === "FREE CASE NFT"
-                          ? <Image src="/cases/candycane.webp" alt={gift.name} width={90} height={90} className="h-[86px] w-[86px] object-contain" style={{ mixBlendMode: "screen" }} />
+                        {gift.collection === "FREE CASE" && gift.name === "Candy Cane"
+                          ? <Image src="/cases/candycane.png" alt={gift.name} width={90} height={90} className="h-[86px] w-[86px] object-contain" />
                           : <span className="text-4xl">{gift.emoji || "🎁"}</span>}
                         <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-slate-950/75 px-2 py-1 text-[10px] font-bold tabular-nums text-white">{formatTon(gift.priceTon)}<GramIcon size={12} className="text-white" /></span>
                       </div>
