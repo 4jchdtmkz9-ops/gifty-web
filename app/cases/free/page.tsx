@@ -63,8 +63,8 @@ function FreeCaseRewardCard({ reward, compact = false }: { reward: CaseReward; c
         )}
 
         {isCollectible && (
-          <span className="absolute right-2 top-2 rounded-full bg-white/95 px-2 py-1 text-[10px] font-bold text-blue-800 shadow-sm backdrop-blur">
-            <GramIcon size={12} className="mr-0.5" />20
+          <span className={`absolute right-2 top-2 rounded-full px-2 py-1 text-[10px] font-bold shadow-sm backdrop-blur ${isBear ? 'bg-amber-400/95 text-amber-950' : 'bg-white/95 text-blue-800'}`}>
+            {isBear ? '★ 15' : <><GramIcon size={12} className="mr-0.5" />20</>}
           </span>
         )}
       </div>
@@ -296,20 +296,15 @@ export default function FreeCasePage() {
               disabled={opening || !!countdown || !conditionsMet}
               className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(16,185,129,0.25)] transition active:scale-[0.99] disabled:opacity-60"
             >
-              {opening ? t('Opening…') : countdown ? `⏳ ${countdown}` : conditionsMet ? `🎁 ${t('Open')}` : t('Complete the conditions to open')}
+              {opening ? t('Opening…') : countdown ? `⏳ ${countdown}` : conditionsMet ? t('Open') : t('Complete the conditions to open')}
             </button>
           </div>
         </section>
 
         <section className="mt-6">
-          <div className="mb-3 flex items-end justify-between">
-            <div>
-              <p className="text-[10px] font-bold tracking-[0.16em] text-blue-700">{t('POSSIBLE PRIZES')}</p>
-              <h2 className="mt-1 text-base font-bold text-blue-950">{t('What you can win')}</h2>
-            </div>
-            <span className="flex items-center gap-0.5 text-[10px] text-slate-500">
-              <GramIcon size={11} className="text-blue-700" />20
-            </span>
+          <div className="mb-3 flex items-center gap-3">
+            <h2 className="shrink-0 text-sm font-extrabold uppercase tracking-[0.18em] text-blue-950">{t('POSSIBLE PRIZES')}</h2>
+            <span className="h-px flex-1 bg-gradient-to-r from-blue-200 to-transparent" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             {freeCaseRewards.map((reward) => <FreeCaseRewardCard key={reward.id} reward={reward} />)}
