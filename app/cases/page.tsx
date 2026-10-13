@@ -51,7 +51,7 @@ export default function CasesPage() {
           >
             <div className="relative flex h-44 items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-yellow-50">
               <Image src={cryptanCase.image} alt="Cryptan Case" fill sizes="(max-width: 480px) 100vw, 448px" className="object-contain p-3 transition duration-300 group-hover:scale-105" />
-              <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1.5 text-[11px] font-bold text-blue-800 shadow-md backdrop-blur">
+              <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1.5 text-[11px] font-bold text-blue-800 shadow-md backdrop-blur">
                 <GramIcon size={13} />{cryptanCase.price}
               </span>
             </div>
