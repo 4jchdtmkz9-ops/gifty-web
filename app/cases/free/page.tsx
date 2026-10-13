@@ -146,6 +146,10 @@ export default function FreeCasePage() {
     setOpening(true);
     setWonReward(null);
     setNotice('');
+    // Park the marker at its final spot before the network round-trip so it
+    // never visibly jumps while the server decides the reward.
+    const nextMarkerPosition = 20 + Math.random() * 60;
+    setMarkerPosition(nextMarkerPosition);
     requestIdRef.current ??= crypto.randomUUID();
     let reward: CaseReward;
     try {
@@ -164,8 +168,6 @@ export default function FreeCasePage() {
 
     const items = [...Array.from({ length: WINNING_INDEX }, randomVisualReward), reward, ...Array.from({ length: 5 }, randomVisualReward)];
     setRollItems(items);
-    const nextMarkerPosition = 20 + Math.random() * 60;
-    setMarkerPosition(nextMarkerPosition);
     const viewport = rouletteRef.current;
     if (!viewport) {
       setOpening(false);
@@ -183,7 +185,7 @@ export default function FreeCasePage() {
       const startLeft = viewport.scrollLeft;
       const targetLeft = winningCard.offsetLeft + winningCard.offsetWidth / 2 - viewport.clientWidth * (nextMarkerPosition / 100);
       const startTime = performance.now();
-      const duration = 7200;
+      const duration = 7700;
       const animate = (now: number) => {
         const progress = Math.min(1, (now - startTime) / duration);
         const eased = 1 - Math.pow(1 - progress, 5);
