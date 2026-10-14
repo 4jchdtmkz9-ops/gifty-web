@@ -81,7 +81,6 @@ export default function FreeCasePage() {
   const [notice, setNotice] = useState('');
   const [wonReward, setWonReward] = useState<CaseReward | null>(null);
   const [rollItems, setRollItems] = useState<CaseReward[]>(freeCaseRewards);
-  const [markerPosition, setMarkerPosition] = useState(50);
   const [cooldownEnd, setCooldownEnd] = useState<number | null>(null);
   const [countdown, setCountdown] = useState<string | null>(null);
   const [walletConnected, setWalletConnected] = useState(false);
@@ -146,10 +145,6 @@ export default function FreeCasePage() {
     setOpening(true);
     setWonReward(null);
     setNotice('');
-    // Park the marker at its final spot before the network round-trip so it
-    // never visibly jumps while the server decides the reward.
-    const nextMarkerPosition = 20 + Math.random() * 60;
-    setMarkerPosition(nextMarkerPosition);
     requestIdRef.current ??= crypto.randomUUID();
     let reward: CaseReward;
     try {
@@ -183,7 +178,8 @@ export default function FreeCasePage() {
         return;
       }
       const startLeft = viewport.scrollLeft;
-      const targetLeft = winningCard.offsetLeft + winningCard.offsetWidth / 2 - viewport.clientWidth * (nextMarkerPosition / 100);
+      // Always land the winning card under the centered marker.
+      const targetLeft = winningCard.offsetLeft + winningCard.offsetWidth / 2 - viewport.clientWidth / 2;
       const startTime = performance.now();
       const duration = 7700;
       const animate = (now: number) => {
@@ -240,7 +236,7 @@ export default function FreeCasePage() {
                 <div ref={rouletteRef} className="case-roulette-track absolute inset-0 z-10 flex items-center gap-2.5 overflow-hidden px-3">
                   {rollItems.map((reward, index) => <div key={`${reward.id}-${index}`} data-roll-index={index}><FreeCaseRewardCard reward={reward} compact /></div>)}
                 </div>
-                {opening && <span className="pointer-events-none absolute inset-y-0 z-20 w-1 -translate-x-1/2 bg-yellow-400 shadow-[0_0_12px_rgba(244,191,40,0.9)]" style={{ left: `${markerPosition}%` }} />}
+                {opening && <span className="pointer-events-none absolute inset-y-0 left-1/2 z-20 w-1 -translate-x-1/2 bg-yellow-400 shadow-[0_0_12px_rgba(244,191,40,0.9)]" />}
               </div>
             ) : <Image src={freeCase.image} alt="FREE Case" fill sizes="(max-width: 480px) 100vw, 448px" className="object-contain p-2" priority />}
           </div>
