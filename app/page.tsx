@@ -108,8 +108,8 @@ export default function Home() {
           </div>
 
           <div className="mt-2 flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-1.5 text-3xl font-bold tracking-tight text-blue-950"><GramIcon size={22} className="shrink-0 text-blue-700" />{formatTonBalance(balance)} <span className="text-lg text-blue-700">GRAM</span></div>
-            <div className="flex shrink-0 items-center gap-1.5 text-xl font-bold tabular-nums text-amber-600"><StarIcon size={22} />{starsBalance.toLocaleString('en-US')}</div>
+            <div className="flex min-w-0 items-center gap-1.5 text-3xl font-bold tracking-tight text-blue-950"><GramIcon size={22} className="shrink-0 text-blue-700" /><span className="truncate">{formatTonBalance(balance)}</span> <span className="shrink-0 text-lg text-blue-700">GRAM</span></div>
+            <div className="flex min-w-0 shrink-0 items-center gap-1.5 text-3xl font-bold tabular-nums tracking-tight text-amber-600"><StarIcon size={22} /><span className="truncate">{starsBalance.toLocaleString('en-US')}</span></div>
           </div>
             {!walletAddress && <p className="mt-1 text-xs text-slate-500">{t('Connect wallet to start trading')}</p>}
             <div className="mt-4 grid grid-cols-2 gap-2">
