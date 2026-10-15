@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { getDemoBackdropSupply, getGifts, purchaseDemoBackdropPack, syncDemoBackdropInventory as syncDemoBackdropInventoryApi } from '../../lib/api';
 import BottomNav from '../../components/BottomNav';
+import DualPrice from '../../components/DualPrice';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
 import GramIcon from '../../components/GramIcon';
 import OrbitWordmark from '../../components/OrbitWordmark';
@@ -510,7 +511,7 @@ export default function MarketPage() {
                   </div>
                   <div className="p-3">
                     <h3 className="truncate text-sm font-bold">{pack.name}</h3>
-                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5"><span className="text-[10px] text-slate-400">{t('Price')}</span><span className="text-sm font-bold tabular-nums text-slate-900">{pack.price} GRAM</span></div>
+                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5"><span className="text-[10px] text-slate-400">{t('Price')}</span><DualPrice gram={pack.price} gramSize={12} className="text-sm text-slate-900" /></div>
                   </div>
                 </button>)}
               </div>
@@ -519,7 +520,7 @@ export default function MarketPage() {
               <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div className="relative flex h-44 items-center justify-center bg-[#17191d]"><TelegramTgsSticker src={selectedBackdropPack.sticker} size={150} className="h-[150px] w-[150px]" autoplay={false} fallback={<span />}/></div>
                 <div className="p-4"><h2 className="text-xl font-bold">{selectedBackdropPack.name}</h2>
-                  <button type="button" disabled={isSpinning || isRewardSaving || packSupply?.[selectedBackdropPack.id]?.remaining === 0} onClick={() => void startBackdropPurchase()} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{isRewardSaving ? t('Processing…') : t('Buy & spin')} <span className="rounded-full bg-white/15 px-2 py-0.5">{selectedBackdropPack.price} GRAM</span></button>
+                  <button type="button" disabled={isSpinning || isRewardSaving || packSupply?.[selectedBackdropPack.id]?.remaining === 0} onClick={() => void startBackdropPurchase()} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{isRewardSaving ? t('Processing…') : t('Buy & spin')} <span className="rounded-full bg-white/15 px-2 py-0.5"><DualPrice gram={selectedBackdropPack.price} gramSize={12} className="text-white [&_.text-amber-600]:text-amber-200 [&_.text-blue-700]:text-white [&_.text-slate-300]:text-white/50" /></span></button>
                   <p className="mt-2 text-center text-[11px] leading-4 text-slate-500">{t('Payment is deducted from your ORBIT balance.')}</p>
                 </div>
               </div>

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import BottomNav from '../../components/BottomNav';
+import DualPrice from '../../components/DualPrice';
 import GramIcon from '../../components/GramIcon';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
 import OrbitWordmark from '../../components/OrbitWordmark';
@@ -133,7 +134,7 @@ export default function LuckyPage() {
 
           <div className="mt-3 flex flex-col items-center rounded-2xl border border-blue-100 bg-[#f5f8ff] px-3 py-2.5 text-center">
             <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{t('Spin cost')}</span>
-            <span className="mt-0.5 flex items-center justify-center text-lg font-bold leading-tight text-slate-900"><GramIcon size={19} className="mr-1.5 text-blue-700" />{spinPriceGram} GRAM</span>
+            <span className="mt-0.5 flex items-center justify-center text-lg font-bold leading-tight text-slate-900"><DualPrice gram={spinPriceGram} gramSize={19} /></span>
           </div>
           <p className="mt-2 text-[10px] leading-4 text-slate-400">{t('1 GRAM is taken from your ORBIT balance. Collectible prizes are credited at their displayed GRAM value.')}</p>
         </section>

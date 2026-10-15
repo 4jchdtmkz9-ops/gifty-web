@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import BottomNav from '../../components/BottomNav';
+import CurrencyToggle from '../../components/CurrencyToggle';
 import GramIcon from '../../components/GramIcon';
 import OrbitWordmark from '../../components/OrbitWordmark';
+import StarIcon from '../../components/StarIcon';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
 import TelegramTgsSticker from '../../components/TelegramTgsSticker';
 import { useOrbitLanguage } from '../../components/OrbitLanguageContext';
+import { fetchStarsRate, formatStars, gramToStars, starsToGram, type PayCurrency } from '../../lib/currency';
 import { getTelegramInitData } from '../../lib/telegram';
 import {
   answerPvpInvitation,
@@ -402,12 +405,13 @@ function WheelBoard({ sectors, rotation, spinning, winnerId, t }: {
   </div>;
 }
 
-function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJoin, busy, stake, setStake, onEnter, onEnterAmount, botBalance, roundCoolingDown, rollPhase, t, ownedBackdrops, onStakeBackdrop, onEnterWithBackdrop }: {
+function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJoin, busy, stake, setStake, currency, setCurrency, onEnter, onEnterAmount, botBalance, roundCoolingDown, rollPhase, t, ownedBackdrops, onStakeBackdrop, onEnterWithBackdrop }: {
   room: PvpRoom | null; rollingSeconds: number | null; onShare: () => void;
   arenaMode: 'CLASSIC' | 'WHEEL';
   lastWinner: PvpRoom | null;
   onJoin: () => void;
-  busy: boolean; stake: string; setStake: (stake: string) => void; onEnter: () => void;
+  busy: boolean; stake: string; setStake: (stake: string) => void;
+  currency: PayCurrency; setCurrency: (currency: PayCurrency) => void; onEnter: () => void;
   onEnterAmount: (amount: string) => void; botBalance: string; roundCoolingDown: boolean;
   rollPhase: RollPhase; t: (key: string) => string;
   ownedBackdrops: ArenaStakeItem[]; onStakeBackdrop: (id: string) => void; onEnterWithBackdrop: (id: string) => void;
@@ -532,19 +536,26 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
           <div className="grid grid-cols-5 gap-1.5">
             {[{ label: '0.1', amount: '0.1' }, { label: '1', amount: '1' }, { label: '5', amount: '5' }, { label: '10', amount: '10' }].map(({ label, amount }) =>
               <button key={amount} type="button" disabled={controlsDisabled} onClick={() => onEnterAmount(amount)} className="inline-flex min-w-0 items-center justify-center gap-1 rounded-xl border border-blue-100 bg-blue-50/70 px-1.5 py-2.5 text-[11px] font-extrabold tabular-nums text-blue-800 transition active:scale-[.97] disabled:opacity-45">
-                <GramIcon size={14} className="shrink-0 text-blue-600" />{label}
+                {currency === 'STARS' ? <StarIcon size={14} className="shrink-0" /> : <GramIcon size={14} className="shrink-0 text-blue-600" />}{currency === 'STARS' ? formatStars(gramToStars(amount)) : label}
               </button>)}
             <button type="button" disabled={controlsDisabled || allInAmount <= 0} onClick={() => onEnterAmount(formatGram(allInAmount))} className="inline-flex min-w-0 items-center justify-center gap-1 rounded-xl border border-amber-200 bg-amber-50 px-1 py-2.5 text-[9px] font-extrabold uppercase tracking-tight text-amber-800 transition active:scale-[.97] disabled:opacity-45">
-              <GramIcon size={14} className="shrink-0 text-amber-600" />All in
+              {currency === 'STARS' ? <StarIcon size={14} className="shrink-0" /> : <GramIcon size={14} className="shrink-0 text-amber-600" />}All in
             </button>
           </div>
         </div>}
 
-        {(!room || room.isPublic) && <div className="arena-stake-control mt-2 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 pl-3">
-          <GramIcon size={18} className="shrink-0 text-blue-600" />
-          <input aria-label={t('Your stake')} data-static-keyboard data-keep-visible-with-keyboard type="number" min="0" step="any" inputMode="decimal" enterKeyHint="done" value={stake} onChange={(event) => setStake(event.target.value)} className="min-w-0 flex-1 border-0 bg-transparent py-2 text-base font-bold text-slate-800 outline-none" placeholder="Enter amount" />
-          <span className="text-[10px] font-bold text-blue-700">GRAM</span>
-          <button disabled={controlsDisabled || !stake.trim() || !Number.isFinite(Number(stake)) || Number(stake) <= 0} onClick={onEnter} className="shrink-0 rounded-xl bg-blue-700 px-4 py-3 text-[10px] font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : room?.viewerIsParticipant ? t('Add more') : t('Join')}</button>
+        {(!room || room.isPublic) && <div className="arena-stake-control mt-2 rounded-2xl border border-slate-200 bg-white p-1.5">
+          <div className="flex items-center gap-2 pl-1.5">
+            <CurrencyToggle small value={currency} onChange={setCurrency} />
+            {currency === 'STARS' ? <StarIcon size={18} className="shrink-0" /> : <GramIcon size={18} className="shrink-0 text-blue-600" />}
+            <input aria-label={t('Your stake')} data-static-keyboard data-keep-visible-with-keyboard type="number" min="0" step="any" inputMode="decimal" enterKeyHint="done" value={stake} onChange={(event) => setStake(event.target.value)} className="min-w-0 flex-1 border-0 bg-transparent py-2 text-base font-bold text-slate-800 outline-none" placeholder="Enter amount" />
+          </div>
+          <div className="flex items-center gap-2 px-1.5 pb-1 pt-0.5">
+            <span className="min-w-0 flex-1 truncate text-[10px] font-semibold text-slate-400">
+              ≈ {currency === 'STARS' ? <><GramIcon size={11} className="mr-0.5 text-blue-600" />{starsToGram(Math.floor(Number(stake)) || 0)} GRAM</> : <><StarIcon size={11} className="mr-0.5" />{formatStars(gramToStars(stake || '0'))} Stars</>}
+            </span>
+            <button disabled={controlsDisabled || !stake.trim() || !Number.isFinite(Number(stake)) || Number(stake) <= 0} onClick={onEnter} className="shrink-0 rounded-xl bg-blue-700 px-4 py-2.5 text-[10px] font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : room?.viewerIsParticipant ? t('Add more') : t('Join')}</button>
+          </div>
         </div>}
 
         {(!room || room.isPublic) && (!room?.viewerIsParticipant || room.status === 'WAITING' || room.status === 'COUNTDOWN') && <section className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-3">
@@ -611,8 +622,18 @@ export default function ArenaPage() {
   const [activeRoom, setActiveRoom] = useState<PvpRoom | null>(null);
   const [invitations, setInvitations] = useState<PvpInvitation[]>([]);
   const [stakesByMode, setStakesByMode] = useState<{ CLASSIC: string; WHEEL: string }>({ CLASSIC: '', WHEEL: '' });
+  const [stakeCurrency, setStakeCurrency] = useState<PayCurrency>('GRAM');
   const stake = stakesByMode[arenaMode];
   const setStake = (value: string) => setStakesByMode((stakes) => ({ ...stakes, [arenaMode]: value }));
+  /** Arena rooms are settled in GRAM; a Stars-denominated stake is converted before debit. */
+  const stakeGramFor = (value: string) => {
+    if (!value.trim() || stakeCurrency !== 'STARS') return value;
+    return starsToGram(Math.floor(Number(value)) || 0);
+  };
+
+  useEffect(() => {
+    void fetchStarsRate();
+  }, []);
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<PvpPlayer[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<PvpPlayer[]>([]);
@@ -790,11 +811,13 @@ export default function ArenaPage() {
 
   const countdown = activeRoom?.countdownEndsAt ? Math.max(0, Math.ceil((Date.parse(activeRoom.countdownEndsAt) - now) / 1000)) : null;
   const roundCoolingDown = publicRooms.some((room) => room.status === 'COMPLETED' && room.completedAt && Date.now() - Date.parse(room.completedAt) < 15_000);
-  const joinPublic = async (value: string) => {
+  const joinPublic = async (value: string, opts?: { inGram?: boolean }) => {
     if (!initData || !value.trim() || !Number.isFinite(Number(value)) || Number(value) <= 0) return;
+    const stakeGram = opts?.inGram ? value : stakeGramFor(value);
+    if (!stakeGram || !Number.isFinite(Number(stakeGram)) || Number(stakeGram) <= 0) { setError(t('Stake is too small for the Stars rate')); return; }
     setBusy(true); setError('');
     try {
-      const room = await joinPublicArena(value, initData, arenaMode);
+      const room = await joinPublicArena(stakeGram, initData, arenaMode);
       setRoom(room); setStake(''); setRollPhase('idle');
       void getBotBalance().then((result) => setBotBalance(result.balanceGram)).catch((cause) => console.error('Could not refresh ORBIT balance after adding an arena stake:', cause));
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(room.code)}`);
@@ -835,7 +858,7 @@ export default function ArenaPage() {
     if (!initData) return;
     setBusy(true); setError('');
     try {
-      const joined = room.isPublic ? await joinPublicArena(stake, initData, room.arenaMode ?? arenaMode) : await joinPvpRoom(room.code, initData);
+      const joined = room.isPublic ? await joinPublicArena(stakeGramFor(stake) || stake, initData, room.arenaMode ?? arenaMode) : await joinPvpRoom(room.code, initData);
       setRoom(joined); setStake(''); setRollPhase('idle');
       void getBotBalance().then((result) => setBotBalance(result.balanceGram)).catch((cause) => console.error('Could not refresh ORBIT balance after joining an arena room:', cause));
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(joined.code)}`);
@@ -862,7 +885,7 @@ export default function ArenaPage() {
     if (!initData) return;
     setBusy(true); setError('');
     try {
-      const room = await createPvpRoom(stake, selectedPlayers.map(({ id }) => id), initData, arenaMode);
+      const room = await createPvpRoom(stakeGramFor(stake) || stake, selectedPlayers.map(({ id }) => id), initData, arenaMode);
       setRoom(room); setRollPhase('idle'); setSelectedPlayers([]); setQuery(''); setPrivateRoomOpen(false);
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(room.code)}`);
     } catch (cause) { setError(cause instanceof Error ? cause.message : t('Could not create room')); }
@@ -929,7 +952,7 @@ export default function ArenaPage() {
             })}
           </div>
 
-          <SquareRoom room={activeRoom} arenaMode={arenaMode} lastWinner={lastWinners[arenaMode]} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount)} botBalance={botBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} ownedBackdrops={ownedBackdrops} onStakeBackdrop={(id) => void stakeBackdrop(id)} onEnterWithBackdrop={(id) => void enterWithBackdrop(id)} />
+          <SquareRoom room={activeRoom} arenaMode={arenaMode} lastWinner={lastWinners[arenaMode]} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} currency={stakeCurrency} setCurrency={setStakeCurrency} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount, { inGram: true })} botBalance={botBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} ownedBackdrops={ownedBackdrops} onStakeBackdrop={(id) => void stakeBackdrop(id)} onEnterWithBackdrop={(id) => void enterWithBackdrop(id)} />
 
           {activeRoom?.isPublic === false && activeRoom.status === 'WAITING' && activeRoom.viewerIsCreator && <section className="mt-3 rounded-2xl border border-blue-100 bg-white p-3"><p className="mb-2 text-center text-[10px] text-slate-500">{t('Waiting for invited players to accept.')}</p><button disabled={busy || activeRoom.participants.length < 2} onClick={() => void startPrivateRound()} className="w-full rounded-xl bg-blue-700 py-2.5 text-xs font-bold text-white disabled:bg-slate-300">{t('Start round')}</button></section>}
 

@@ -70,6 +70,46 @@ export async function stakePvpGifts(code: string, giftIds: string[], initData: s
   return pvpRequest<PvpRoom>('stake-gifts', initData, { code, giftIds });
 }
 
+export type StarsRate = {
+  gramPerStar: string;
+  starsPerGram: number;
+  minStars: number;
+  maxStars: number;
+  presets: number[];
+};
+
+export type StarsInvoice = { depositId: string; invoiceLink: string; starAmount: number; gramAmount: string };
+export type StarsDepositStatus = { id: string; status: 'PENDING' | 'CONFIRMED' | 'EXPIRED'; starAmount: number; gramAmount: string; confirmedAt: string | null };
+
+export async function getStarsRate(): Promise<StarsRate> {
+  const response = await fetch(`${API_URL}/payments/stars/rate`, { cache: 'no-store' });
+  if (!response.ok) throw new Error(await responseError(response, 'Could not load Stars rate'));
+  return response.json() as Promise<StarsRate>;
+}
+
+export async function createStarsInvoice(starAmount: number): Promise<StarsInvoice> {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Telegram initData is missing');
+  const response = await fetch(`${API_URL}/payments/stars/invoice`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initData, starAmount }),
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'Could not create Stars invoice'));
+  return response.json() as Promise<StarsInvoice>;
+}
+
+export async function getStarsDepositStatus(depositId: string): Promise<StarsDepositStatus> {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Telegram initData is missing');
+  const response = await fetch(`${API_URL}/payments/stars/deposits/${encodeURIComponent(depositId)}`, {
+    headers: { 'X-Telegram-Init-Data': initData },
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'Could not check Stars deposit'));
+  return response.json() as Promise<StarsDepositStatus>;
+}
+
 async function responseError(response: Response, fallback: string) {
   const text = await response.text();
   try {

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import BottomNav from '../../../components/BottomNav';
 import CaseRewardCard from '../../../components/CaseRewardCard';
+import DualPrice from '../../../components/DualPrice';
 import GramIcon from '../../../components/GramIcon';
 import OrbitWordmark from '../../../components/OrbitWordmark';
 import { cryptanCase, cryptanRewards, type CaseReward } from '../../../lib/caseData';
@@ -118,7 +119,7 @@ export default function CryptanCasePage() {
           <div className="p-4 pt-3">
             <div className="flex items-center justify-between gap-3">
               <div><h2 className="text-lg font-bold text-blue-950">Криптан</h2><p className="mt-0.5 text-xs text-slate-500">{t('5 collectible Telegram gifts')}</p></div>
-              <span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-800"><GramIcon size={12} className="mr-1" />30</span>
+              <span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-800"><DualPrice gram="30" className="text-blue-800" /></span>
             </div>
 
             <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50/70 px-3 py-2.5">
@@ -127,7 +128,7 @@ export default function CryptanCasePage() {
             </div>
             {notice && <p role="status" className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">{notice}</p>}
 
-            <button type="button" onClick={openCase} disabled={opening} className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{t(opening ? 'Opening…' : 'Buy case ·')}{!opening && <> <GramIcon size={14} />30</>}</button>
+            <button type="button" onClick={openCase} disabled={opening} className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(21,87,213,0.2)] transition active:scale-[0.99] disabled:opacity-60">{t(opening ? 'Opening…' : 'Buy case ·')}{!opening && <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1"><DualPrice gram="30" gramSize={13} className="text-white [&_.text-amber-600]:text-amber-200 [&_.text-blue-700]:text-white [&_.text-slate-300]:text-white/50" /></span>}</button>
           </div>
         </section>
 
