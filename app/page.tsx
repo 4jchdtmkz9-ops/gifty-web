@@ -107,17 +107,9 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            <div className="rounded-2xl border border-blue-100 bg-[#f5f8ff] p-3">
-              <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-blue-500">TON</p>
-              <div className="mt-1 flex items-center gap-1.5 text-2xl font-bold tracking-tight text-blue-950"><GramIcon size={20} className="text-blue-700" />{formatTonBalance(balance)}</div>
-              <p className="text-[11px] font-bold text-blue-700">GRAM</p>
-            </div>
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-3">
-              <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-amber-600">STARS</p>
-              <div className="mt-1 flex items-center gap-1.5 text-2xl font-bold tabular-nums tracking-tight text-amber-950"><StarIcon size={20} />{starsBalance.toLocaleString('en-US')}</div>
-              <p className="text-[11px] font-bold text-amber-600">Stars</p>
-            </div>
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-1.5 text-3xl font-bold tracking-tight text-blue-950"><GramIcon size={22} className="shrink-0 text-blue-700" />{formatTonBalance(balance)} <span className="text-lg text-blue-700">GRAM</span></div>
+            <div className="flex shrink-0 items-center gap-1.5 text-xl font-bold tabular-nums text-amber-600"><StarIcon size={22} />{starsBalance.toLocaleString('en-US')}</div>
           </div>
             {!walletAddress && <p className="mt-1 text-xs text-slate-500">{t('Connect wallet to start trading')}</p>}
             <div className="mt-4 grid grid-cols-2 gap-2">
