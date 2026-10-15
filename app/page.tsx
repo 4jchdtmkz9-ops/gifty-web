@@ -13,6 +13,7 @@ import BotWithdrawalDialog from '../components/BotWithdrawalDialog';
 import { formatTonBalance } from '../lib/formatTon';
 import { useOrbitLanguage } from '../components/OrbitLanguageContext';
 import GramIcon from '../components/GramIcon';
+import StarIcon from '../components/StarIcon';
 import { getBotBalance } from '../lib/api';
 import RoseGiveawayCard from '../components/RoseGiveawayCard';
 import StatueGiveawayCard from '../components/StatueGiveawayCard';
@@ -55,6 +56,7 @@ export default function Home() {
     const { t } = useOrbitLanguage();
     const walletAddress = useTonAddress();
     const [balance, setBalance] = useState('0');
+    const [starsBalance, setStarsBalance] = useState(0);
     const [depositConfigured, setDepositConfigured] = useState(false);
     const [withdrawalConfigured, setWithdrawalConfigured] = useState(false);
     const [depositOpen, setDepositOpen] = useState(false);
@@ -63,6 +65,7 @@ export default function Home() {
       try {
         const result = await getBotBalance();
         setBalance(result.balanceGram);
+        setStarsBalance(result.balanceStars);
         setDepositConfigured(result.depositConfigured);
         setWithdrawalConfigured(result.withdrawalConfigured);
       } catch (error) {
@@ -104,8 +107,18 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-2">
-            <div className="flex items-center gap-1.5 text-3xl font-bold tracking-tight text-blue-950"><GramIcon size={22} className="text-blue-700" />{formatTonBalance(balance)} <span className="text-lg text-blue-700">GRAM</span></div>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <div className="rounded-2xl border border-blue-100 bg-[#f5f8ff] p-3">
+              <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-blue-500">TON</p>
+              <div className="mt-1 flex items-center gap-1.5 text-2xl font-bold tracking-tight text-blue-950"><GramIcon size={20} className="text-blue-700" />{formatTonBalance(balance)}</div>
+              <p className="text-[11px] font-bold text-blue-700">GRAM</p>
+            </div>
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-3">
+              <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-amber-600">STARS</p>
+              <div className="mt-1 flex items-center gap-1.5 text-2xl font-bold tabular-nums tracking-tight text-amber-950"><StarIcon size={20} />{starsBalance.toLocaleString('en-US')}</div>
+              <p className="text-[11px] font-bold text-amber-600">Stars</p>
+            </div>
+          </div>
             {!walletAddress && <p className="mt-1 text-xs text-slate-500">{t('Connect wallet to start trading')}</p>}
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button type="button" onClick={() => setDepositOpen(true)} className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-blue-700 px-3 py-3 text-xs font-bold text-white shadow-[0_6px_16px_rgba(21,87,213,.22)] transition hover:bg-blue-800 active:scale-[.97]">
@@ -117,7 +130,6 @@ export default function Home() {
                 {t('Withdraw')}
               </button>
             </div>
-          </div>
         </section>
 
         {/* Quick actions */}

@@ -5,9 +5,9 @@ const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://gifty-api-75hj.onre
 
 export type PvpPlayer = { id: string; telegramId?: string; username: string | null; firstName: string | null; photoUrl?: string | null };
 export type PvpRoom = {
-  id: string; code: string; stakeGram: string; status: 'WAITING' | 'COUNTDOWN' | 'COMPLETED' | 'CANCELLED'; creatorId: string;
+  id: string; code: string; stakeGram: string; stakeStars?: number; status: 'WAITING' | 'COUNTDOWN' | 'COMPLETED' | 'CANCELLED'; creatorId: string;
   isPublic?: boolean; arenaMode?: 'CLASSIC' | 'WHEEL'; countdownEndsAt?: string | null; completedAt?: string | null;
-  winnerId: string | null; participants: Array<{ id: string; userId: string; stakeGram: string; cashStakeGram?: string; user: PvpPlayer; gifts?: Array<{ id: string; valueGram: string; gift: { id: string; name: string; imageUrl?: string | null; backdropName?: string | null; backdropColor?: string | null; emoji?: string | null; collection?: string; priceTon: string | number } }> }>;
+  winnerId: string | null; participants: Array<{ id: string; userId: string; stakeGram: string; cashStakeGram?: string; cashStakeStars?: number; user: PvpPlayer; gifts?: Array<{ id: string; valueGram: string; gift: { id: string; name: string; imageUrl?: string | null; backdropName?: string | null; backdropColor?: string | null; emoji?: string | null; collection?: string; priceTon: string | number } }> }>;
   invitations: Array<{ id: string; status: string; recipient: PvpPlayer }>;
   creator: PvpPlayer; winner: PvpPlayer | null;
   notificationStats?: { sent: number; failed: number };
@@ -32,11 +32,11 @@ async function pvpRequest<T>(path: string, initData: string, body?: Record<strin
 export async function searchPvpUsers(query: string, initData: string) {
   return pvpRequest<PvpPlayer[]>(`users/search?q=${encodeURIComponent(query)}`, initData);
 }
-export async function createPvpRoom(stakeGram: string, inviteeIds: string[], initData: string, arenaMode: 'CLASSIC' | 'WHEEL' = 'CLASSIC') {
-  return pvpRequest<PvpRoom>('rooms', initData, { stakeGram, inviteeIds, arenaMode });
+export async function createPvpRoom(stakeGram: string, inviteeIds: string[], initData: string, arenaMode: 'CLASSIC' | 'WHEEL' = 'CLASSIC', stakeCurrency: 'GRAM' | 'STARS' = 'GRAM') {
+  return pvpRequest<PvpRoom>('rooms', initData, stakeCurrency === 'STARS' ? { stakeStars: stakeGram, stakeCurrency, inviteeIds, arenaMode } : { stakeGram, inviteeIds, arenaMode });
 }
-export async function joinPublicArena(stakeGram: string, initData: string, arenaMode: 'CLASSIC' | 'WHEEL' = 'CLASSIC') {
-  return pvpRequest<PvpRoom>('public-join', initData, { stakeGram, arenaMode });
+export async function joinPublicArena(stakeGram: string, initData: string, arenaMode: 'CLASSIC' | 'WHEEL' = 'CLASSIC', stakeCurrency: 'GRAM' | 'STARS' = 'GRAM') {
+  return pvpRequest<PvpRoom>('public-join', initData, stakeCurrency === 'STARS' ? { stakeStars: stakeGram, stakeCurrency, arenaMode } : { stakeGram, arenaMode });
 }
 export async function joinPublicArenaWithGifts(giftIds: string[], initData: string, arenaMode: 'CLASSIC' | 'WHEEL' = 'CLASSIC') {
   return pvpRequest<PvpRoom>('public-join-gift', initData, { giftIds, arenaMode });
@@ -59,7 +59,7 @@ export async function startPvpRound(code: string, initData: string) {
 export async function getMyPvpRooms(initData: string) {
   return pvpRequest<PvpRoom[]>('rooms/mine', initData);
 }
-export type PvpInvitation = { id: string; sender: PvpPlayer; room: { code: string; stakeGram: string; createdAt: string; _count: { participants: number } } };
+export type PvpInvitation = { id: string; sender: PvpPlayer; room: { code: string; stakeGram: string; stakeStars?: number; createdAt: string; _count: { participants: number } } };
 export async function getPvpInvitations(initData: string) {
   return pvpRequest<PvpInvitation[]>('invitations', initData);
 }
@@ -235,7 +235,7 @@ export async function getTonBalance(address: string) {
   return response.json();
 }
 
-export type BotBalance = { balanceGram: string; depositConfigured: boolean; withdrawalConfigured: boolean };
+export type BotBalance = { balanceGram: string; balanceStars: number; depositConfigured: boolean; withdrawalConfigured: boolean };
 
 export type GameSettlement = {
   reward: { id: string; name: string; valueGram: string; kind?: 'gram' | 'nft'; chance?: number };

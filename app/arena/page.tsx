@@ -9,7 +9,7 @@ import StarIcon from '../../components/StarIcon';
 import TonBalanceBadge from '../../components/TonBalanceBadge';
 import TelegramTgsSticker from '../../components/TelegramTgsSticker';
 import { useOrbitLanguage } from '../../components/OrbitLanguageContext';
-import { fetchStarsRate, formatStars, gramToStars, starsToGram, type PayCurrency } from '../../lib/currency';
+import { fetchStarsRate, formatStars, gramToStars, type PayCurrency } from '../../lib/currency';
 import { getTelegramInitData } from '../../lib/telegram';
 import {
   answerPvpInvitation,
@@ -405,14 +405,14 @@ function WheelBoard({ sectors, rotation, spinning, winnerId, t }: {
   </div>;
 }
 
-function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJoin, busy, stake, setStake, currency, setCurrency, onEnter, onEnterAmount, botBalance, roundCoolingDown, rollPhase, t, ownedBackdrops, onStakeBackdrop, onEnterWithBackdrop }: {
+function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJoin, busy, stake, setStake, currency, setCurrency, onEnter, onEnterAmount, botBalance, starsBalance, roundCoolingDown, rollPhase, t, ownedBackdrops, onStakeBackdrop, onEnterWithBackdrop }: {
   room: PvpRoom | null; rollingSeconds: number | null; onShare: () => void;
   arenaMode: 'CLASSIC' | 'WHEEL';
   lastWinner: PvpRoom | null;
   onJoin: () => void;
   busy: boolean; stake: string; setStake: (stake: string) => void;
   currency: PayCurrency; setCurrency: (currency: PayCurrency) => void; onEnter: () => void;
-  onEnterAmount: (amount: string) => void; botBalance: string; roundCoolingDown: boolean;
+  onEnterAmount: (amount: string) => void; botBalance: string; starsBalance: number; roundCoolingDown: boolean;
   rollPhase: RollPhase; t: (key: string) => string;
   ownedBackdrops: ArenaStakeItem[]; onStakeBackdrop: (id: string) => void; onEnterWithBackdrop: (id: string) => void;
 }) {
@@ -534,11 +534,14 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
 
         {(!room || room.isPublic) && <div className="mt-3" aria-label={t('Quick stakes')}>
           <div className="grid grid-cols-5 gap-1.5">
-            {[{ label: '0.1', amount: '0.1' }, { label: '1', amount: '1' }, { label: '5', amount: '5' }, { label: '10', amount: '10' }].map(({ label, amount }) =>
-              <button key={amount} type="button" disabled={controlsDisabled} onClick={() => onEnterAmount(amount)} className="inline-flex min-w-0 items-center justify-center gap-1 rounded-xl border border-blue-100 bg-blue-50/70 px-1.5 py-2.5 text-[11px] font-extrabold tabular-nums text-blue-800 transition active:scale-[.97] disabled:opacity-45">
-                {currency === 'STARS' ? <StarIcon size={14} className="shrink-0" /> : <GramIcon size={14} className="shrink-0 text-blue-600" />}{currency === 'STARS' ? formatStars(gramToStars(amount)) : label}
-              </button>)}
-            <button type="button" disabled={controlsDisabled || allInAmount <= 0} onClick={() => onEnterAmount(formatGram(allInAmount))} className="inline-flex min-w-0 items-center justify-center gap-1 rounded-xl border border-amber-200 bg-amber-50 px-1 py-2.5 text-[9px] font-extrabold uppercase tracking-tight text-amber-800 transition active:scale-[.97] disabled:opacity-45">
+            {[{ gram: '0.1' }, { gram: '1' }, { gram: '5' }, { gram: '10' }].map(({ gram }) => {
+              const stars = gramToStars(gram);
+              const display = currency === 'STARS' ? String(stars) : gram;
+              return <button key={gram} type="button" disabled={controlsDisabled} onClick={() => onEnterAmount(display)} className="inline-flex min-w-0 items-center justify-center gap-1 rounded-xl border border-blue-100 bg-blue-50/70 px-1.5 py-2.5 text-[11px] font-extrabold tabular-nums text-blue-800 transition active:scale-[.97] disabled:opacity-45">
+                {currency === 'STARS' ? <StarIcon size={14} className="shrink-0" /> : <GramIcon size={14} className="shrink-0 text-blue-600" />}{currency === 'STARS' ? formatStars(stars) : gram}
+              </button>;
+            })}
+            <button type="button" disabled={controlsDisabled || allInAmount <= 0} onClick={() => onEnterAmount(currency === 'STARS' ? String(Math.floor(starsBalance)) : formatGram(allInAmount))} className="inline-flex min-w-0 items-center justify-center gap-1 rounded-xl border border-amber-200 bg-amber-50 px-1 py-2.5 text-[9px] font-extrabold uppercase tracking-tight text-amber-800 transition active:scale-[.97] disabled:opacity-45">
               {currency === 'STARS' ? <StarIcon size={14} className="shrink-0" /> : <GramIcon size={14} className="shrink-0 text-amber-600" />}All in
             </button>
           </div>
@@ -552,7 +555,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
           </div>
           <div className="flex items-center gap-2 px-1.5 pb-1 pt-0.5">
             <span className="min-w-0 flex-1 truncate text-[10px] font-semibold text-slate-400">
-              ≈ {currency === 'STARS' ? <><GramIcon size={11} className="mr-0.5 text-blue-600" />{starsToGram(Math.floor(Number(stake)) || 0)} GRAM</> : <><StarIcon size={11} className="mr-0.5" />{formatStars(gramToStars(stake || '0'))} Stars</>}
+              {t('Available')}: {currency === 'STARS' ? <>{formatStars(starsBalance)} Stars</> : <>{formatGram(botBalance)} GRAM</>}
             </span>
             <button disabled={controlsDisabled || !stake.trim() || !Number.isFinite(Number(stake)) || Number(stake) <= 0} onClick={onEnter} className="shrink-0 rounded-xl bg-blue-700 px-4 py-2.5 text-[10px] font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : room?.viewerIsParticipant ? t('Add more') : t('Join')}</button>
           </div>
@@ -586,7 +589,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
                     <p className="truncate text-sm font-bold text-slate-800">{nameOf(player.user)}</p>
                     <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-500"><span className="h-2 w-2 rounded-full bg-fuchsia-500" />{chance < 0.01 ? '<0.01%' : `${chance.toFixed(chance < 1 ? 2 : 1)}%`}</p>
                   </div>
-                  <span className="shrink-0 text-right text-[15px] font-extrabold tabular-nums text-slate-800">{formatGram(player.stakeGram)} GRAM</span>
+                  <span className="shrink-0 text-right text-[15px] font-extrabold tabular-nums text-slate-800">{formatGram(player.stakeGram)} GRAM{(player.cashStakeStars ?? 0) > 0 && <span className="mt-0.5 flex items-center justify-end gap-0.5 text-[11px] font-bold text-amber-600"><StarIcon size={11} />{formatStars(player.cashStakeStars ?? 0)}</span>}</span>
                 </div>
                 {(cashStake > 0 || (player.gifts ?? []).length > 0) && <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-2.5">
                   {cashStake > 0 && <span title={`${formatGram(cashStake)} GRAM`} className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-b from-sky-400 to-blue-600 shadow-sm"><GramIcon size={30} className="text-white" /><span className="absolute inset-x-0 bottom-0 bg-blue-950/60 py-0.5 text-center text-[9px] font-extrabold leading-none text-white">{formatGram(cashStake)}</span></span>}
@@ -599,7 +602,7 @@ function SquareRoom({ room, arenaMode, lastWinner, rollingSeconds, onShare, onJo
           </div>
         </section>}
 
-        {room?.isPublic === false && !room.viewerIsParticipant && room.status === 'WAITING' && <button onClick={onJoin} disabled={busy} className="mt-3 w-full rounded-xl bg-blue-700 py-3 text-xs font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : t('Join private room')} · {formatGram(room.stakeGram)} GRAM</button>}
+        {room?.isPublic === false && !room.viewerIsParticipant && room.status === 'WAITING' && <button onClick={onJoin} disabled={busy} className="mt-3 w-full rounded-xl bg-blue-700 py-3 text-xs font-bold text-white disabled:opacity-50">{busy ? t('Joining…') : t('Join private room')} · {formatGram(room.stakeGram)} GRAM{(room.stakeStars ?? 0) > 0 && <> · {formatStars(room.stakeStars ?? 0)} ⭐</>}</button>}
 
         {(!room || room.status === 'WAITING') && <div className="arena-waiting-status mt-3 flex items-center justify-center gap-2 rounded-xl py-2.5 text-center"><span className="arena-waiting-dot h-2 w-2 shrink-0 rounded-full"/><p className="text-[10px] font-semibold">{!room ? t('Waiting for players') : participants.length < 2 ? t('Waiting for one more player') : t('Waiting for players')}</p></div>}
         {room?.status === 'COUNTDOWN' && rollingSeconds !== null && <div className="arena-countdown-wrap mt-3 flex items-center justify-between rounded-2xl border border-blue-100 bg-blue-50/70 px-4 py-3"><div><p className="text-[9px] font-bold uppercase tracking-[.16em] text-blue-500">{t('ROUND STARTS IN')}</p><p className="mt-1 text-xs font-bold text-blue-950">{t('Players are locked in')}</p></div><div className="arena-countdown-number flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-blue-600 bg-white text-2xl font-black tabular-nums text-blue-700">{rollingSeconds}</div></div>}
@@ -613,6 +616,11 @@ export default function ArenaPage() {
   const { t } = useOrbitLanguage();
   const [arenaMode, setArenaMode] = useState<'CLASSIC' | 'WHEEL'>('CLASSIC');
   const [botBalance, setBotBalance] = useState('0');
+  const [starsBalance, setStarsBalance] = useState(0);
+  const refreshBalances = (result: { balanceGram: string; balanceStars: number }) => {
+    setBotBalance(result.balanceGram);
+    setStarsBalance(result.balanceStars);
+  };
   const [ownedBackdrops, setOwnedBackdrops] = useState<ArenaStakeItem[]>([]);
   const [initData, setInitData] = useState('');
   const [authReady, setAuthReady] = useState(false);
@@ -625,11 +633,6 @@ export default function ArenaPage() {
   const [stakeCurrency, setStakeCurrency] = useState<PayCurrency>('GRAM');
   const stake = stakesByMode[arenaMode];
   const setStake = (value: string) => setStakesByMode((stakes) => ({ ...stakes, [arenaMode]: value }));
-  /** Arena rooms are settled in GRAM; a Stars-denominated stake is converted before debit. */
-  const stakeGramFor = (value: string) => {
-    if (!value.trim() || stakeCurrency !== 'STARS') return value;
-    return starsToGram(Math.floor(Number(value)) || 0);
-  };
 
   useEffect(() => {
     void fetchStarsRate();
@@ -656,7 +659,7 @@ export default function ArenaPage() {
     const refresh = async () => {
       try {
         const result = await getBotBalance();
-        if (!cancelled) setBotBalance(result.balanceGram);
+        if (!cancelled) refreshBalances(result);
       } catch (cause) {
         if (!cancelled) console.error('Could not read ORBIT balance for arena All in:', cause);
       }
@@ -782,7 +785,7 @@ export default function ArenaPage() {
 
   useEffect(() => {
     if (!activeRoom || activeRoom.status !== 'COMPLETED') return;
-    void getBotBalance().then((result) => setBotBalance(result.balanceGram)).catch((cause) => console.error('Could not refresh ORBIT balance after arena settlement:', cause));
+    void getBotBalance().then((result) => refreshBalances(result)).catch((cause) => console.error('Could not refresh ORBIT balance after arena settlement:', cause));
   }, [activeRoom?.id, activeRoom?.status]);
 
   useEffect(() => {
@@ -811,15 +814,15 @@ export default function ArenaPage() {
 
   const countdown = activeRoom?.countdownEndsAt ? Math.max(0, Math.ceil((Date.parse(activeRoom.countdownEndsAt) - now) / 1000)) : null;
   const roundCoolingDown = publicRooms.some((room) => room.status === 'COMPLETED' && room.completedAt && Date.now() - Date.parse(room.completedAt) < 15_000);
-  const joinPublic = async (value: string, opts?: { inGram?: boolean }) => {
+  const joinPublic = async (value: string) => {
     if (!initData || !value.trim() || !Number.isFinite(Number(value)) || Number(value) <= 0) return;
-    const stakeGram = opts?.inGram ? value : stakeGramFor(value);
-    if (!stakeGram || !Number.isFinite(Number(stakeGram)) || Number(stakeGram) <= 0) { setError(t('Stake is too small for the Stars rate')); return; }
+    const currency = stakeCurrency;
+    if (currency === 'STARS' && (!Number.isInteger(Number(value)) || Number(value) < 1)) { setError(t('Enter a whole number of Stars')); return; }
     setBusy(true); setError('');
     try {
-      const room = await joinPublicArena(stakeGram, initData, arenaMode);
+      const room = await joinPublicArena(value, initData, arenaMode, currency);
       setRoom(room); setStake(''); setRollPhase('idle');
-      void getBotBalance().then((result) => setBotBalance(result.balanceGram)).catch((cause) => console.error('Could not refresh ORBIT balance after adding an arena stake:', cause));
+      void getBotBalance().then((result) => refreshBalances(result)).catch((cause) => console.error('Could not refresh ORBIT balance after adding an arena stake:', cause));
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(room.code)}`);
     } catch (cause) {
       setError(cause instanceof Error && cause.message.includes('previous arena is finishing')
@@ -858,9 +861,9 @@ export default function ArenaPage() {
     if (!initData) return;
     setBusy(true); setError('');
     try {
-      const joined = room.isPublic ? await joinPublicArena(stakeGramFor(stake) || stake, initData, room.arenaMode ?? arenaMode) : await joinPvpRoom(room.code, initData);
+      const joined = room.isPublic ? await joinPublicArena(stake, initData, room.arenaMode ?? arenaMode, stakeCurrency) : await joinPvpRoom(room.code, initData);
       setRoom(joined); setStake(''); setRollPhase('idle');
-      void getBotBalance().then((result) => setBotBalance(result.balanceGram)).catch((cause) => console.error('Could not refresh ORBIT balance after joining an arena room:', cause));
+      void getBotBalance().then((result) => refreshBalances(result)).catch((cause) => console.error('Could not refresh ORBIT balance after joining an arena room:', cause));
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(joined.code)}`);
     } catch (cause) {
       setError(cause instanceof Error && cause.message.includes('previous arena is finishing')
@@ -885,7 +888,7 @@ export default function ArenaPage() {
     if (!initData) return;
     setBusy(true); setError('');
     try {
-      const room = await createPvpRoom(stakeGramFor(stake) || stake, selectedPlayers.map(({ id }) => id), initData, arenaMode);
+      const room = await createPvpRoom(stake, selectedPlayers.map(({ id }) => id), initData, arenaMode, stakeCurrency);
       setRoom(room); setRollPhase('idle'); setSelectedPlayers([]); setQuery(''); setPrivateRoomOpen(false);
       window.history.replaceState(null, '', `/arena?room=${encodeURIComponent(room.code)}`);
     } catch (cause) { setError(cause instanceof Error ? cause.message : t('Could not create room')); }
@@ -937,7 +940,7 @@ export default function ArenaPage() {
 
         {!authReady ? <section className="rounded-3xl border border-blue-100 bg-white p-5 text-center text-sm text-slate-500">{t('Connecting to Telegram…')}</section> : !initData ? <section className="rounded-3xl border border-blue-100 bg-white p-5 text-center"><p className="font-semibold text-slate-800">{t('Open ORBIT inside Telegram')}</p><p className="mt-2 text-xs text-slate-500">{t('Telegram sign-in is needed for shared rooms and invitations.')}</p></section> : <>
           {error && <div role="alert" className="mb-3 rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{error}<button className="float-right font-bold" onClick={() => setError('')} aria-label={t('Close')}>×</button></div>}
-          {invitations.length > 0 && <section className="mb-3 rounded-2xl border border-blue-100 bg-white p-3"><div className="mb-2 flex items-center justify-between"><h2 className="text-xs font-bold text-blue-950">{t('Arena invitations')}</h2><span className="rounded-full bg-blue-50 px-2 py-1 text-[9px] font-bold text-blue-700">{invitations.length}</span></div><div className="space-y-2">{invitations.map((invite) => <div key={invite.id} className="flex items-center gap-2 rounded-xl bg-slate-50 p-2"><span className="min-w-0 flex-1 truncate text-[10px] font-semibold text-slate-700">{nameOf(invite.sender)} · {invite.room.stakeGram} GRAM</span><button disabled={busy} onClick={() => void answerInvite(invite, true)} className="rounded-lg bg-blue-700 px-2.5 py-1.5 text-[9px] font-bold text-white">{t('Join')}</button><button disabled={busy} onClick={() => void answerInvite(invite, false)} className="rounded-lg bg-slate-200 px-2 py-1.5 text-[9px] font-bold text-slate-500">×</button></div>)}</div></section>}
+          {invitations.length > 0 && <section className="mb-3 rounded-2xl border border-blue-100 bg-white p-3"><div className="mb-2 flex items-center justify-between"><h2 className="text-xs font-bold text-blue-950">{t('Arena invitations')}</h2><span className="rounded-full bg-blue-50 px-2 py-1 text-[9px] font-bold text-blue-700">{invitations.length}</span></div><div className="space-y-2">{invitations.map((invite) => <div key={invite.id} className="flex items-center gap-2 rounded-xl bg-slate-50 p-2"><span className="min-w-0 flex-1 truncate text-[10px] font-semibold text-slate-700">{nameOf(invite.sender)} · {invite.room.stakeGram} GRAM{(invite.room.stakeStars ?? 0) > 0 && <> · {formatStars(invite.room.stakeStars ?? 0)} ⭐</>}</span><button disabled={busy} onClick={() => void answerInvite(invite, true)} className="rounded-lg bg-blue-700 px-2.5 py-1.5 text-[9px] font-bold text-white">{t('Join')}</button><button disabled={busy} onClick={() => void answerInvite(invite, false)} className="rounded-lg bg-slate-200 px-2 py-1.5 text-[9px] font-bold text-slate-500">×</button></div>)}</div></section>}
 
           <div className="mb-3 grid grid-cols-2 gap-2" aria-label={t('Arena rooms')}>
             {([{ mode: 'CLASSIC' as const, number: '01', label: 'ROOM 01 · CLASSIC', title: 'ORBIT Arena' }, { mode: 'WHEEL' as const, number: '02', label: 'ROOM 02 · WHEEL', title: 'ORBIT Wheel' }]).map(({ mode, number, label, title }) => {
@@ -952,7 +955,7 @@ export default function ArenaPage() {
             })}
           </div>
 
-          <SquareRoom room={activeRoom} arenaMode={arenaMode} lastWinner={lastWinners[arenaMode]} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} currency={stakeCurrency} setCurrency={setStakeCurrency} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount, { inGram: true })} botBalance={botBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} ownedBackdrops={ownedBackdrops} onStakeBackdrop={(id) => void stakeBackdrop(id)} onEnterWithBackdrop={(id) => void enterWithBackdrop(id)} />
+          <SquareRoom room={activeRoom} arenaMode={arenaMode} lastWinner={lastWinners[arenaMode]} rollingSeconds={countdown} onShare={() => void shareRoom()} onJoin={() => activeRoom && void joinExactRoom(activeRoom)} busy={busy} stake={stake} setStake={setStake} currency={stakeCurrency} setCurrency={setStakeCurrency} onEnter={() => void joinPublic(stake)} onEnterAmount={(amount) => void joinPublic(amount)} botBalance={botBalance} starsBalance={starsBalance} roundCoolingDown={roundCoolingDown} rollPhase={rollPhase} t={t} ownedBackdrops={ownedBackdrops} onStakeBackdrop={(id) => void stakeBackdrop(id)} onEnterWithBackdrop={(id) => void enterWithBackdrop(id)} />
 
           {activeRoom?.isPublic === false && activeRoom.status === 'WAITING' && activeRoom.viewerIsCreator && <section className="mt-3 rounded-2xl border border-blue-100 bg-white p-3"><p className="mb-2 text-center text-[10px] text-slate-500">{t('Waiting for invited players to accept.')}</p><button disabled={busy || activeRoom.participants.length < 2} onClick={() => void startPrivateRound()} className="w-full rounded-xl bg-blue-700 py-2.5 text-xs font-bold text-white disabled:bg-slate-300">{t('Start round')}</button></section>}
 
@@ -982,7 +985,7 @@ export default function ArenaPage() {
             </div>
             {activeRoom.winner?.photoUrl && <img src={activeRoom.winner.photoUrl} alt="" className="mx-auto mt-4 h-20 w-20 rounded-full border-4 border-yellow-300 object-cover" />}
             <h2 id="arena-result-title" className="mt-3 text-2xl font-black text-blue-950">{nameOf(activeRoom.winner)}</h2>
-            <p className="mt-3 inline-flex items-center text-lg font-extrabold text-blue-900"><GramIcon size={20} className="mr-2 text-blue-600" />{formatGram(activeRoom.stakeGram)} GRAM</p>
+            <p className="mt-3 inline-flex flex-wrap items-center justify-center gap-x-2 text-lg font-extrabold text-blue-900"><span className="inline-flex items-center"><GramIcon size={20} className="mr-2 text-blue-600" />{formatGram(activeRoom.stakeGram)} GRAM</span>{(activeRoom.stakeStars ?? 0) > 0 && <span className="inline-flex items-center text-amber-600"><StarIcon size={20} className="mr-1" />{formatStars(activeRoom.stakeStars ?? 0)}</span>}</p>
             {winnerNfts.length > 0 && <div className="mt-4 grid grid-cols-3 gap-2">
               {winnerNfts.map(({ id, gift, valueGram }) => <div key={id} title={`${gift.backdropName ?? gift.name} · ${formatGram(valueGram)} GRAM`} className="relative flex aspect-square min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl p-1.5 shadow-sm" style={gift.backdropColor ? { backgroundColor: gift.backdropColor } : undefined}>
                 {gift.collection === 'ORBIT_NFT' && gift.backdropColor ? <TelegramTgsSticker src={getDemoBackdropSticker(gift.emoji ?? undefined)} size={76} className="h-[76px] w-[76px]" autoplay={false} fallback={<span />} /> : gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name} className="h-[76px] w-[76px] rounded-xl object-cover" /> : <span className="text-sm font-black text-white">NFT</span>}

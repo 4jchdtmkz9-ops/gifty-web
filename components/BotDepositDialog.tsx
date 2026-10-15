@@ -10,7 +10,7 @@ import {
   syncTelegramProfile,
   type BotDepositIntent,
 } from '../lib/api';
-import { fetchStarsRate, formatStars, getCachedStarsRate, starsToGram, type PayCurrency } from '../lib/currency';
+import { fetchStarsRate, formatStars, getCachedStarsRate, type PayCurrency } from '../lib/currency';
 import CurrencyToggle from './CurrencyToggle';
 import GramIcon from './GramIcon';
 import StarIcon from './StarIcon';
@@ -176,7 +176,6 @@ export default function BotDepositDialog({ open, configured, onClose, onConfirme
   };
 
   const rate = getCachedStarsRate();
-  const starsPreview = starsToGram(Math.floor(Number(starsAmount)) || 0);
   const confirmedIsStars = method === 'STARS';
 
   return <div className="fixed inset-0 z-[80] flex items-end justify-center bg-slate-950/55 p-3 sm:items-center" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
@@ -206,8 +205,8 @@ export default function BotDepositDialog({ open, configured, onClose, onConfirme
             </button>
           ))}
         </div>
-        <p className="mt-2 text-[11px] font-semibold text-slate-600">≈ <GramIcon size={12} className="mr-0.5 text-blue-600" />{starsPreview} {t('GRAM')} · 1 ⭐ = {rate.gramPerStar} {t('GRAM')}</p>
-        <p className="mt-1 text-[10px] leading-4 text-slate-500">{t('Pay with Telegram Stars. GRAM is credited to your ORBIT balance after payment.')}</p>
+        <p className="mt-2 text-[11px] font-semibold text-slate-600">→ {t('Stars balance')} · {t('Usable for Arena stakes')}</p>
+        <p className="mt-1 text-[10px] leading-4 text-slate-500">{t('Pay with Telegram Stars. Stars land on your separate Stars balance.')} 1 ⭐ = {rate.gramPerStar} {t('GRAM')}</p>
       </> : <>
         <label htmlFor="deposit-amount" className="mt-4 block text-xs font-bold text-slate-700">{t('Deposit amount')}</label>
         <div className="mt-1.5 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus-within:border-blue-400">
