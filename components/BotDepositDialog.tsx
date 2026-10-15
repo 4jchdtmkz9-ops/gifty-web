@@ -196,17 +196,17 @@ export default function BotDepositDialog({ open, configured, onClose, onConfirme
         <div className="mt-1.5 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus-within:border-amber-400">
           <StarIcon size={18} className="shrink-0" />
           <input id="stars-deposit-amount" type="number" inputMode="numeric" min={rate.minStars} step="1" value={starsAmount} onChange={(event) => setStarsAmount(event.target.value)} placeholder="500" disabled={phase === 'sending'} className="min-w-0 flex-1 bg-transparent text-lg font-bold tabular-nums text-slate-900 outline-none" />
-          <span className="text-xs font-bold text-slate-500">⭐</span>
+          <span className="text-xs font-bold text-slate-500"><StarIcon size={13} /></span>
         </div>
         <div className="mt-2 grid grid-cols-4 gap-1.5">
           {rate.presets.map((preset) => (
             <button key={preset} type="button" onClick={() => setStarsAmount(String(preset))} className="rounded-xl border border-amber-200 bg-amber-50/70 px-1 py-2 text-[11px] font-extrabold tabular-nums text-amber-800 transition active:scale-[.97]">
-              {formatStars(preset)} ⭐
+              {formatStars(preset)} <StarIcon size={12} />
             </button>
           ))}
         </div>
         <p className="mt-2 text-[11px] font-semibold text-slate-600">→ {t('Stars balance')} · {t('Usable for Arena stakes')}</p>
-        <p className="mt-1 text-[10px] leading-4 text-slate-500">{t('Pay with Telegram Stars. Stars land on your separate Stars balance.')} 1 ⭐ = {rate.gramPerStar} {t('GRAM')}</p>
+        <p className="mt-1 text-[10px] leading-4 text-slate-500">{t('Pay with Telegram Stars. Stars land on your separate Stars balance.')} 1 <StarIcon size={11} /> = {rate.gramPerStar} {t('GRAM')}</p>
       </> : <>
         <label htmlFor="deposit-amount" className="mt-4 block text-xs font-bold text-slate-700">{t('Deposit amount')}</label>
         <div className="mt-1.5 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus-within:border-blue-400">

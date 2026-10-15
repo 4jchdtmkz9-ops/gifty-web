@@ -143,8 +143,8 @@ select {
 }
 
 @keyframes welcome-loader-slide {
-  0% { left: 3px; }
-  100% { left: calc(100% - 31px); }
+  0% { left: 2px; }
+  100% { left: calc(100% - 26px); }
 }
 
 @keyframes backdrop-wind-swirl {

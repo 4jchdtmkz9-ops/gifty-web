@@ -80,8 +80,8 @@ export default function MiniAppWelcomeGate({
           <TelegramTgsSticker src="/stickers/welcome-fire.json" size={208} className="h-[208px] w-[208px] drop-shadow-[0_18px_45px_rgba(0,0,0,0.55)]" autoplay loop fallback={<span className="text-7xl">🔥</span>} />
         </div>
         <div className="flex justify-center px-10 pb-[calc(56px+env(safe-area-inset-bottom))]">
-          <div className="relative h-1.5 w-full max-w-[280px] overflow-hidden rounded-full bg-white/15">
-            <span className="absolute top-0 h-1.5 w-7 rounded-full bg-white" style={{ animation: 'welcome-loader-slide 1.1s ease-in-out infinite alternate' }} />
+          <div className="relative h-1 w-full max-w-[280px] overflow-hidden rounded-full bg-white/15">
+            <span className="absolute top-0 h-1 w-6 rounded-full bg-white" style={{ animation: 'welcome-loader-slide 1.1s ease-in-out infinite alternate' }} />
           </div>
         </div>
       </main>
