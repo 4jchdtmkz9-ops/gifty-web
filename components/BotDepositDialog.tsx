@@ -195,7 +195,7 @@ export default function BotDepositDialog({ open, configured, onClose, onConfirme
         <label htmlFor="stars-deposit-amount" className="mt-4 block text-xs font-bold text-slate-700">{t('Stars amount')}</label>
         <div className="mt-1.5 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus-within:border-amber-400">
           <StarIcon size={18} className="shrink-0" />
-          <input id="stars-deposit-amount" type="number" inputMode="numeric" min={rate.minStars} step="1" value={starsAmount} onChange={(event) => setStarsAmount(event.target.value)} placeholder="500" disabled={phase === 'sending'} className="min-w-0 flex-1 bg-transparent text-lg font-bold tabular-nums text-slate-900 outline-none" />
+          <input id="stars-deposit-amount" type="number" inputMode="numeric" min={rate.minStars} step="1" data-static-keyboard data-keep-visible-with-keyboard value={starsAmount} onChange={(event) => setStarsAmount(event.target.value)} placeholder="500" disabled={phase === 'sending'} className="min-w-0 flex-1 bg-transparent text-lg font-bold tabular-nums text-slate-900 outline-none" />
           <span className="text-xs font-bold text-slate-500"><StarIcon size={13} /></span>
         </div>
         <div className="mt-2 grid grid-cols-4 gap-1.5">
@@ -205,13 +205,12 @@ export default function BotDepositDialog({ open, configured, onClose, onConfirme
             </button>
           ))}
         </div>
-        <p className="mt-2 text-[11px] font-semibold text-slate-600">→ {t('Stars balance')} · {t('Usable for Arena stakes')}</p>
-        <p className="mt-1 text-[10px] leading-4 text-slate-500">{t('Pay with Telegram Stars. Stars land on your separate Stars balance.')} 1 <StarIcon size={11} /> = {rate.gramPerStar} {t('GRAM')}</p>
+        <p className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-slate-600">1 <StarIcon size={13} /> = {rate.gramPerStar} <GramIcon size={13} className="text-blue-600" /> GRAM</p>
       </> : <>
         <label htmlFor="deposit-amount" className="mt-4 block text-xs font-bold text-slate-700">{t('Deposit amount')}</label>
         <div className="mt-1.5 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus-within:border-blue-400">
           <GramIcon size={18} className="shrink-0 text-blue-600" />
-          <input id="deposit-amount" type="number" inputMode="decimal" min="0.1" step="0.001" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0.1" disabled={phase === 'sending'} className="min-w-0 flex-1 bg-transparent text-lg font-bold tabular-nums text-slate-900 outline-none" />
+          <input id="deposit-amount" type="number" inputMode="decimal" min="0.1" step="0.001" data-static-keyboard data-keep-visible-with-keyboard value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0.1" disabled={phase === 'sending'} className="min-w-0 flex-1 bg-transparent text-lg font-bold tabular-nums text-slate-900 outline-none" />
           <span className="text-xs font-bold text-slate-500">TON</span>
         </div>
         <p className="mt-1.5 text-[10px] text-slate-500">{t('Minimum deposit is 0.1 TON. TON is credited 1:1 to your ORBIT balance.')}</p>
