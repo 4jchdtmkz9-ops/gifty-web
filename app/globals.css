@@ -142,6 +142,11 @@ select {
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+@keyframes welcome-loader-slide {
+  0% { left: 3px; }
+  100% { left: calc(100% - 31px); }
+}
+
 @keyframes backdrop-wind-swirl {
   to { transform: rotate(360deg) scale(1.04); }
 }
