@@ -65,7 +65,7 @@ export default function Home() {
       try {
         const result = await getBotBalance();
         setBalance(result.balanceGram);
-        setStarsBalance(result.balanceStars);
+        setStarsBalance(result.balanceStars ?? 0);
         setDepositConfigured(result.depositConfigured);
         setWithdrawalConfigured(result.withdrawalConfigured);
       } catch (error) {

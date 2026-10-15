@@ -15,7 +15,7 @@ export default function TonBalanceBadge() {
   useEffect(() => {
     let active = true;
     const refresh = () => getBotBalance()
-      .then((data) => { if (active) { setBalance(data.balanceGram); setStars(data.balanceStars); } })
+      .then((data) => { if (active) { setBalance(data.balanceGram); setStars(data.balanceStars ?? 0); } })
       .catch((error) => { console.error('ORBIT balance error:', error); });
     void refresh();
     window.addEventListener('orbit-balance-updated', refresh);

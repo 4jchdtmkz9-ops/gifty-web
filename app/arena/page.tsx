@@ -619,7 +619,7 @@ export default function ArenaPage() {
   const [starsBalance, setStarsBalance] = useState(0);
   const refreshBalances = (result: { balanceGram: string; balanceStars: number }) => {
     setBotBalance(result.balanceGram);
-    setStarsBalance(result.balanceStars);
+    setStarsBalance(result.balanceStars ?? 0);
   };
   const [ownedBackdrops, setOwnedBackdrops] = useState<ArenaStakeItem[]>([]);
   const [initData, setInitData] = useState('');
