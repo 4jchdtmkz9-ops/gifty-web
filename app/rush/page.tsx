@@ -136,7 +136,7 @@ export default function RushPage() {
   const rocketStyle = {
     left: '50%',
     top: '58%',
-    transform: `translate(-50%, -50%) rotate(${-8 + progress * 4}deg) scale(${0.85 + progress * 0.4})`,
+    transform: `translate(-50%, -50%) rotate(${-8 + progress * 4}deg) scale(${0.95 + progress * 0.45})`,
   } as const;
 
   const stakeStars = currency === 'STARS' ? Math.floor(Number(stake) || 0) : 0;
@@ -282,12 +282,12 @@ export default function RushPage() {
           {/* Rocket */}
           {phase !== 'CRASHED' && (
             <div aria-hidden="true" className="absolute" style={rocketStyle}>
-              <div className="rush-rocket-glow absolute left-1/2 top-1/2 -z-10 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/20 blur-2xl" />
-              <TelegramTgsSticker src={ROCKETS[rocketIndex]} size={112} className="block" fallback={<span className="block text-5xl">🚀</span>} />
+              <div className="rush-rocket-glow absolute left-1/2 top-1/2 -z-10 h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/20 blur-2xl" />
+              <TelegramTgsSticker src={ROCKETS[rocketIndex]} size={128} className="block" fallback={<span className="block text-6xl">🚀</span>} />
             </div>
           )}
           {phase === 'CRASHED' && crashFlash && (
-            <div aria-hidden="true" className="rush-explosion absolute h-24 w-24 rounded-full bg-orange-500/70 blur-xl" style={rocketStyle} />
+            <div aria-hidden="true" className="rush-explosion absolute h-32 w-32 rounded-full bg-orange-500/70 blur-xl" style={rocketStyle} />
           )}
 
           {/* My bet result banner */}
