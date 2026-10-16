@@ -463,7 +463,17 @@ export default function RushPage() {
                   ) : (
                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold">{player.name.slice(0, 1).toUpperCase()}</span>
                   )}
-                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-200">{player.name}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-xs font-semibold text-slate-200">{player.name}</span>
+                    <span className="mt-0.5 flex items-center gap-1 text-[11px] font-bold tabular-nums text-slate-400">
+                      {t('Bet')}{' '}
+                      {player.currency === 'STARS' ? (
+                        <>{formatStars(player.stakeStars)} <StarIcon size={11} /></>
+                      ) : (
+                        <>{formatGramShort(player.stakeGram)} <GramIcon size={11} className="text-blue-400" /></>
+                      )}
+                    </span>
+                  </span>
                   {player.status === 'CASHED_OUT' && (
                     <span className="flex shrink-0 items-center gap-1 text-xs font-bold tabular-nums text-emerald-400">
                       x{player.cashoutMultiplier} · {player.currency === 'STARS' ? formatStars(player.payoutStars) : formatGramShort(player.payoutGram)}
