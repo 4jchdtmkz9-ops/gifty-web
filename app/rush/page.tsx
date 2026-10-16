@@ -75,10 +75,18 @@ export default function RushPage() {
 
   // Smooth countdown/multiplier between polls while the round is live.
   const phase = state?.round.phase ?? null;
+  const driftRef = useRef(0);
+  const liveMultRef = useRef(1);
   useEffect(() => {
     if (phase !== 'FLYING' && phase !== 'BETTING') return;
     let frame = 0;
-    const loop = () => {
+    let last = performance.now();
+    const loop = (now: number) => {
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      // Starfield speed in band-%/s: slow idle drift, warp-speed in flight.
+      const speed = phase === 'FLYING' ? Math.min(220, 24 + 10 * liveMultRef.current) : 7;
+      driftRef.current += speed * dt;
       setTick(Date.now());
       frame = requestAnimationFrame(loop);
     };
@@ -111,31 +119,36 @@ export default function RushPage() {
 
   const myBet = state?.myBet ?? null;
   const myActiveBet = myBet?.status === 'ACTIVE' ? myBet : null;
+  const myCap = myActiveBet?.capMultiplier ? Number(myActiveBet.capMultiplier) : null;
+  // A capped bet dies (server marks it LOST) as soon as the rocket passes the cap.
+  const myCappedOut = myCap != null && phase === 'FLYING' && Math.floor(liveMultiplier * 100) / 100 >= myCap;
+  const myPayoutMultiplier = myCap != null ? Math.min(liveMultiplier, myCap) : liveMultiplier;
   const myLivePayout =
     myActiveBet && phase === 'FLYING'
       ? myActiveBet.currency === 'STARS'
-        ? Math.floor(myActiveBet.stakeStars * liveMultiplier)
-        : formatGramShort(Number(myActiveBet.stakeGram) * liveMultiplier)
+        ? Math.floor(myActiveBet.stakeStars * myPayoutMultiplier)
+        : formatGramShort(Number(myActiveBet.stakeGram) * myPayoutMultiplier)
       : null;
+  liveMultRef.current = liveMultiplier;
 
-  // Rocket flight path: bottom-left → upper-right, steeper as the multiplier grows.
+  // The rocket holds the center of the screen: it only tilts and grows with the multiplier.
   const progress = Math.min(1, Math.log(Math.max(1, liveMultiplier)) / Math.log(26));
   const rocketStyle = {
-    left: `${6 + progress * 56}%`,
-    bottom: `${10 + progress * 48}%`,
-    transform: `rotate(${-16 - progress * 16}deg) scale(${0.8 + progress * 0.4})`,
+    left: '50%',
+    top: '58%',
+    transform: `translate(-50%, -50%) rotate(${-8 + progress * 4}deg) scale(${0.85 + progress * 0.4})`,
   } as const;
 
   const stakeStars = currency === 'STARS' ? Math.floor(Number(stake) || 0) : 0;
   const stakeGramValue = currency === 'GRAM' ? Number(stake) : 0;
-  const stakeValid = currency === 'STARS' ? stakeStars >= 1 : stakeGramValue >= 0.05;
+  const stakeValid = currency === 'STARS' ? stakeStars >= 1 : Number.isFinite(stakeGramValue) && stakeGramValue >= 0.01;
   const autoTarget = Number(autoMult);
   const autoValid = !autoOn || (Number.isFinite(autoTarget) && autoTarget >= 1.1 && autoTarget <= 500);
 
-  const presets = currency === 'STARS' ? ['1', '5', '10', '50'] : ['0.1', '0.5', '1', '5'];
+  const presets = currency === 'STARS' ? ['1', '5', '10', '50'] : ['0.01', '0.1', '0.5', '1'];
 
   const canBet = phase === 'BETTING' && !myBet && stakeValid && autoValid && !busy;
-  const canCashout = phase === 'FLYING' && Boolean(myActiveBet) && !busy;
+  const canCashout = phase === 'FLYING' && Boolean(myActiveBet) && !myCappedOut && !busy;
 
   async function doBet() {
     if (!canBet) return;
@@ -171,16 +184,18 @@ export default function RushPage() {
 
   const players = state?.players ?? [];
   const starsBalance = state?.balanceStars ?? 0;
+  const gramBalance = state?.balanceGram ?? '0';
 
-  // Slow drifting star field, generated once.
-  const stars = useMemo(
+  // Two identical stacked star bands scroll and loop seamlessly; the flight
+  // loop below advances `driftRef` so the field warps past during the round.
+  const starField = useMemo(
     () =>
-      Array.from({ length: 64 }, (_, index) => ({
+      Array.from({ length: 42 }, (_, index) => ({
         id: index,
         left: (index * 37.7) % 100,
         top: (index * 61.3) % 100,
         size: index % 7 === 0 ? 2 : 1,
-        delay: (index % 9) * 0.7,
+        opacity: index % 5 === 0 ? 0.9 : 0.55,
       })),
     [],
   );
@@ -188,20 +203,26 @@ export default function RushPage() {
   return (
     <main className="min-h-screen bg-[#070b16] text-white">
       <div className="relative mx-auto flex min-h-screen max-w-[480px] flex-col overflow-hidden px-4 pb-6">
-        {/* Space background */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        {/* Space background: radial glow + two looping star bands that fly past */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(120%_70%_at_50%_-10%,#101a36_0%,#070b16_60%)]" />
-          {stars.map((star) => (
-            <span
-              key={star.id}
-              className="rush-star absolute rounded-full bg-white"
-              style={{ left: `${star.left}%`, top: `${star.top}%`, width: star.size, height: star.size, animationDelay: `${star.delay}s` }}
-            />
-          ))}
+          <div className="absolute inset-x-0" style={{ top: `${driftRef.current % 100 - 100}%`, height: '200%' }}>
+            {[0, 1].map((band) => (
+              <div key={band} className="absolute inset-0" style={{ top: `${band * 50}%`, height: '50%' }}>
+                {starField.map((star) => (
+                  <span
+                    key={star.id}
+                    className="absolute rounded-full bg-white"
+                    style={{ left: `${star.left}%`, top: `${star.top}%`, width: star.size, height: star.size, opacity: star.opacity }}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
           {crashFlash && <div className="rush-crash-flash absolute inset-0 bg-red-500/30" />}
         </div>
 
-        {/* Header */}
+        {/* Header: GRAM + Stars balances, tap to top up */}
         <header className="relative z-10 flex items-center justify-between py-3">
           <Link href="/" aria-label={t('Home')} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-slate-300 transition hover:bg-white/10">
             <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4"><path d="M12.5 4 6.5 10l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -210,10 +231,18 @@ export default function RushPage() {
           <button
             type="button"
             onClick={() => setDepositOpen(true)}
-            className="flex items-center gap-1.5 rounded-full bg-white/5 py-1.5 pl-3 pr-1.5 text-sm font-bold tabular-nums text-amber-400 transition hover:bg-white/10"
+            aria-label={t('Your balance')}
+            className="flex items-center gap-2 rounded-full bg-white/5 py-1.5 pl-2.5 pr-1.5 text-sm font-bold tabular-nums transition hover:bg-white/10"
           >
-            {formatStars(starsBalance)}
-            <StarIcon size={16} />
+            <span className="flex items-center gap-1 text-blue-200">
+              <GramIcon size={15} className="text-blue-400" />
+              {formatGramShort(gramBalance)}
+            </span>
+            <span className="h-3.5 w-px bg-white/15" />
+            <span className="flex items-center gap-1 text-amber-400">
+              {formatStars(starsBalance)}
+              <StarIcon size={15} />
+            </span>
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-white">+</span>
           </button>
         </header>
@@ -273,7 +302,15 @@ export default function RushPage() {
           {myBet?.status === 'LOST' && phase === 'CRASHED' && (
             <div className="absolute inset-x-0 bottom-2 text-center">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/15 px-4 py-2 text-sm font-bold text-red-400">
-                {t('The rocket crashed before your cash-out')}
+                {myBet.capMultiplier ? `${t('Capped out')} x${myBet.capMultiplier}` : t('The rocket crashed before your cash-out')}
+              </span>
+            </div>
+          )}
+          {/* Capped low-stake bet: dies the moment the rocket passes its cap */}
+          {myCappedOut && (
+            <div className="absolute inset-x-0 bottom-2 text-center">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/15 px-4 py-2 text-sm font-bold text-red-400">
+                {t('Capped out')} x{myCap?.toFixed(2)}
               </span>
             </div>
           )}
@@ -312,7 +349,7 @@ export default function RushPage() {
                   className={`flex h-8 w-9 items-center justify-center rounded-xl text-xs font-bold transition ${currency === option ? 'bg-blue-600 text-white' : 'text-slate-400'}`}
                   aria-label={option}
                 >
-                  {option === 'STARS' ? <StarIcon size={13} /> : 'G'}
+                  {option === 'STARS' ? <StarIcon size={13} /> : <GramIcon size={13} />}
                 </button>
               ))}
             </div>
@@ -366,6 +403,13 @@ export default function RushPage() {
               </button>
             </div>
           </div>
+
+          {/* Personal flight cap (low-stake rounds) */}
+          {myBet?.capMultiplier && (
+            <p className="mt-2 rounded-xl bg-orange-500/10 px-3 py-2 text-center text-xs font-bold text-orange-400">
+              {t('This round is capped at')} x{Number(myBet.capMultiplier).toFixed(2)}
+            </p>
+          )}
 
           {/* Main action */}
           {canCashout && myActiveBet ? (
@@ -423,16 +467,19 @@ export default function RushPage() {
                   {player.status === 'CASHED_OUT' && (
                     <span className="flex shrink-0 items-center gap-1 text-xs font-bold tabular-nums text-emerald-400">
                       x{player.cashoutMultiplier} · {player.currency === 'STARS' ? formatStars(player.payoutStars) : formatGramShort(player.payoutGram)}
-                      {player.currency === 'STARS' ? <StarIcon size={11} /> : <span className="text-[10px] text-blue-400">G</span>}
+                      {player.currency === 'STARS' ? <StarIcon size={11} /> : <GramIcon size={11} />}
                     </span>
                   )}
                   {player.status === 'LOST' && (
                     <span className="shrink-0 text-xs font-bold text-red-400/80">
-                      {t('Crashed')} x{round?.crashMultiplier ?? '—'}
+                      {player.capMultiplier ? `MAX x${Number(player.capMultiplier).toFixed(2)}` : <>{t('Crashed')} x{round?.crashMultiplier ?? '—'}</>}
                     </span>
                   )}
                   {player.status === 'ACTIVE' && (
-                    <span className="rush-live-dot shrink-0 rounded-full bg-amber-400" />
+                    <span className="flex shrink-0 items-center gap-1.5">
+                      {player.capMultiplier && <span className="text-[10px] font-bold tabular-nums text-orange-400">MAX x{Number(player.capMultiplier).toFixed(2)}</span>}
+                      <span className="rush-live-dot rounded-full bg-amber-400" />
+                    </span>
                   )}
                 </div>
               ))}

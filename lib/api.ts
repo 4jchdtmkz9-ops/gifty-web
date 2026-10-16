@@ -318,6 +318,8 @@ export type RushBetView = {
   stakeStars: number;
   stakeGram: string;
   autoCashoutAt: string | null;
+  /** Sub-10-Star stakes fly a capped round 70% of the time; null = no cap. */
+  capMultiplier: string | null;
   status: 'ACTIVE' | 'CASHED_OUT' | 'LOST';
   cashoutMultiplier: string | null;
   payoutStars: number;
@@ -342,7 +344,7 @@ export type RushState = {
   balanceStars: number;
 };
 
-export type RushBetResult = { round: number; balanceGram: string; balanceStars: number };
+export type RushBetResult = { round: number; capMultiplier: string | null; balanceGram: string; balanceStars: number };
 export type RushCashoutResult = { multiplier: string; payoutStars: number; payoutGram: string; balanceGram: string; balanceStars: number };
 
 async function rushRequest<T>(path: string, body?: Record<string, unknown>): Promise<T> {
