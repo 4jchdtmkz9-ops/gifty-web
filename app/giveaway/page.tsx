@@ -107,23 +107,23 @@ export default function NftGiveawayPage() {
             ←
           </Link>
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-600">ORBIT GIVEAWAY</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-600">ORBIT GIVEAWAY</p>
             <h1 className="truncate text-xl font-bold leading-tight text-blue-950">{t('REFERRAL NFT GIVEAWAY')}</h1>
           </div>
         </header>
 
         {/* Prize hero */}
-        <section className="relative overflow-hidden rounded-[28px] border border-orange-500/25 bg-[linear-gradient(150deg,#1d1310_0%,#2a1a12_45%,#170f0c_100%)] p-5 text-white shadow-[0_16px_40px_rgba(24,12,6,.4)]">
-          <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 h-52 w-52 rounded-full bg-[#f97316]/25 blur-3xl" />
-          <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -right-12 h-52 w-52 rounded-full bg-[#dc2626]/20 blur-3xl" />
+        <section className="relative overflow-hidden rounded-[28px] border border-emerald-500/25 bg-[linear-gradient(150deg,#111c0d_0%,#1a2a12_45%,#0e160a_100%)] p-5 text-white shadow-[0_16px_40px_rgba(8,18,4,.5)]">
+          <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 h-52 w-52 rounded-full bg-[#8ab163]/25 blur-3xl" />
+          <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -right-12 h-52 w-52 rounded-full bg-[#126b00]/30 blur-3xl" />
           <div className="relative flex items-start gap-4">
-            <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-orange-400/25 shadow-[0_4px_16px_rgba(249,115,22,.25)]" aria-hidden="true">
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-emerald-400/25 shadow-[0_4px_16px_rgba(85,147,69,.25)]" aria-hidden="true">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/nft/chillflame.jpg" alt="" className="h-full w-full object-cover" />
             </span>
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[.3em] text-orange-300/70">NFT · CHILLFLAME</p>
-              <p className="mt-1.5 text-[13px] leading-snug text-orange-100/85">
+              <p className="text-[11px] font-semibold uppercase tracking-[.3em] text-emerald-300/70">NFT · CHILLFLAME</p>
+              <p className="mt-1.5 text-[13px] leading-snug text-emerald-100/85">
                 {t('Want to grab a cool NFT? Take part in our referral contest and win prizes!')}
               </p>
             </div>
@@ -132,7 +132,7 @@ export default function NftGiveawayPage() {
             href={NFT_GIVEAWAY_PRIZE_URL}
             target="_blank"
             rel="noreferrer"
-            className="relative mt-4 inline-flex items-center gap-2 rounded-full border border-orange-400/30 bg-orange-500/15 px-4 py-2 text-[11px] font-black uppercase tracking-[.16em] text-orange-100 transition hover:bg-orange-500/25"
+            className="relative mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/15 px-4 py-2 text-[11px] font-black uppercase tracking-[.16em] text-emerald-100 transition hover:bg-emerald-500/25"
           >
             {t('View NFT')}
             <svg aria-hidden="true" viewBox="0 0 12 12" fill="none" className="h-3 w-3">
@@ -159,15 +159,15 @@ export default function NftGiveawayPage() {
         )}
 
         {/* Progress to the draw */}
-        <section className="mt-3 rounded-3xl border border-orange-100 bg-white p-4 shadow-sm">
+        <section className="mt-3 rounded-3xl border border-emerald-100 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <span className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">{t('Participants')}</span>
-            <span className="text-sm font-black tabular-nums text-orange-600">
+            <span className="text-sm font-black tabular-nums text-emerald-600">
               {participants}/{NFT_GIVEAWAY_PARTICIPANT_LIMIT}
             </span>
           </div>
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
-            <span className="block h-full rounded-full bg-gradient-to-r from-orange-400 to-red-500 transition-all duration-500" style={{ width: `${progress}%` }} />
+            <span className="block h-full rounded-full bg-gradient-to-r from-emerald-400 to-green-600 transition-all duration-500" style={{ width: `${progress}%` }} />
           </div>
         </section>
 
@@ -176,7 +176,7 @@ export default function NftGiveawayPage() {
           <h2 className="text-sm font-black text-blue-950">{t('How to participate')}</h2>
           <div className="mt-3 space-y-2">
             <a href={CHANNEL_URL} target="_blank" rel="noreferrer" className={conditionRowClass(Boolean(conditions?.subscribed))}>
-              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base ${conditions?.subscribed ? 'bg-emerald-100' : 'bg-orange-50'}`} aria-hidden="true">
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base ${conditions?.subscribed ? 'bg-emerald-100' : 'bg-emerald-50'}`} aria-hidden="true">
                 {conditions?.subscribed ? '✓' : '📣'}
               </span>
               <span className="min-w-0 flex-1">
@@ -193,7 +193,7 @@ export default function NftGiveawayPage() {
               onClick={() => void tonConnectUi.openModal()}
               className={`${conditionRowClass(Boolean(conditions?.walletConnected))} w-full text-left`}
             >
-              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base ${conditions?.walletConnected ? 'bg-emerald-100' : 'bg-orange-50'}`} aria-hidden="true">
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base ${conditions?.walletConnected ? 'bg-emerald-100' : 'bg-emerald-50'}`} aria-hidden="true">
                 {conditions?.walletConnected ? '✓' : '🔗'}
               </span>
               <span className="min-w-0 flex-1">
@@ -206,7 +206,7 @@ export default function NftGiveawayPage() {
             </button>
 
             <Link href="/arena" className={conditionRowClass(Boolean(conditions?.arenaStake))}>
-              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base ${conditions?.arenaStake ? 'bg-emerald-100' : 'bg-orange-50'}`} aria-hidden="true">
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base ${conditions?.arenaStake ? 'bg-emerald-100' : 'bg-emerald-50'}`} aria-hidden="true">
                 {conditions?.arenaStake ? '✓' : '💰'}
               </span>
               <span className="min-w-0 flex-1">
@@ -228,7 +228,7 @@ export default function NftGiveawayPage() {
           className={`mt-4 w-full rounded-2xl py-4 text-base font-black text-white transition active:scale-[0.98] ${
             entered
               ? 'bg-emerald-500 shadow-[0_8px_24px_rgba(16,185,129,0.3)]'
-              : 'bg-orange-500 shadow-[0_8px_24px_rgba(249,115,22,0.35)]'
+              : 'bg-[#559345] shadow-[0_8px_24px_rgba(85,147,69,0.35)]'
           } ${canEnter ? '' : 'opacity-60'}`}
         >
           {busy
@@ -273,7 +273,7 @@ export default function NftGiveawayPage() {
                 <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{t('Friends invited')}</p>
                 <p className="mt-0.5 text-sm font-black tabular-nums text-blue-800">
                   {status.referralCount}
-                  <span className="ml-1 text-[10px] font-bold text-orange-500">+{status.referralBonusPercent}%</span>
+                  <span className="ml-1 text-[10px] font-bold text-emerald-500">+{status.referralBonusPercent}%</span>
                 </p>
               </div>
               <div className="rounded-2xl bg-slate-50 px-3 py-2.5">
