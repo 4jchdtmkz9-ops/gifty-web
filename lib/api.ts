@@ -308,6 +308,70 @@ export async function resolveFreeCaseNft(requestId: string, action: 'sell' | 'cl
   return response.json() as Promise<FreeCaseNftResolution>;
 }
 
+// ── RUSH (rocket crash game) ───────────────────────────────────────
+
+export type RushPhase = 'BETTING' | 'FLYING' | 'CRASHED';
+
+export type RushBetView = {
+  isMe?: boolean;
+  currency: 'GRAM' | 'STARS';
+  stakeStars: number;
+  stakeGram: string;
+  autoCashoutAt: string | null;
+  status: 'ACTIVE' | 'CASHED_OUT' | 'LOST';
+  cashoutMultiplier: string | null;
+  payoutStars: number;
+  payoutGram: string;
+};
+
+export type RushState = {
+  serverNow: string;
+  round: {
+    id: string;
+    number: number;
+    phase: RushPhase;
+    bettingEndsAt: string;
+    flyingStartedAt: string | null;
+    currentMultiplier: string | null;
+    crashMultiplier: string | null;
+  };
+  history: Array<{ number: number; crashMultiplier: string }>;
+  players: Array<RushBetView & { name: string; photoUrl: string | null }>;
+  myBet: (RushBetView & { id: string }) | null;
+  balanceGram: string;
+  balanceStars: number;
+};
+
+export type RushBetResult = { round: number; balanceGram: string; balanceStars: number };
+export type RushCashoutResult = { multiplier: string; payoutStars: number; payoutGram: string; balanceGram: string; balanceStars: number };
+
+async function rushRequest<T>(path: string, body?: Record<string, unknown>): Promise<T> {
+  const initData = getTelegramInitData();
+  if (!initData) throw new Error('Open ORBIT inside Telegram to play');
+  const response = await fetch(`${API_URL}/games/rush/${path}`, {
+    method: body ? 'POST' : 'GET',
+    headers: body ? { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': initData } : { 'X-Telegram-Init-Data': initData },
+    body: body ? JSON.stringify({ ...body, initData }) : undefined,
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error(await responseError(response, 'RUSH request failed'));
+  const result = await response.json() as T;
+  if (body && typeof window !== 'undefined') window.dispatchEvent(new Event('orbit-balance-updated'));
+  return result;
+}
+
+export function getRushState() {
+  return rushRequest<RushState>('state');
+}
+
+export function placeRushBet(input: { requestId: string; currency: 'GRAM' | 'STARS'; stars?: number; gram?: string; autoCashoutAt?: number | null }) {
+  return rushRequest<RushBetResult>('bet', input as unknown as Record<string, unknown>);
+}
+
+export function cashOutRushBet(betId: string) {
+  return rushRequest<RushCashoutResult>('cashout', { betId });
+}
+
 export type BotDepositIntent = {
   id: string;
   amountTon: string;

@@ -1049,3 +1049,52 @@ html[data-theme='dark'] .orbit-giveaway-divider-line {
   background: linear-gradient(90deg, rgba(57, 121, 238, 0.35) 0%, rgba(42, 57, 78, 0.75) 65%, transparent 100%) !important;
 }
 
+
+/* ── RUSH rocket crash game ───────────────────────────────────── */
+@keyframes rush-twinkle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.9; }
+}
+
+.rush-star {
+  animation: rush-twinkle 2.8s ease-in-out infinite;
+}
+
+@keyframes rush-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.82); }
+}
+
+.rush-live-dot {
+  width: 8px;
+  height: 8px;
+  animation: rush-pulse 1s ease-in-out infinite;
+}
+
+@keyframes rush-glow-breathe {
+  0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.95; transform: translate(-50%, -50%) scale(1.15); }
+}
+
+.rush-rocket-glow {
+  animation: rush-glow-breathe 1.6s ease-in-out infinite;
+}
+
+@keyframes rush-crash-flash-anim {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.rush-crash-flash {
+  animation: rush-crash-flash-anim 0.9s ease-out forwards;
+}
+
+@keyframes rush-explosion-pop {
+  0% { opacity: 0.95; transform: scale(0.4); }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+
+.rush-explosion {
+  animation: rush-explosion-pop 0.8s ease-out forwards;
+}
