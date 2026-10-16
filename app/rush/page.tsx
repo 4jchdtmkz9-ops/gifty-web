@@ -466,7 +466,6 @@ export default function RushPage() {
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-xs font-semibold text-slate-200">{player.name}</span>
                     <span className="mt-0.5 flex items-center gap-1 text-[11px] font-bold tabular-nums text-slate-400">
-                      {t('Bet')}{' '}
                       {player.currency === 'STARS' ? (
                         <>{formatStars(player.stakeStars)} <StarIcon size={11} /></>
                       ) : (

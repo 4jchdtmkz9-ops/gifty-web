@@ -117,8 +117,9 @@ export default function NftGiveawayPage() {
           <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 h-52 w-52 rounded-full bg-[#f97316]/25 blur-3xl" />
           <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -right-12 h-52 w-52 rounded-full bg-[#dc2626]/20 blur-3xl" />
           <div className="relative flex items-start gap-4">
-            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-orange-400/25 bg-orange-950/40 text-4xl shadow-[0_4px_16px_rgba(249,115,22,.25)]" aria-hidden="true">
-              🔥
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-orange-400/25 shadow-[0_4px_16px_rgba(249,115,22,.25)]" aria-hidden="true">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/nft/chillflame.jpg" alt="" className="h-full w-full object-cover" />
             </span>
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[.3em] text-orange-300/70">NFT · CHILLFLAME</p>
@@ -133,7 +134,7 @@ export default function NftGiveawayPage() {
             rel="noreferrer"
             className="relative mt-4 inline-flex items-center gap-2 rounded-full border border-orange-400/30 bg-orange-500/15 px-4 py-2 text-[11px] font-black uppercase tracking-[.16em] text-orange-100 transition hover:bg-orange-500/25"
           >
-            🎁 {t('View NFT')}
+            {t('View NFT')}
             <svg aria-hidden="true" viewBox="0 0 12 12" fill="none" className="h-3 w-3">
               <path d="M2.5 9.5 9.5 2.5M9.5 2.5H4.5M9.5 2.5V7.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -168,7 +169,6 @@ export default function NftGiveawayPage() {
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
             <span className="block h-full rounded-full bg-gradient-to-r from-orange-400 to-red-500 transition-all duration-500" style={{ width: `${progress}%` }} />
           </div>
-          <p className="mt-2 text-[11px] leading-snug text-slate-500">{t('The draw starts as soon as 10 participants join!')}</p>
         </section>
 
         {/* Conditions */}
@@ -281,7 +281,6 @@ export default function NftGiveawayPage() {
                 <p className="mt-0.5 text-sm font-black tabular-nums text-blue-800">{status.referralVisitCount}</p>
               </div>
             </div>
-            <p className="mt-3 text-[11px] leading-snug text-slate-500">{t('Invite friends — each friend raises your chance to win! 🚀')}</p>
           </section>
         )}
       </div>

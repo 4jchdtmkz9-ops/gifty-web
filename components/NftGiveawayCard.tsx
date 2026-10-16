@@ -52,10 +52,11 @@ export default function NftGiveawayCard() {
 
       <div className="relative flex flex-col items-center px-5 py-7 text-center">
         <span
-          className="flex h-14 w-14 items-center justify-center rounded-2xl border border-orange-400/25 bg-orange-950/40 text-[32px] shadow-[inset_0_1px_0_rgba(255,255,255,.12),0_4px_16px_rgba(249,115,22,.22)] transition duration-300 group-hover:scale-105"
+          className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-orange-400/25 shadow-[inset_0_1px_0_rgba(255,255,255,.12),0_4px_16px_rgba(249,115,22,.22)] transition duration-300 group-hover:scale-105"
           aria-hidden="true"
         >
-          🔥
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/nft/chillflame.jpg" alt="" className="h-full w-full object-cover" />
         </span>
 
         <p className="mt-3.5 text-[11px] font-semibold uppercase tracking-[.32em] text-orange-300/70">{text.title}</p>
@@ -70,7 +71,6 @@ export default function NftGiveawayCard() {
         </div>
 
         <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-orange-400/25 bg-orange-500/10 px-4 py-1.5 shadow-[0_0_16px_rgba(249,115,22,0.16)] transition duration-200 group-hover:border-orange-400/40 group-hover:bg-orange-500/15">
-          <span className="text-[13px] leading-none" aria-hidden="true">🎁</span>
           <span className="text-[11px] font-black tabular-nums tracking-[.14em] text-orange-200">
             {participants ?? '—'}/{NFT_GIVEAWAY_PARTICIPANT_LIMIT}
           </span>
