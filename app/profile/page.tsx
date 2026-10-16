@@ -10,7 +10,7 @@ import {
   getOffers,
   getOwnedGifts,
   getProfileHistory,
-  getRoseGiveawayStatus,
+  getNftGiveawayStatus,
   releaseOfferAcceptance,
   rejectOffer,
   sellGift,
@@ -141,7 +141,7 @@ export default function ProfilePage() {
         getOffers(),
         getIncomingOffers(),
         getProfileHistory(),
-        getRoseGiveawayStatus().catch(() => null),
+        getNftGiveawayStatus().catch(() => null),
       ]);
       setOwned(ownedGifts);
       setListed(listedGifts);

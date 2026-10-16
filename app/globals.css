@@ -696,38 +696,6 @@ html[data-theme='dark'] main [class*='border-red-100'] {
   border-color: var(--orbit-border) !important;
 }
 
-html[data-theme='dark'] main .rose-giveaway {
-  border-color: var(--orbit-border) !important;
-  background-color: var(--orbit-surface) !important;
-}
-
-html[data-theme='dark'] main .rose-giveaway-header {
-  background: linear-gradient(105deg, #352329, #1b293d 68%, #302437) !important;
-}
-
-html[data-theme='dark'] main .rose-giveaway-art {
-  background: #402733 !important;
-}
-
-html[data-theme='dark'] main .rose-giveaway [class*='border-rose-'] {
-  border-color: #593443 !important;
-}
-
-html[data-theme='dark'] main .rose-giveaway a[href*='t.me'] {
-  color: #91baff;
-}
-
-html[data-theme='dark'] main .rose-referral-box {
-  border-color: #593443 !important;
-  background: #2b2026 !important;
-}
-
-html[data-theme='dark'] main .rose-referral-link {
-  border-color: #593443 !important;
-  background: #211d22 !important;
-  color: #e5e7eb !important;
-}
-
 html[data-theme='dark'] main [class*='border-yellow-200'] {
   border-color: #574a2d !important;
 }

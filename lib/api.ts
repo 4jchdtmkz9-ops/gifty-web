@@ -400,45 +400,43 @@ export async function getBotBalance() {
   return response.json() as Promise<BotBalance>;
 }
 
-export type RoseGiveawayWinner = { username: string | null; firstName: string | null; lastName: string | null; photoUrl: string | null };
-export type RoseGiveawayStatus = {
+export type NftGiveawayWinner = { username: string | null; firstName: string | null; lastName: string | null; photoUrl: string | null };
+export type NftGiveawayStatus = {
   entered: boolean;
-  applicationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
   participants: number;
-  winner: RoseGiveawayWinner | null;
+  winner: NftGiveawayWinner | null;
   full: boolean;
+  conditions: { subscribed: boolean; walletConnected: boolean; arenaStake: boolean };
   referralLink: string | null;
   referralCount: number;
   referralVisitCount: number;
   referralBonusPercent: number;
 };
 
-async function roseGiveawayRequest(path: 'status' | 'enter', profileConditionConfirmed = false) {
+async function nftGiveawayRequest(path: 'status' | 'enter') {
   const initData = getTelegramInitData();
   if (!initData) throw new Error('Open ORBIT inside Telegram to enter');
-  const referralCode = typeof window !== 'undefined' ? window.sessionStorage.getItem('orbit-rose-referral-code') : null;
-  const response = await fetch(`${API_URL}/giveaways/rose/${path}`, {
+  const referralCode = typeof window !== 'undefined' ? window.sessionStorage.getItem('orbit-nft-referral-code') : null;
+  const response = await fetch(`${API_URL}/giveaways/nft/${path}`, {
     method: path === 'enter' ? 'POST' : 'GET',
     headers: {
       'X-Telegram-Init-Data': initData,
       ...(path === 'enter' ? { 'Content-Type': 'application/json' } : {}),
-      ...(referralCode ? { 'X-Rose-Referral-Code': referralCode } : {}),
+      ...(referralCode ? { 'X-Giveaway-Referral-Code': referralCode } : {}),
     },
-    ...(path === 'enter' ? { body: JSON.stringify({ profileConditionConfirmed }) } : {}),
+    ...(path === 'enter' ? { body: '{}' } : {}),
     cache: 'no-store',
   });
-  if (!response.ok) throw new Error(await responseError(response, 'Could not load the rose giveaway'));
-  // Only remove referral code after enter action, not on status checks
-  // to preserve the referral bonus across status refreshes
-  return response.json() as Promise<RoseGiveawayStatus>;
+  if (!response.ok) throw new Error(await responseError(response, 'Could not load the NFT giveaway'));
+  return response.json() as Promise<NftGiveawayStatus>;
 }
 
-export function getRoseGiveawayStatus() {
-  return roseGiveawayRequest('status');
+export function getNftGiveawayStatus() {
+  return nftGiveawayRequest('status');
 }
 
-export function enterRoseGiveaway(profileConditionConfirmed = false) {
-  return roseGiveawayRequest('enter', profileConditionConfirmed);
+export function enterNftGiveaway() {
+  return nftGiveawayRequest('enter');
 }
 
 export async function createBotDepositIntent(amountTon: string, walletAddress: string) {

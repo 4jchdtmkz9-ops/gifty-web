@@ -15,8 +15,7 @@ import { useOrbitLanguage } from '../components/OrbitLanguageContext';
 import GramIcon from '../components/GramIcon';
 import StarIcon from '../components/StarIcon';
 import { getBotBalance } from '../lib/api';
-import RoseGiveawayCard from '../components/RoseGiveawayCard';
-import StatueGiveawayCard from '../components/StatueGiveawayCard';
+import NftGiveawayCard from '../components/NftGiveawayCard';
 import {
   TonConnectButton,
   useTonAddress,
@@ -204,8 +203,7 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <StatueGiveawayCard />
-            <RoseGiveawayCard />
+            <NftGiveawayCard />
           </div>
         </section>
 
